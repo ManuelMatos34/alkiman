@@ -1,0 +1,34 @@
+# === .NET (BACKEND) ===
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Secrets locales de .NET (dotnet user-secrets ya los guarda fuera del repo,
+# pero por si alguien pega credenciales reales en un appsettings.*.json local)
+**/appsettings.Local.json
+**/appsettings.*.local.json
+**/secrets.json
+
+# === Node / Vite (FRONTEND) ===
+**/node_modules/
+**/dist/
+**/dist-ssr/
+*.local
+
+# === Editor / OS ===
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# === Logs ===
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

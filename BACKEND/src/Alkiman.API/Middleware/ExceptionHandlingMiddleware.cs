@@ -31,7 +31,9 @@ public class ExceptionHandlingMiddleware
                 _ => (HttpStatusCode.InternalServerError, "Error interno del servidor")
             };
 
-            if (statusCode == HttpStatusCode.InternalServerError)
+            var isUnexpected = statusCode == HttpStatusCode.InternalServerError;
+
+            if (isUnexpected)
                 _logger.LogError(ex, "Error no controlado procesando {Method} {Path}", context.Request.Method, context.Request.Path);
 
             context.Response.ContentType = "application/problem+json";
@@ -42,7 +44,13 @@ public class ExceptionHandlingMiddleware
                 type = $"https://httpstatuses.io/{(int)statusCode}",
                 title,
                 status = (int)statusCode,
-                detail = ex.Message
+                // Los mensajes de las excepciones de Application están escritos para que
+                // los lea el usuario. El de una excepción inesperada no: un SqlException
+                // le nombra al cliente la tabla, la columna y el foreign key que falló.
+                // Eso queda en el log, que es donde sirve.
+                detail = isUnexpected
+                    ? "Ocurrió un error inesperado. Si vuelve a pasar, avisale a soporte."
+                    : ex.Message
             });
         }
     }

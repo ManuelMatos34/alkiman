@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Alkiman.API.Authorization;
 using Alkiman.API.Middleware;
+using Alkiman.API.Authentication;
 using Alkiman.API.Services;
 using Alkiman.Application;
 using Alkiman.Application.Common.Interfaces;
@@ -46,6 +47,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ClockSkew = TimeSpan.FromMinutes(1),
         };
+
+        // Firma y vencimiento no alcanzan: un usuario eliminado o desactivado seguiría
+        // entrando hasta que caduque su token. Acá se confirma contra la base.
+        options.Events = ActiveUserJwtEvents.Create();
     });
 
 // Falla el arranque si un módulo declara un rol con un permiso que no existe o que es

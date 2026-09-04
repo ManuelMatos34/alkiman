@@ -1,0 +1,396 @@
+{
+  "nav": {
+    "board": "Board",
+    "washers": "Washers",
+    "services": "Services",
+    "extras": "Add-ons",
+    "portalLinks": "Portal links",
+    "changeModule": "Change module"
+  },
+  "setup": {
+    "title": "Set up your Carwash",
+    "description": "Choose how you work. This defines whether the work is split among washers or you handle it all yourself.",
+    "hint": "If you choose Business, you add your staff under Washers. They do not need an account: you only create one for those who must sign in too.",
+    "confirm": "Get started",
+    "modes": {
+      "Empresa": {
+        "title": "Business",
+        "description": "Several people working. You assign each vehicle to a washer and track its progress."
+      },
+      "Solitario": {
+        "title": "Working solo",
+        "description": "A single person. Vehicles are assigned automatically when the wash starts, with no extra steps."
+      }
+    },
+    "toast": {
+      "success": "Done, your Carwash is set up.",
+      "error": "Could not save the configuration."
+    }
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "nameMax": "Name cannot exceed 100 characters",
+    "descriptionMax": "Description cannot exceed 300 characters",
+    "priceRequired": "Price is required",
+    "priceInvalid": "Price must be a valid number",
+    "priceNegative": "Price cannot be negative",
+    "minutesRequired": "Estimated duration is required",
+    "minutesInvalid": "Duration must be a valid number",
+    "minutesInteger": "Duration must be a whole number",
+    "minutesPositive": "Duration must be greater than zero",
+    "minutesNonNegative": "Duration cannot be negative"
+  },
+  "vehicle": {
+    "sectionTitle": "Vehicle details",
+    "fields": {
+      "brand": "Make",
+      "model": "Model",
+      "year": "Year",
+      "color": "Color"
+    },
+    "placeholders": {
+      "brand": "E.g: Toyota",
+      "model": "E.g: Corolla",
+      "year": "E.g: 2020",
+      "color": "E.g: Gray"
+    },
+    "validation": {
+      "brandMax": "Make cannot exceed 60 characters",
+      "modelMax": "Model cannot exceed 60 characters",
+      "colorMax": "Color cannot exceed 40 characters",
+      "yearInvalid": "Year must have 4 digits",
+      "yearRange": "Year must be between {{min}} and {{max}}"
+    }
+  },
+  "services": {
+    "title": "Services",
+    "subtitle": "Manage the catalog of wash services you offer.",
+    "newButton": "New service",
+    "table": {
+      "headers": {
+        "name": "Name",
+        "price": "Price",
+        "estimatedMinutes": "Duration",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "empty": "No services have been registered yet.",
+      "minutesValue": "{{count}} min",
+      "statusActive": "Active",
+      "statusInactive": "Inactive"
+    },
+    "dialog": {
+      "createTitle": "New service",
+      "editTitle": "Edit service",
+      "fields": {
+        "name": "Name",
+        "namePlaceholder": "E.g: Basic wash",
+        "price": "Price",
+        "estimatedMinutes": "Estimated duration (min)",
+        "description": "Description",
+        "descriptionPlaceholder": "Service details (optional)",
+        "active": "Service active"
+      }
+    },
+    "toast": {
+      "created": "Service created successfully.",
+      "createError": "Could not create the service.",
+      "updated": "Service updated successfully.",
+      "updateError": "Could not update the service.",
+      "deleted": "Service deleted successfully.",
+      "deleteError": "Could not delete the service."
+    },
+    "delete": {
+      "title": "Delete service",
+      "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+    }
+  },
+  "extras": {
+    "title": "Add-ons",
+    "subtitle": "Options added on top of the base service, such as waxing or ozone.",
+    "newButton": "New add-on",
+    "pickerLabel": "Add-ons",
+    "total": "Total",
+    "table": {
+      "headers": {
+        "name": "Name",
+        "price": "Price",
+        "estimatedMinutes": "Duration",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "empty": "No add-ons have been registered yet.",
+      "minutesValue": "{{count}} min",
+      "statusActive": "Active",
+      "statusInactive": "Inactive"
+    },
+    "dialog": {
+      "createTitle": "New add-on",
+      "editTitle": "Edit add-on",
+      "fields": {
+        "name": "Name",
+        "namePlaceholder": "E.g: Waxing",
+        "price": "Price",
+        "estimatedMinutes": "Extra duration (min)",
+        "description": "Description",
+        "descriptionPlaceholder": "Add-on details (optional)",
+        "active": "Add-on active"
+      }
+    },
+    "toast": {
+      "created": "Add-on created successfully.",
+      "createError": "Could not create the add-on.",
+      "updated": "Add-on updated successfully.",
+      "updateError": "Could not update the add-on.",
+      "deleted": "Add-on deleted successfully.",
+      "deleteError": "Could not delete it. If it was already used on a vehicle, deactivate it instead of deleting it."
+    },
+    "delete": {
+      "title": "Delete add-on",
+      "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+    }
+  },
+  "portalLinks": {
+    "title": "Portal links",
+    "subtitle": "Create public links so your customers can join the queue themselves.",
+    "newButton": "New link",
+    "table": {
+      "headers": {
+        "title": "Title",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "empty": "No portal links have been created yet.",
+      "statusActive": "Active",
+      "statusInactive": "Inactive"
+    },
+    "actions": {
+      "copy": "Copy link",
+      "open": "Open link",
+      "activate": "Activate",
+      "deactivate": "Deactivate"
+    },
+    "toast": {
+      "copySuccess": "Link copied to clipboard.",
+      "copyError": "Could not copy the link.",
+      "activateSuccess": "Link activated successfully.",
+      "deactivateSuccess": "Link deactivated successfully.",
+      "toggleError": "Could not update the link status.",
+      "createSuccess": "Link created successfully.",
+      "createError": "Could not create the link."
+    },
+    "validation": {
+      "titleRequired": "Title is required",
+      "titleMax": "Title cannot exceed 150 characters"
+    },
+    "formDialog": {
+      "titleNew": "New portal link",
+      "fields": {
+        "title": "Title"
+      },
+      "placeholders": {
+        "title": "E.g: Wash queue"
+      }
+    }
+  },
+  "board": {
+    "title": "Wash board",
+    "subtitle": "Track the progress of each vehicle and assign the work to your washers.",
+    "subtitleSolo": "Track the progress of each vehicle in the queue.",
+    "registerButton": "Register vehicle",
+    "queueNumber": "Ticket #{{number}}",
+    "columnEmpty": "No vehicles in this column.",
+    "arrivalPending": {
+      "title": "Called tickets"
+    },
+    "washer": {
+      "placeholder": "Washer",
+      "unassigned": "Unassigned",
+      "assignedTo": "Handled by {{name}}"
+    },
+    "columns": {
+      "Waiting": "Waiting",
+      "InProgress": "In progress",
+      "Drying": "Drying",
+      "Waxing": "Waxing",
+      "Ready": "Ready"
+    },
+    "actions": {
+      "callArrival": "Call ticket",
+      "confirmArrival": "Confirm arrival",
+      "markExpired": "Mark expired",
+      "cancel": "Cancel",
+      "advanceTo": {
+        "InProgress": "Start wash",
+        "Drying": "Move to drying",
+        "Waxing": "Move to waxing",
+        "Ready": "Mark ready",
+        "Delivered": "Mark delivered"
+      }
+    },
+    "toast": {
+      "advanceError": "Could not update the ticket status.",
+      "assignSuccess": "Washer assigned successfully.",
+      "assignError": "Could not assign the washer.",
+      "callArrivalSuccess": "Ticket called successfully.",
+      "callArrivalError": "Could not call the ticket.",
+      "cancelSuccess": "Ticket cancelled successfully.",
+      "cancelError": "Could not cancel the ticket.",
+      "confirmArrivalSuccess": "Arrival confirmed successfully.",
+      "confirmArrivalError": "Could not confirm the arrival.",
+      "expireSuccess": "Ticket marked as expired.",
+      "expireError": "Could not mark the ticket as expired."
+    },
+    "registerDialog": {
+      "title": "Register vehicle",
+      "submit": "Register",
+      "validation": {
+        "customerNameRequired": "Customer name is required",
+        "customerNameMax": "Name cannot exceed 150 characters",
+        "customerPhoneRequired": "Phone is required",
+        "customerPhoneMax": "Phone cannot exceed 30 characters",
+        "customerEmailInvalid": "Email is not valid",
+        "serviceRequired": "Select a service",
+        "vehiclePlateRequired": "Vehicle plate is required",
+        "vehiclePlateMax": "Plate cannot exceed 20 characters"
+      },
+      "fields": {
+        "customerName": "Customer name",
+        "customerNamePlaceholder": "Full name",
+        "customerPhone": "Phone",
+        "customerPhonePlaceholder": "E.g: 809-555-0100",
+        "customerEmail": "Email",
+        "customerEmailPlaceholder": "customer@email.com",
+        "service": "Service",
+        "servicePlaceholder": "Select a service",
+        "serviceEmpty": "No active services available",
+        "vehiclePlate": "Vehicle plate",
+        "vehiclePlatePlaceholder": "E.g: A123456"
+      },
+      "toast": {
+        "success": "Vehicle registered successfully.",
+        "error": "Could not register the vehicle."
+      }
+    }
+  },
+  "washers": {
+    "title": "Washers",
+    "subtitle": "The people who wash. These are not system accounts: adding someone here does not create a user or grant access to the software.",
+    "newButton": "New washer",
+    "table": {
+      "headers": {
+        "name": "Name",
+        "phone": "Phone",
+        "account": "Account",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "empty": "You have not added any washers yet.",
+      "noAccount": "No system access",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "deleteBlocked": "Already has tickets. Deactivate instead so you keep the history."
+    },
+    "dialog": {
+      "createTitle": "New washer",
+      "editTitle": "Edit washer",
+      "fields": {
+        "fullName": "Full name",
+        "fullNamePlaceholder": "e.g. John Smith",
+        "phone": "Phone",
+        "phonePlaceholder": "Optional",
+        "account": "System account",
+        "accountNone": "No account (does not sign in)",
+        "accountHint": "Only if they also need to sign in to move their own queue. Most washers do not.",
+        "active": "Active",
+        "activeHint": "An inactive washer cannot be assigned, but still shows on the tickets they already washed."
+      }
+    },
+    "validation": {
+      "nameRequired": "Name is required.",
+      "nameMax": "Name cannot exceed 150 characters.",
+      "phoneMax": "Phone cannot exceed 30 characters."
+    },
+    "toast": {
+      "created": "Washer created successfully.",
+      "createError": "Could not create the washer.",
+      "updated": "Washer updated successfully.",
+      "updateError": "Could not update the washer.",
+      "deleted": "Washer deleted successfully.",
+      "deleteError": "Could not delete the washer."
+    },
+    "delete": {
+      "title": "Delete washer",
+      "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+    }
+  },
+  "join": {
+    "subtitle": "Join the wash queue without having to be present.",
+    "formTitle": "Your details",
+    "submitting": "Submitting...",
+    "submit": "Join the queue",
+    "validation": {
+      "customerNameRequired": "Name is required",
+      "customerPhoneRequired": "Phone is required",
+      "customerEmailInvalid": "Email is not valid",
+      "serviceRequired": "Select a service",
+      "vehiclePlateRequired": "Vehicle plate is required"
+    },
+    "toast": {
+      "error": "Could not register your ticket. Please try again."
+    },
+    "unavailable": {
+      "title": "Link unavailable",
+      "description": "This link is unavailable or is no longer active."
+    },
+    "fields": {
+      "customerName": "Name",
+      "customerNamePlaceholder": "Your full name",
+      "customerPhone": "Phone",
+      "customerPhonePlaceholder": "E.g: 809-555-0100",
+      "customerEmail": "Email",
+      "customerEmailPlaceholder": "youremail@email.com",
+      "service": "Service",
+      "servicePlaceholder": "Select a service",
+      "serviceEmpty": "No services available",
+      "vehiclePlate": "Vehicle plate",
+      "vehiclePlatePlaceholder": "E.g: A123456"
+    }
+  },
+  "ticketStatus": {
+    "title": "Your ticket status",
+    "subtitle": "Follow your vehicle's progress live.",
+    "queueNumber": "Ticket number",
+    "countdownLabel": "Time to arrive",
+    "invalidLink": {
+      "title": "Invalid link",
+      "description": "The link you're trying to open is not valid."
+    },
+    "notFound": {
+      "title": "Ticket not found",
+      "description": "We couldn't find information about this ticket."
+    },
+    "statusMessage": {
+      "Waiting": "Your vehicle is waiting to start the wash.",
+      "ArrivalPending": "You've been called. Arrive before time runs out.",
+      "InProgress": "Your vehicle is being washed.",
+      "Drying": "Your vehicle is in the drying stage.",
+      "Waxing": "Your vehicle is being waxed.",
+      "Ready": "Your vehicle is ready for pickup.",
+      "Delivered": "Your vehicle has already been delivered.",
+      "Cancelled": "This ticket was cancelled.",
+      "Expired": "This ticket expired due to no arrival."
+    }
+  },
+  "status": {
+    "Waiting": "Waiting",
+    "ArrivalPending": "Called",
+    "InProgress": "In progress",
+    "Drying": "Drying",
+    "Waxing": "Waxing",
+    "Ready": "Ready",
+    "Delivered": "Delivered",
+    "Cancelled": "Cancelled",
+    "Expired": "Expired"
+  }
+}

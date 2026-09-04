@@ -1,0 +1,106 @@
+{
+  "title": "Emails",
+  "subtitle": "Send emails to your customers and manage follow-up reminders.",
+  "providerWarning": "No email provider is configured yet: sends are recorded as \"Failed\" until one is chosen (SendGrid, SMTP, etc.).",
+  "tabs": {
+    "mass": "Mass",
+    "reminders": "Reminders"
+  },
+  "massTab": {
+    "cardTitle": "Send mass email",
+    "recipientsLabel": "Recipients",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "noCustomers": "You don't have any customers yet.",
+    "noEmail": "no email",
+    "selectedCount": "{{count}} customer(s) selected",
+    "subjectLabel": "Subject",
+    "subjectPlaceholder": "E.g.: This month's news",
+    "bodyLabel": "Message",
+    "bodyPlaceholder": "Write the email content...",
+    "submit": "Send mass email",
+    "toast": {
+      "noRecipients": "Select at least one recipient customer.",
+      "success": "Email sent to {{count}} customer(s).",
+      "partialFailure": "{{sent}} sent, {{failed}} failed.",
+      "processError": "We couldn't process the send. Please try again."
+    }
+  },
+  "history": {
+    "cardTitle": "Email history",
+    "table": {
+      "headers": {
+        "recipient": "Recipient",
+        "subject": "Subject",
+        "type": "Type",
+        "status": "Status",
+        "date": "Date"
+      },
+      "emptyState": "You haven't sent any emails yet."
+    },
+    "type": {
+      "mass": "Mass",
+      "individual": "Individual"
+    },
+    "status": {
+      "sent": "Sent",
+      "failed": "Failed"
+    }
+  },
+  "reminders": {
+    "newButton": "New reminder",
+    "table": {
+      "headers": {
+        "title": "Title",
+        "customer": "Customer",
+        "date": "Date",
+        "status": "Status"
+      },
+      "emptyState": "You don't have any reminders yet. Create the first one."
+    },
+    "status": {
+      "pending": "Pending",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "menu": {
+      "markCompleted": "Mark as completed"
+    },
+    "toast": {
+      "created": "Reminder created",
+      "createError": "We couldn't create the reminder. Please try again.",
+      "updated": "Reminder updated",
+      "updateError": "We couldn't update the reminder.",
+      "updateErrorRetry": "We couldn't update the reminder. Please try again.",
+      "deleted": "Reminder deleted",
+      "deleteError": "We couldn't delete the reminder. Please try again."
+    },
+    "deleteDialog": {
+      "title": "Delete reminder",
+      "description": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone."
+    },
+    "form": {
+      "editTitle": "Edit reminder",
+      "createTitle": "New reminder",
+      "titleLabel": "Title",
+      "titlePlaceholder": "E.g.: Call about overdue rental",
+      "messageLabel": "Notes (optional)",
+      "messagePlaceholder": "Follow-up details...",
+      "dateLabel": "Date and time",
+      "customerLabel": "Customer (optional)",
+      "noCustomerPlaceholder": "No customer linked",
+      "statusLabel": "Status",
+      "validation": {
+        "titleRequired": "Title is required",
+        "titleMax": "150 characters maximum",
+        "messageMax": "1000 characters maximum",
+        "dateRequired": "Date is required"
+      }
+    }
+  },
+  "validation": {
+    "subjectRequired": "Subject is required",
+    "subjectMax": "200 characters maximum",
+    "bodyRequired": "Message is required"
+  }
+}

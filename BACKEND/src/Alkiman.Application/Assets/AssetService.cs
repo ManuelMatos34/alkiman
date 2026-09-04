@@ -1,3 +1,4 @@
+using Alkiman.Application.AuditLogs;
 using Alkiman.Application.Common.Exceptions;
 using Alkiman.Application.Common.Interfaces;
 using Alkiman.Domain.Entities;
@@ -9,11 +10,13 @@ public class AssetService : IAssetService
 {
     private readonly IAssetRepository _repository;
     private readonly ICurrentLandlordService _currentLandlord;
+    private readonly IAuditLogService _auditLog;
 
-    public AssetService(IAssetRepository repository, ICurrentLandlordService currentLandlord)
+    public AssetService(IAssetRepository repository, ICurrentLandlordService currentLandlord, IAuditLogService auditLog)
     {
         _repository = repository;
         _currentLandlord = currentLandlord;
+        _auditLog = auditLog;
     }
 
     public async Task<IReadOnlyList<AssetResponse>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -51,10 +54,11 @@ public class AssetService : IAssetService
             BasePrice = request.BasePrice,
             Stock = request.Stock,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentLandlord.Auth0UserId
+            CreatedBy = _currentLandlord.UserId
         };
 
         await _repository.CreateAsync(asset, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Create, "INV_Assets", asset.Id.ToString(), null, asset, cancellationToken);
         return ToResponse(asset);
     }
 
@@ -69,9 +73,10 @@ public class AssetService : IAssetService
         asset.BasePrice = request.BasePrice;
         asset.Stock = request.Stock;
         asset.UpdatedAt = DateTime.UtcNow;
-        asset.UpdatedBy = _currentLandlord.Auth0UserId;
+        asset.UpdatedBy = _currentLandlord.UserId;
 
         await _repository.UpdateAsync(asset, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Update, "INV_Assets", asset.Id.ToString(), null, asset, cancellationToken);
         return ToResponse(asset);
     }
 
@@ -81,16 +86,18 @@ public class AssetService : IAssetService
 
         asset.Status = request.Status;
         asset.UpdatedAt = DateTime.UtcNow;
-        asset.UpdatedBy = _currentLandlord.Auth0UserId;
+        asset.UpdatedBy = _currentLandlord.UserId;
 
         await _repository.UpdateAsync(asset, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Update, "INV_Assets", asset.Id.ToString(), null, asset, cancellationToken);
         return ToResponse(asset);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await GetOwnedOrThrowAsync(id, cancellationToken);
+        var asset = await GetOwnedOrThrowAsync(id, cancellationToken);
         await _repository.DeleteAsync(id, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Delete, "INV_Assets", asset.Id.ToString(), asset, null, cancellationToken);
     }
 
     private async Task<Asset> GetOwnedOrThrowAsync(Guid id, CancellationToken cancellationToken)

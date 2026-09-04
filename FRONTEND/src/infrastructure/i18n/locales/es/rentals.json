@@ -1,0 +1,54 @@
+{
+  "title": "Rentas",
+  "subtitle": "Asignaciones de activos a clientes.",
+  "importButton": "Importar alquileres",
+  "newRental": "Nueva renta",
+  "table": {
+    "headers": {
+      "asset": "Activo",
+      "customer": "Cliente",
+      "startDate": "Inicio",
+      "endDate": "Fin",
+      "totalPrice": "Precio total",
+      "status": "Estado"
+    },
+    "empty": "Todavía no tienes rentas. Crea la primera.",
+    "emptyValue": "—"
+  },
+  "status": {
+    "Active": "Activa",
+    "Completed": "Completada",
+    "Overdue": "Atrasada",
+    "Cancelled": "Cancelada"
+  },
+  "toast": {
+    "statusUpdated": "Estado actualizado",
+    "statusUpdateError": "No pudimos actualizar el estado. Inténtalo de nuevo.",
+    "created": "Renta creada",
+    "createError": "No pudimos crear la renta. Inténtalo de nuevo."
+  },
+  "dialog": {
+    "createTitle": "Nueva renta",
+    "fields": {
+      "asset": "Activo",
+      "assetPlaceholder": "Selecciona un activo disponible",
+      "assetPlaceholderEmpty": "No hay activos disponibles",
+      "customer": "Cliente",
+      "customerPlaceholder": "Selecciona un cliente",
+      "customerPlaceholderEmpty": "Crea un cliente primero",
+      "startDate": "Fecha de inicio",
+      "endDate": "Fecha de fin",
+      "totalPrice": "Precio total"
+    }
+  },
+  "validation": {
+    "assetRequired": "Selecciona un activo",
+    "customerRequired": "Selecciona un cliente",
+    "startDateRequired": "Ingresa la fecha de inicio",
+    "endDateRequired": "Ingresa la fecha de fin",
+    "priceRequired": "Ingresa un precio",
+    "priceInvalid": "Ingresa un precio válido",
+    "priceNegative": "El precio no puede ser negativo",
+    "endDateAfterStart": "La fecha de fin debe ser posterior a la fecha de inicio"
+  }
+}

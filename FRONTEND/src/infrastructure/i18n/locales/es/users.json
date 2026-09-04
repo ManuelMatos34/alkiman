@@ -1,0 +1,58 @@
+{
+  "title": "Usuarios",
+  "subtitle": "Gestiona los usuarios que acceden al negocio y su rol.",
+  "newButton": "Nuevo usuario",
+  "table": {
+    "headers": {
+      "name": "Nombre",
+      "email": "Email",
+      "role": "Rol",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "empty": "Todavía no tienes usuarios además de ti. Invita al primero.",
+    "ownerBadge": "Propietario",
+    "statusActive": "Activo",
+    "statusInactive": "Inactivo"
+  },
+  "deleteDialog": {
+    "title": "Eliminar usuario",
+    "description": "¿Seguro que quieres eliminar a \"{{name}}\"? Esta acción no se puede deshacer."
+  },
+  "toast": {
+    "deleteSuccess": "Usuario eliminado",
+    "deleteError": "No pudimos eliminar el usuario. Inténtalo de nuevo.",
+    "updateSuccess": "Usuario actualizado",
+    "updateError": "No pudimos actualizar el usuario. Inténtalo de nuevo.",
+    "createSuccess": "Usuario creado",
+    "createErrorDuplicate": "Ya existe un usuario con ese email.",
+    "createError": "No pudimos crear el usuario. Inténtalo de nuevo.",
+    "createWelcomeEmailFailed": "El usuario se creó, pero no pudimos enviarle el email con su contraseña temporal. Pídele que use \"Olvidé mi contraseña\" para entrar."
+  },
+  "formDialog": {
+    "titleEdit": "Editar usuario",
+    "titleNew": "Nuevo usuario",
+    "fields": {
+      "fullName": "Nombre completo",
+      "email": "Email",
+      "password": "Contraseña",
+      "role": "Rol",
+      "active": "Usuario activo"
+    },
+    "placeholders": {
+      "fullName": "Ej: Juan Pérez",
+      "email": "usuario@negocio.com",
+      "password": "••••••••",
+      "role": "Selecciona un rol"
+    },
+    "generatedPasswordNote": "Le enviaremos por email una contraseña temporal que sólo verá esa persona, y se la pediremos cambiar en su primer inicio de sesión."
+  },
+  "validation": {
+    "fullNameRequired": "El nombre es obligatorio",
+    "fullNameMax": "Máximo 150 caracteres",
+    "emailRequired": "El email es obligatorio",
+    "emailInvalid": "Ingresa un email válido",
+    "roleRequired": "Selecciona un rol",
+    "passwordMin": "Mínimo 8 caracteres"
+  }
+}

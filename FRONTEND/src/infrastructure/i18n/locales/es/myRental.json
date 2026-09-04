@@ -1,0 +1,66 @@
+{
+  "status": {
+    "Active": "Activa",
+    "Completed": "Completada",
+    "Overdue": "Atrasada",
+    "Cancelled": "Cancelada"
+  },
+  "requestType": {
+    "Extension": "prórroga",
+    "Cancellation": "cancelación"
+  },
+  "validation": {
+    "identifierRequired": "Ingresa tu documento de identidad o correo electrónico",
+    "extensionQuantityRequired": "Ingresa una cantidad",
+    "extensionQuantityInvalid": "Ingresa una cantidad válida",
+    "extensionQuantityInteger": "Debe ser un número entero",
+    "extensionQuantityMin": "Mínimo 1",
+    "cancellationReasonRequired": "Cuéntanos el motivo de la cancelación",
+    "cancellationReasonMax": "Máximo 500 caracteres"
+  },
+  "errors": {
+    "verifyFailed": "No pudimos verificar tu identidad. Inténtalo de nuevo.",
+    "extensionFailed": "No pudimos enviar tu pedido. Inténtalo de nuevo.",
+    "cancellationFailed": "No pudimos enviar tu pedido. Inténtalo de nuevo."
+  },
+  "invalidLink": {
+    "title": "Link inválido",
+    "description": "Este link no es válido. Revisa que lo hayas copiado completo."
+  },
+  "identity": {
+    "title": "Tu renta",
+    "description": "Ingresa tu documento de identidad o correo electrónico para ver el detalle de tu renta.",
+    "label": "Documento de identidad o correo electrónico",
+    "placeholder": "Ej: 001-1234567-8 o tu@correo.com",
+    "verifying": "Verificando..."
+  },
+  "details": {
+    "title": "Tu renta",
+    "subtitle": "Acá puedes ver el detalle de tu renta y pedir cambios si lo necesitas.",
+    "startDate": "Fecha de inicio",
+    "endDate": "Fecha de fin",
+    "totalPrice": "Precio total",
+    "contractAvailable": "Tu contrato está firmado y disponible en tu correo."
+  },
+  "requestSent": "Tu pedido fue enviado, te avisaremos por correo.",
+  "pendingRequest": "Ya tienes un pedido de {{type}} en revisión desde el {{date}}.",
+  "actions": {
+    "requestExtension": "Pedir prórroga",
+    "requestCancellation": "Pedir cancelación"
+  },
+  "extension": {
+    "title": "Pedir prórroga",
+    "description": "Indícanos cuántos períodos adicionales necesitas. El negocio va a revisar tu pedido y te va a avisar por correo.",
+    "quantityLabel": "Cantidad de períodos adicionales",
+    "submit": "Enviar pedido",
+    "sending": "Enviando..."
+  },
+  "cancellation": {
+    "title": "Pedir cancelación",
+    "description": "Cuéntanos por qué quieres cancelar tu renta antes de tiempo. El negocio va a revisar tu pedido y te va a avisar por correo.",
+    "reasonLabel": "Motivo",
+    "reasonPlaceholder": "Cuéntanos qué pasó...",
+    "submit": "Enviar pedido",
+    "sending": "Enviando..."
+  }
+}

@@ -26,6 +26,17 @@
 .DS_Store
 Thumbs.db
 
+# === Claude Code ===
+# settings.json trae rutas absolutas de esta máquina y worktrees/ es una copia
+# entera del repo: ninguno de los dos le sirve a otro clon. launch.json sí, es
+# portable y describe cómo se levantan frontend y backend.
+.claude/*
+!.claude/launch.json
+
+# === graphify ===
+# 18 MB de artefactos derivados del código: se regeneran con `graphify update .`
+graphify-out/
+
 # === Logs ===
 *.log
 npm-debug.log*

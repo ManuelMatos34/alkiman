@@ -1,4 +1,5 @@
 using Alkiman.Application.AuditLogs;
+using Alkiman.Application.Common.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ public class AuditLogsController : ControllerBase
 
     /// <summary>Bitácora de acciones del usuario autenticado.</summary>
     [HttpGet("me")]
+    [Authorize(Policy = PermissionCodes.AuditView)]
     public async Task<ActionResult<IReadOnlyList<AuditLogResponse>>> GetMyActivity(CancellationToken cancellationToken)
         => Ok(await _service.GetMyActivityAsync(cancellationToken));
 }

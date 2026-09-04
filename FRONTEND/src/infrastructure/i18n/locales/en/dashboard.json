@@ -1,0 +1,26 @@
+{
+  "greeting": "Hello, {{name}}",
+  "subtitle": "This is the starting point for your business on Alkiman.",
+  "modules": {
+    "assets": {
+      "label": "Assets",
+      "description": "Inventory of goods available for rent."
+    },
+    "customers": {
+      "label": "Customers",
+      "description": "Your business's customer base."
+    },
+    "rentals": {
+      "label": "Rentals",
+      "description": "Board of active rentals and contracts."
+    },
+    "payments": {
+      "label": "Payments",
+      "description": "Journal of income and expenses."
+    },
+    "categories": {
+      "label": "Categories",
+      "description": "Inventory organization by category."
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "title": "Métricas",
+  "subtitle": "Ganancias, pérdidas, activos vencidos y rendimiento del negocio.",
+  "sections": {
+    "finances": "Finanzas",
+    "rentals": "Rentas",
+    "assets": "Activos",
+    "overdueAssets": "Activos con rentas vencidas",
+    "topAssets": "Activos con más ingresos",
+    "topCustomers": "Clientes con más consumo"
+  },
+  "stats": {
+    "totalIncome": "Ingresos totales",
+    "totalExpenses": "Egresos totales",
+    "netProfit": "Ganancia neta",
+    "totalContractedValue": "Valor total contratado",
+    "totalRentals": "Total de rentas",
+    "active": "Activas",
+    "completed": "Completadas",
+    "overdue": "Vencidas",
+    "totalAssets": "Total de activos",
+    "available": "Disponibles",
+    "rented": "Rentados",
+    "maintenance": "En mantenimiento",
+    "utilizationRate": "Tasa de utilización",
+    "inventoryValue": "Valor de inventario"
+  },
+  "charts": {
+    "incomeVsExpenses": {
+      "title": "Ingresos vs. egresos (últimos 6 meses)",
+      "incomeSeries": "Ingresos",
+      "expensesSeries": "Egresos"
+    },
+    "revenueByCategory": {
+      "title": "Ingresos por categoría",
+      "emptyState": "Todavía no hay categorías con datos.",
+      "incomeSeries": "Ingresos"
+    }
+  },
+  "table": {
+    "headers": {
+      "asset": "Activo",
+      "customer": "Cliente",
+      "dueDate": "Vencimiento",
+      "daysOverdue": "Días de atraso",
+      "amount": "Monto",
+      "rentals": "Rentas",
+      "income": "Ingresos",
+      "totalPaid": "Total pagado"
+    },
+    "daysOverdueSuffix": "días",
+    "emptyOverdue": "No tienes rentas vencidas. 🎉",
+    "emptyData": "Todavía no hay datos suficientes."
+  }
+}

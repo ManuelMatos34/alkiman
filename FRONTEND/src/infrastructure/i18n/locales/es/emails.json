@@ -1,0 +1,106 @@
+{
+  "title": "Correos",
+  "subtitle": "Envía correos a tus clientes y gestiona recordatorios de seguimiento.",
+  "providerWarning": "Todavía no hay un proveedor de correo configurado: los envíos quedan registrados como \"Falló\" hasta que se elija uno (SendGrid, SMTP, etc.).",
+  "tabs": {
+    "mass": "Masivo",
+    "reminders": "Recordatorios"
+  },
+  "massTab": {
+    "cardTitle": "Enviar correo masivo",
+    "recipientsLabel": "Destinatarios",
+    "selectAll": "Seleccionar todos",
+    "deselectAll": "Deseleccionar todos",
+    "noCustomers": "Todavía no tienes clientes.",
+    "noEmail": "sin email",
+    "selectedCount": "{{count}} cliente(s) seleccionado(s)",
+    "subjectLabel": "Asunto",
+    "subjectPlaceholder": "Ej: Novedades del mes",
+    "bodyLabel": "Mensaje",
+    "bodyPlaceholder": "Escribe el contenido del correo...",
+    "submit": "Enviar correo masivo",
+    "toast": {
+      "noRecipients": "Selecciona al menos un cliente destinatario.",
+      "success": "Correo enviado a {{count}} cliente(s).",
+      "partialFailure": "{{sent}} enviado(s), {{failed}} fallido(s).",
+      "processError": "No pudimos procesar el envío. Inténtalo de nuevo."
+    }
+  },
+  "history": {
+    "cardTitle": "Historial de correos",
+    "table": {
+      "headers": {
+        "recipient": "Destinatario",
+        "subject": "Asunto",
+        "type": "Tipo",
+        "status": "Estado",
+        "date": "Fecha"
+      },
+      "emptyState": "Todavía no enviaste correos."
+    },
+    "type": {
+      "mass": "Masivo",
+      "individual": "Individual"
+    },
+    "status": {
+      "sent": "Enviado",
+      "failed": "Falló"
+    }
+  },
+  "reminders": {
+    "newButton": "Nuevo recordatorio",
+    "table": {
+      "headers": {
+        "title": "Título",
+        "customer": "Cliente",
+        "date": "Fecha",
+        "status": "Estado"
+      },
+      "emptyState": "Todavía no tienes recordatorios. Crea el primero."
+    },
+    "status": {
+      "pending": "Pendiente",
+      "completed": "Completado",
+      "cancelled": "Cancelado"
+    },
+    "menu": {
+      "markCompleted": "Marcar como completado"
+    },
+    "toast": {
+      "created": "Recordatorio creado",
+      "createError": "No pudimos crear el recordatorio. Inténtalo de nuevo.",
+      "updated": "Recordatorio actualizado",
+      "updateError": "No pudimos actualizar el recordatorio.",
+      "updateErrorRetry": "No pudimos actualizar el recordatorio. Inténtalo de nuevo.",
+      "deleted": "Recordatorio eliminado",
+      "deleteError": "No pudimos eliminar el recordatorio. Inténtalo de nuevo."
+    },
+    "deleteDialog": {
+      "title": "Eliminar recordatorio",
+      "description": "¿Seguro que quieres eliminar \"{{title}}\"? Esta acción no se puede deshacer."
+    },
+    "form": {
+      "editTitle": "Editar recordatorio",
+      "createTitle": "Nuevo recordatorio",
+      "titleLabel": "Título",
+      "titlePlaceholder": "Ej: Llamar por renta vencida",
+      "messageLabel": "Notas (opcional)",
+      "messagePlaceholder": "Detalles del seguimiento...",
+      "dateLabel": "Fecha y hora",
+      "customerLabel": "Cliente (opcional)",
+      "noCustomerPlaceholder": "Sin cliente asociado",
+      "statusLabel": "Estado",
+      "validation": {
+        "titleRequired": "El título es obligatorio",
+        "titleMax": "Máximo 150 caracteres",
+        "messageMax": "Máximo 1000 caracteres",
+        "dateRequired": "La fecha es obligatoria"
+      }
+    }
+  },
+  "validation": {
+    "subjectRequired": "El asunto es obligatorio",
+    "subjectMax": "Máximo 200 caracteres",
+    "bodyRequired": "El mensaje es obligatorio"
+  }
+}

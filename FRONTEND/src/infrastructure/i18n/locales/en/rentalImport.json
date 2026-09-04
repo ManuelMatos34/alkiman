@@ -1,0 +1,65 @@
+{
+  "title": "Import existing rentals",
+  "subtitle": "Maintenance tool to quickly migrate rentals you've been tracking manually or in another system.",
+  "backToRentals": "Back to rentals",
+  "step1": {
+    "title": "1. Prepare the CSV file",
+    "description": "Download the template, fill in one row per rental, and upload the file. If the customer already exists (same ID number) or the asset already exists (same name), it's reused; otherwise it's created automatically with the row's data.",
+    "requiredLabel": "Required:",
+    "requiredText": "customerFullName, customerIdentityNumber, assetName, startDate, endDate, totalPrice.",
+    "newAssetLabel": "Only if the asset is new:",
+    "newAssetText": "assetCategoryName (required in that case), assetBasePrice, assetStock, assetRentalType (Daily/Weekly/Biweekly/Monthly/Annual).",
+    "statusLabel": "status:",
+    "statusText": "Active, Completed, or Overdue (defaults to Active).",
+    "dateFormat": "Dates in YYYY-MM-DD format.",
+    "downloadTemplate": "Download CSV template"
+  },
+  "step2": {
+    "title": "2. Upload and review",
+    "table": {
+      "headers": {
+        "row": "#",
+        "customer": "Customer",
+        "asset": "Asset",
+        "category": "Category",
+        "startDate": "Start",
+        "endDate": "End",
+        "totalPrice": "Total price",
+        "status": "Status"
+      },
+      "emptyValue": "—"
+    },
+    "rowsReady": "{{count}} row(s) ready to import.",
+    "clear": "Clear",
+    "importing": "Importing...",
+    "importButton": "Import {{count}} row(s)",
+    "dropzone": "Upload a CSV file to see the preview here."
+  },
+  "step3": {
+    "title": "3. Import result",
+    "totalRows": "{{count}} row(s)",
+    "succeeded": "{{count}} imported",
+    "failed": "{{count}} failed",
+    "table": {
+      "headers": {
+        "row": "#",
+        "result": "Result",
+        "detail": "Detail"
+      }
+    },
+    "imported": "Imported",
+    "failedLabel": "Failed",
+    "newCustomer": "New customer",
+    "newCategory": "New category",
+    "newAsset": "New asset",
+    "noneValue": "—"
+  },
+  "toast": {
+    "parseError": "We couldn't read the file. Make sure it's a valid CSV.",
+    "noRows": "The file has no rows to import.",
+    "rowsLoaded": "{{count}} row(s) loaded. Review the preview before importing.",
+    "importSuccess": "Successfully imported {{count}} rental(s).",
+    "importPartial": "{{succeeded}} imported, {{failed}} failed. Review the details.",
+    "importError": "We couldn't process the import. Try again."
+  }
+}

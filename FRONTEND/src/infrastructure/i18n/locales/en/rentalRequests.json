@@ -1,0 +1,46 @@
+{
+  "page": {
+    "title": "Rental Requests",
+    "subtitle": "Extension or early cancellation requests that customers sent from their personal rental link."
+  },
+  "table": {
+    "headers": {
+      "asset": "Asset",
+      "customer": "Customer",
+      "type": "Type",
+      "detail": "Detail",
+      "status": "Status",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "empty": "There are no rental requests yet.",
+    "extensionDetail": "{{count}} additional period(s)"
+  },
+  "type": {
+    "Extension": "Extension",
+    "Cancellation": "Cancellation"
+  },
+  "status": {
+    "Pending": "Pending",
+    "Approved": "Approved",
+    "Rejected": "Rejected"
+  },
+  "actions": {
+    "approve": "Approve",
+    "reject": "Reject"
+  },
+  "toast": {
+    "approved": "Request approved",
+    "rejected": "Request rejected",
+    "error": "We couldn't process the request. Try again."
+  },
+  "dialog": {
+    "titleApprove": "Approve request",
+    "titleReject": "Reject request",
+    "description": "{{type}} for {{asset}} by {{customer}}.",
+    "noteLabel": "Internal note (optional)",
+    "notePlaceholder": "E.g.: Confirmed via WhatsApp with the customer.",
+    "confirmApprove": "Approve",
+    "confirmReject": "Reject"
+  }
+}

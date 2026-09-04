@@ -4,12 +4,8 @@ import type { Landlord } from "@/domain/types/landlord"
 
 export const currentLandlordQueryKey = ["landlord", "me"] as const
 
-/**
- * Perfil de negocio del usuario autenticado.
- * Un 404 es un estado esperado (usuario logueado en Auth0 pero
- * todavía no completó el registro de su negocio) por eso no reintenta.
- */
-export function useCurrentLandlord() {
+/** Perfil de negocio del usuario autenticado, obtenido desde el servidor. */
+export function useCurrentLandlord(options?: { enabled?: boolean }) {
   const api = useApiClient()
 
   return useQuery({
@@ -18,6 +14,6 @@ export function useCurrentLandlord() {
       const { data } = await api.get<Landlord>("/api/landlords/me")
       return data
     },
-    retry: false,
+    enabled: options?.enabled ?? true,
   })
 }

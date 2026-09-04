@@ -1,18 +1,18 @@
 namespace Alkiman.Application.Common.Interfaces;
 
 /// <summary>
-/// Resuelve la identidad del propietario (landlord) autenticado actualmente,
-/// a partir del claim 'sub' del token JWT de Auth0. Todas las consultas de
-/// negocio se filtran por LandlordId para aislar los datos entre propietarios.
+/// Resuelve el aislamiento de datos por negocio (LandlordId) a partir de los
+/// claims del JWT propio emitido por la API. Todas las consultas de negocio se
+/// filtran por LandlordId para aislar los datos entre negocios (tenants).
+/// Desde que el proyecto es multiusuario, el claim 'sub' del token es el
+/// UserId (no el LandlordId); el LandlordId viaja en el claim 'landlord_id'.
+/// Para datos del usuario autenticado en sí (rol, permisos), ver <see cref="ICurrentUserService"/>.
 /// </summary>
 public interface ICurrentLandlordService
 {
-    /// <summary>Auth0UserId (claim 'sub') del usuario autenticado.</summary>
-    string Auth0UserId { get; }
+    /// <summary>Id del usuario autenticado (claim 'sub'), como string. Se usa como CreatedBy/UpdatedBy de auditoría.</summary>
+    string UserId { get; }
 
-    /// <summary>
-    /// Busca el LandlordId asociado al usuario autenticado. Lanza <see cref="Exceptions.NotFoundException"/>
-    /// si el usuario aún no completó el registro de su negocio (ver LandlordsController.Register).
-    /// </summary>
+    /// <summary>LandlordId (negocio/tenant) del usuario autenticado (claim 'landlord_id').</summary>
     Task<Guid> GetCurrentLandlordIdAsync(CancellationToken cancellationToken = default);
 }

@@ -1,0 +1,46 @@
+{
+  "page": {
+    "title": "Pedidos de Renta",
+    "subtitle": "Pedidos de prórroga o cancelación anticipada que los clientes enviaron desde su link personal de renta."
+  },
+  "table": {
+    "headers": {
+      "asset": "Activo",
+      "customer": "Cliente",
+      "type": "Tipo",
+      "detail": "Detalle",
+      "status": "Estado",
+      "created": "Creado",
+      "actions": "Acciones"
+    },
+    "empty": "Todavía no hay pedidos de renta.",
+    "extensionDetail": "{{count}} período(s) adicionales"
+  },
+  "type": {
+    "Extension": "Prórroga",
+    "Cancellation": "Cancelación"
+  },
+  "status": {
+    "Pending": "Pendiente",
+    "Approved": "Aprobado",
+    "Rejected": "Rechazado"
+  },
+  "actions": {
+    "approve": "Aprobar",
+    "reject": "Rechazar"
+  },
+  "toast": {
+    "approved": "Pedido aprobado",
+    "rejected": "Pedido rechazado",
+    "error": "No pudimos procesar el pedido. Inténtalo de nuevo."
+  },
+  "dialog": {
+    "titleApprove": "Aprobar pedido",
+    "titleReject": "Rechazar pedido",
+    "description": "{{type}} de {{asset}} para {{customer}}.",
+    "noteLabel": "Nota interna (opcional)",
+    "notePlaceholder": "Ej: Confirmado por WhatsApp con el cliente.",
+    "confirmApprove": "Aprobar",
+    "confirmReject": "Rechazar"
+  }
+}

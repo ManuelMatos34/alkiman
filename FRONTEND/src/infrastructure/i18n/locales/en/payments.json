@@ -1,0 +1,20 @@
+{
+  "title": "Payments",
+  "subtitle": "Transaction history: debits and credits for the business.",
+  "type": {
+    "income": "Income",
+    "expense": "Expense"
+  },
+  "table": {
+    "headers": {
+      "date": "Date",
+      "type": "Type",
+      "amount": "Amount",
+      "relatedRental": "Related rental",
+      "reference": "Reference"
+    },
+    "emptyState": "No transactions have been recorded yet.",
+    "unknownAsset": "Asset",
+    "unknownCustomer": "Customer"
+  }
+}

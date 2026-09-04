@@ -1,0 +1,48 @@
+{
+  "title": "Grupos de Activos",
+  "subtitle": "Agrupa activos de cualquier categoría bajo un nombre común (ej: \"Herramientas\", \"Edificio A\").",
+  "newGroup": "Nuevo grupo",
+  "table": {
+    "headers": {
+      "name": "Nombre",
+      "description": "Descripción",
+      "assets": "Activos",
+      "actions": "Acciones"
+    },
+    "empty": "Todavía no tienes grupos de activos. Crea el primero.",
+    "noDescription": "—",
+    "assetsCount": "{{count}} activos"
+  },
+  "toast": {
+    "deleted": "Grupo eliminado",
+    "deleteError": "No pudimos eliminar el grupo. Inténtalo de nuevo.",
+    "updated": "Grupo actualizado",
+    "updateError": "No pudimos actualizar el grupo. Inténtalo de nuevo.",
+    "created": "Grupo creado",
+    "createError": "No pudimos crear el grupo. Inténtalo de nuevo."
+  },
+  "delete": {
+    "title": "Eliminar grupo de activos",
+    "description": "¿Seguro que quieres eliminar el grupo \"{{name}}\"? Esta acción no se puede deshacer."
+  },
+  "dialog": {
+    "editTitle": "Editar grupo de activos",
+    "createTitle": "Nuevo grupo de activos",
+    "fields": {
+      "name": "Nombre",
+      "namePlaceholder": "Ej: Herramientas, Edificio A",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Opcional",
+      "assets": "Activos del grupo",
+      "assetsSearchPlaceholder": "Buscar activo...",
+      "noAssetsFound": "No hay activos que coincidan con la búsqueda.",
+      "noCategory": "—"
+    }
+  },
+  "validation": {
+    "nameRequired": "El nombre es obligatorio",
+    "nameMax": "Máximo 150 caracteres",
+    "descriptionMax": "Máximo 500 caracteres",
+    "assetsRequired": "Selecciona al menos un activo"
+  }
+}

@@ -21,7 +21,7 @@ $connStringMaster = "Server=$Server;Database=master;Integrated Security=True;Tru
 
 foreach ($file in $files) {
     Write-Host "==> Ejecutando $($file.Name)" -ForegroundColor Cyan
-    $sql = Get-Content -Raw -Path $file.FullName
+    $sql = Get-Content -Raw -Path $file.FullName -Encoding UTF8
     $batches = $sql -split '(?im)^\s*GO\s*$'
 
     $conn = New-Object System.Data.SqlClient.SqlConnection

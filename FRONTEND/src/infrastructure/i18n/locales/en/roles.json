@@ -1,0 +1,48 @@
+{
+  "title": "Roles",
+  "subtitle": "Define the roles and the permissions each user can have.",
+  "newButton": "New role",
+  "table": {
+    "headers": {
+      "name": "Name",
+      "description": "Description",
+      "permissions": "Permissions",
+      "users": "Users",
+      "actions": "Actions"
+    },
+    "empty": "You don't have any custom roles yet.",
+    "permissionsCount": "{{count}} permissions"
+  },
+  "deleteDialog": {
+    "title": "Delete role",
+    "description": "Are you sure you want to delete the role \"{{name}}\"? This action cannot be undone."
+  },
+  "toast": {
+    "deleteSuccess": "Role deleted",
+    "deleteError": "We couldn't delete the role. Please try again.",
+    "updateSuccess": "Role updated",
+    "updateError": "We couldn't update the role. Please try again.",
+    "createSuccess": "Role created",
+    "createError": "We couldn't create the role. Please try again."
+  },
+  "formDialog": {
+    "titleEdit": "Edit role",
+    "titleNew": "New role",
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "permissions": "Permissions"
+    },
+    "placeholders": {
+      "name": "E.g: Receptionist",
+      "description": "Optional"
+    },
+    "systemNote": "This is a system role; its name and permissions cannot be modified."
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "nameMax": "Maximum 100 characters",
+    "descriptionMax": "Maximum 300 characters",
+    "permissionsRequired": "Select at least one permission"
+  }
+}

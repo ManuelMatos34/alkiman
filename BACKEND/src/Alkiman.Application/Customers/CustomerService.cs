@@ -1,6 +1,8 @@
+using Alkiman.Application.AuditLogs;
 using Alkiman.Application.Common.Exceptions;
 using Alkiman.Application.Common.Interfaces;
 using Alkiman.Domain.Entities;
+using Alkiman.Domain.Enums;
 
 namespace Alkiman.Application.Customers;
 
@@ -8,11 +10,13 @@ public class CustomerService : ICustomerService
 {
     private readonly ICustomerRepository _repository;
     private readonly ICurrentLandlordService _currentLandlord;
+    private readonly IAuditLogService _auditLog;
 
-    public CustomerService(ICustomerRepository repository, ICurrentLandlordService currentLandlord)
+    public CustomerService(ICustomerRepository repository, ICurrentLandlordService currentLandlord, IAuditLogService auditLog)
     {
         _repository = repository;
         _currentLandlord = currentLandlord;
+        _auditLog = auditLog;
     }
 
     public async Task<IReadOnlyList<CustomerResponse>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -41,10 +45,11 @@ public class CustomerService : ICustomerService
             Phone = request.Phone,
             Email = request.Email,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentLandlord.Auth0UserId
+            CreatedBy = _currentLandlord.UserId
         };
 
         await _repository.CreateAsync(customer, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Create, "CRM_Customers", customer.Id.ToString(), null, customer, cancellationToken);
         return ToResponse(customer);
     }
 
@@ -57,16 +62,18 @@ public class CustomerService : ICustomerService
         customer.Phone = request.Phone;
         customer.Email = request.Email;
         customer.UpdatedAt = DateTime.UtcNow;
-        customer.UpdatedBy = _currentLandlord.Auth0UserId;
+        customer.UpdatedBy = _currentLandlord.UserId;
 
         await _repository.UpdateAsync(customer, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Update, "CRM_Customers", customer.Id.ToString(), null, customer, cancellationToken);
         return ToResponse(customer);
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await GetOwnedOrThrowAsync(id, cancellationToken);
+        var customer = await GetOwnedOrThrowAsync(id, cancellationToken);
         await _repository.DeleteAsync(id, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Delete, "CRM_Customers", customer.Id.ToString(), customer, null, cancellationToken);
     }
 
     private async Task<Customer> GetOwnedOrThrowAsync(Guid id, CancellationToken cancellationToken)
@@ -81,6 +88,7 @@ public class CustomerService : ICustomerService
         return customer;
     }
 
-    private static CustomerResponse ToResponse(Customer customer) =>
-        new(customer.Id, customer.FullName, customer.IdentityNumber, customer.Phone, customer.Email, customer.CreatedAt);
+    private static CustomerResponse ToResponse(Customer customer) => new(
+        customer.Id, customer.FullName, customer.IdentityNumber, customer.Phone, customer.Email,
+        customer.Address, customer.Country, customer.CreatedAt);
 }

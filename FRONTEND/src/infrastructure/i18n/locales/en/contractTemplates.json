@@ -1,0 +1,75 @@
+{
+  "title": "Contract Templates",
+  "subtitle": "Define the contract text per Category. Each category's active template is automatically used when generating a new rental's contract.",
+  "newButton": "New template",
+  "filter": {
+    "allCategories": "All categories"
+  },
+  "table": {
+    "headers": {
+      "category": "Category",
+      "name": "Name",
+      "status": "Status",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "empty": "There are no contract templates yet. Create the first one.",
+    "statusActive": "Active",
+    "statusInactive": "Inactive"
+  },
+  "actions": {
+    "activate": "Activate"
+  },
+  "deleteDialog": {
+    "title": "Delete template",
+    "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+  },
+  "toast": {
+    "activateSuccess": "Template activated",
+    "activateError": "We couldn't activate the template. Please try again.",
+    "deleteSuccess": "Template deleted",
+    "deleteError": "We couldn't delete the template. Please try again.",
+    "updateSuccess": "Template updated",
+    "updateError": "We couldn't update the template. Please try again.",
+    "createSuccess": "Template created",
+    "createError": "We couldn't create the template. Please try again."
+  },
+  "formDialog": {
+    "titleEdit": "Edit template",
+    "titleNew": "New template",
+    "fields": {
+      "category": "Category",
+      "name": "Name",
+      "content": "Content"
+    },
+    "placeholders": {
+      "category": "Select a category",
+      "name": "E.g: Standard contract 2026",
+      "content": "Write the contract text..."
+    },
+    "tokensHelp": "These placeholders are automatically replaced when the contract is generated:",
+    "tokens": {
+      "businessName": "Business name",
+      "customerName": "Customer's full name",
+      "customerId": "Customer's ID document",
+      "customerPhone": "Customer's phone",
+      "customerEmail": "Customer's email",
+      "customerAddress": "Customer's address",
+      "assetName": "Name of the rented asset",
+      "assetDescription": "Asset description",
+      "assetCategory": "Asset category",
+      "startDate": "Rental start date",
+      "endDate": "Rental end date",
+      "rentalType": "Rental type (daily, weekly, etc.)",
+      "basePrice": "Asset base price",
+      "totalPrice": "Rental total price",
+      "todayDate": "Date the contract is generated"
+    }
+  },
+  "validation": {
+    "categoryRequired": "Category is required",
+    "nameRequired": "Name is required",
+    "nameMax": "Maximum 150 characters",
+    "contentRequired": "Content is required"
+  }
+}

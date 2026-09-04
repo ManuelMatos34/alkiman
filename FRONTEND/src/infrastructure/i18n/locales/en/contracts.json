@@ -1,0 +1,43 @@
+{
+  "title": "Contracts",
+  "subtitle": "Every rental automatically generates its contract as a PDF. Here you can view it and, if it's still pending signature, register it manually.",
+  "table": {
+    "headers": {
+      "customer": "Customer",
+      "template": "Template",
+      "status": "Status",
+      "email": "Email",
+      "created": "Created",
+      "actions": "Actions"
+    },
+    "empty": "There are no contracts generated yet.",
+    "templateFallback": "Default template"
+  },
+  "status": {
+    "pending": "Pending",
+    "signed": "Signed"
+  },
+  "email": {
+    "sent": "Email sent",
+    "notSent": "Email not sent"
+  },
+  "actions": {
+    "viewPdf": "View PDF",
+    "sign": "Register signature",
+    "resendEmail": "Resend by email"
+  },
+  "pdfDialog": {
+    "title": "Contract for {{name}}",
+    "loadError": "We couldn't load the contract PDF.",
+    "iframeTitle": "Contract PDF"
+  },
+  "signDialog": {
+    "title": "Register signature for {{name}}"
+  },
+  "toast": {
+    "signSuccess": "Signature registered",
+    "signError": "We couldn't register the signature. Please try again.",
+    "resendSuccess": "Email resent",
+    "resendError": "We couldn't resend the email. Please try again."
+  }
+}

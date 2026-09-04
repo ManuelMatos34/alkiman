@@ -1,0 +1,104 @@
+{
+  "profile": {
+    "validation": {
+      "businessNameRequired": "Business name is required"
+    },
+    "cardTitle": "Business profile",
+    "cardDescription": "Contact information and administrative details for your business.",
+    "businessNameLabel": "Business name",
+    "businessNamePlaceholder": "E.g. Perez Rentals",
+    "countryLabel": "Country (optional)",
+    "countryPlaceholder": "Select a country",
+    "stateLabel": "State / Province (optional)",
+    "statePlaceholder": "Select a state",
+    "statePlaceholderNoCountry": "Choose a country first",
+    "cityLabel": "City (optional)",
+    "cityPlaceholder": "Select a city",
+    "cityPlaceholderNoState": "Choose a state first",
+    "addressLabel": "Address (optional)",
+    "addressPlaceholder": "Street, number, area",
+    "phone1Label": "Phone 1 (optional)",
+    "phone1Placeholder": "E.g. 809-555-1234",
+    "phone2Label": "Phone 2 (optional)",
+    "phone2Placeholder": "E.g. 809-555-5678",
+    "taxIdLabel": "Tax ID",
+    "taxIdPlaceholder": "E.g. 130-12345-6",
+    "saveButton": "Save changes",
+    "toastSuccess": "Profile updated",
+    "toastError": "We couldn't update the profile. Try again."
+  },
+  "appearance": {
+    "accentLabels": {
+      "blue": "Blue",
+      "green": "Green",
+      "violet": "Violet",
+      "orange": "Orange",
+      "pink": "Pink",
+      "red": "Red"
+    },
+    "validation": {
+      "appNameRequired": "Application name is required"
+    },
+    "cardTitle": "Appearance",
+    "cardDescription": "Customize the application's name and colors. New users start with these default values.",
+    "appNameLabel": "Application name",
+    "appNamePlaceholder": "Alkiman",
+    "themeLabel": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "accentColorLabel": "Accent color",
+    "saveButton": "Save changes",
+    "toastSuccess": "Appearance updated",
+    "toastError": "We couldn't update the appearance. Try again."
+  },
+  "signature": {
+    "cardTitle": "Company signature",
+    "cardDescription": "Draw the signature that will be printed alongside the customer's on every contract PDF.",
+    "previewAlt": "Saved company signature",
+    "changeButton": "Change signature",
+    "toastSuccess": "Signature saved",
+    "toastError": "We couldn't save the signature. Try again."
+  },
+  "myAccount": {
+    "validation": {
+      "fullNameRequired": "Name is required",
+      "emailInvalid": "Enter a valid email",
+      "currentPasswordRequired": "Enter your current password",
+      "passwordMin": "Minimum 8 characters",
+      "confirmPasswordRequired": "Confirm your password",
+      "passwordMismatch": "Passwords don't match"
+    },
+    "identityCardTitle": "My account",
+    "identityCardDescription": "Your name, email, and role within the business.",
+    "fullNameLabel": "Full name",
+    "fullNamePlaceholder": "E.g. John Smith",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@email.com",
+    "saveButton": "Save changes",
+    "toastIdentitySuccess": "Details updated",
+    "toastEmailTaken": "An account with that email already exists.",
+    "toastIdentityError": "We couldn't update your details. Try again.",
+    "passwordCardTitle": "Change password",
+    "passwordCardDescription": "Update the password you use to sign in.",
+    "currentPasswordLabel": "Current password",
+    "newPasswordLabel": "New password",
+    "confirmPasswordLabel": "Confirm password",
+    "passwordPlaceholder": "••••••••",
+    "changePasswordButton": "Change password",
+    "toastPasswordSuccess": "Password updated",
+    "toastCurrentPasswordWrong": "The current password is incorrect.",
+    "toastPasswordError": "We couldn't update the password. Try again."
+  },
+  "security": {
+    "cardTitle": "Security",
+    "cardDescription": "Manage two-factor authentication (2FA) for your account.",
+    "twoFactorLabel": "Two-factor authentication",
+    "twoFactorDescription": "Adds an extra layer of security when signing in.",
+    "toastEnabled": "Two-factor authentication enabled",
+    "toastDisabled": "Two-factor authentication disabled",
+    "toastError": "We couldn't update the setting. Try again.",
+    "confirmDisableTitle": "Disable two-factor authentication?",
+    "confirmDisableDescription": "Your account will only be protected by your password. You can turn it back on anytime.",
+    "disableButton": "Disable"
+  }
+}

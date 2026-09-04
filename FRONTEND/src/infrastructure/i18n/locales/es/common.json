@@ -1,0 +1,44 @@
+{
+  "buttons": {
+    "save": "Guardar",
+    "saving": "Guardando...",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "close": "Cerrar",
+    "confirm": "Confirmar",
+    "back": "Atrás",
+    "continue": "Continuar",
+    "next": "Siguiente",
+    "create": "Crear",
+    "add": "Agregar",
+    "search": "Buscar",
+    "export": "Exportar",
+    "import": "Importar",
+    "view": "Ver",
+    "retry": "Reintentar"
+  },
+  "status": {
+    "loading": "Cargando...",
+    "saving": "Guardando...",
+    "processing": "Procesando...",
+    "sending": "Enviando..."
+  },
+  "labels": {
+    "yes": "Sí",
+    "no": "No",
+    "optional": "Opcional",
+    "actions": "Acciones"
+  },
+  "messages": {
+    "genericError": "Algo salió mal. Inténtalo de nuevo.",
+    "requiredField": "Este campo es obligatorio",
+    "noResults": "No se encontraron resultados."
+  },
+  "pagination": {
+    "range": "Mostrando {{start}}–{{end}} de {{total}}",
+    "pageIndicator": "Página {{page}} de {{pageCount}}",
+    "previous": "Anterior",
+    "next": "Siguiente"
+  }
+}

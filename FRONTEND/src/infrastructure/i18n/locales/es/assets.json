@@ -1,0 +1,66 @@
+{
+  "title": "Activos",
+  "subtitle": "Inventario de bienes disponibles para alquilar.",
+  "newAsset": "Nuevo activo",
+  "table": {
+    "headers": {
+      "name": "Nombre",
+      "category": "Categoría",
+      "status": "Estado",
+      "basePrice": "Precio base",
+      "stock": "Stock",
+      "actions": "Acciones"
+    },
+    "empty": "Todavía no tienes activos. Crea el primero.",
+    "noCategory": "—"
+  },
+  "status": {
+    "Available": "Disponible",
+    "Rented": "Rentado",
+    "Maintenance": "Mantenimiento"
+  },
+  "toast": {
+    "statusUpdated": "Estado actualizado",
+    "statusUpdateError": "No pudimos actualizar el estado. Inténtalo de nuevo.",
+    "deleted": "Activo eliminado",
+    "deleteError": "No pudimos eliminar el activo. Inténtalo de nuevo.",
+    "updated": "Activo actualizado",
+    "updateError": "No pudimos actualizar el activo. Inténtalo de nuevo.",
+    "created": "Activo creado",
+    "createError": "No pudimos crear el activo. Inténtalo de nuevo."
+  },
+  "delete": {
+    "title": "Eliminar activo",
+    "description": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer."
+  },
+  "dialog": {
+    "editTitle": "Editar activo",
+    "createTitle": "Nuevo activo",
+    "fields": {
+      "name": "Nombre",
+      "namePlaceholder": "Ej: Taladro percutor",
+      "category": "Categoría",
+      "categoryPlaceholder": "Selecciona una categoría",
+      "categoryPlaceholderEmpty": "Crea una categoría primero",
+      "rentalType": "Tipo de renta",
+      "basePrice": "Precio base",
+      "stock": "Stock",
+      "description": "Descripción (opcional)",
+      "descriptionPlaceholder": "Detalles adicionales del activo",
+      "imageUrl": "URL de imagen (opcional)",
+      "imageUrlPlaceholder": "https://..."
+    }
+  },
+  "validation": {
+    "categoryRequired": "Selecciona una categoría",
+    "nameRequired": "El nombre es obligatorio",
+    "nameMax": "Máximo 200 caracteres",
+    "priceRequired": "Ingresa un precio",
+    "priceInvalid": "Ingresa un precio válido",
+    "priceNegative": "El precio no puede ser negativo",
+    "stockRequired": "Ingresa un stock",
+    "stockInvalid": "Ingresa un stock válido",
+    "stockInteger": "El stock debe ser un número entero",
+    "stockNegative": "El stock no puede ser negativo"
+  }
+}

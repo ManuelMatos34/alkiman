@@ -1,0 +1,58 @@
+{
+  "title": "Users",
+  "subtitle": "Manage the users who access the business and their role.",
+  "newButton": "New user",
+  "table": {
+    "headers": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "empty": "You don't have any users besides yourself yet. Invite the first one.",
+    "ownerBadge": "Owner",
+    "statusActive": "Active",
+    "statusInactive": "Inactive"
+  },
+  "deleteDialog": {
+    "title": "Delete user",
+    "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+  },
+  "toast": {
+    "deleteSuccess": "User deleted",
+    "deleteError": "We couldn't delete the user. Please try again.",
+    "updateSuccess": "User updated",
+    "updateError": "We couldn't update the user. Please try again.",
+    "createSuccess": "User created",
+    "createErrorDuplicate": "A user with that email already exists.",
+    "createError": "We couldn't create the user. Please try again.",
+    "createWelcomeEmailFailed": "The user was created, but we couldn't email them their temporary password. Ask them to use \"Forgot my password\" to get in."
+  },
+  "formDialog": {
+    "titleEdit": "Edit user",
+    "titleNew": "New user",
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email",
+      "password": "Password",
+      "role": "Role",
+      "active": "Active user"
+    },
+    "placeholders": {
+      "fullName": "E.g: John Smith",
+      "email": "user@business.com",
+      "password": "••••••••",
+      "role": "Select a role"
+    },
+    "generatedPasswordNote": "We'll email them a temporary password that only they will see, and ask them to change it on their first sign-in."
+  },
+  "validation": {
+    "fullNameRequired": "Name is required",
+    "fullNameMax": "Maximum 150 characters",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Enter a valid email",
+    "roleRequired": "Select a role",
+    "passwordMin": "Minimum 8 characters"
+  }
+}

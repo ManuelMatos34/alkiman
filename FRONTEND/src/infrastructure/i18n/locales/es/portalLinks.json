@@ -1,0 +1,53 @@
+{
+  "title": "Portal de Rentas",
+  "subtitle": "Genera links públicos para que tus clientes vean y renten los activos de un grupo, sin necesidad de que se registren.",
+  "newButton": "Nuevo link",
+  "table": {
+    "headers": {
+      "title": "Título",
+      "assetGroup": "Grupo de activos",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "empty": "Todavía no generaste ningún link. Crea el primero.",
+    "statusActive": "Activo",
+    "statusInactive": "Inactivo"
+  },
+  "actions": {
+    "copy": "Copiar link",
+    "open": "Abrir link"
+  },
+  "deleteDialog": {
+    "title": "Eliminar link",
+    "description": "¿Seguro que quieres eliminar el link \"{{title}}\"? Quien tenga el link ya no podrá acceder al portal."
+  },
+  "toast": {
+    "copySuccess": "Link copiado al portapapeles",
+    "copyError": "No pudimos copiar el link. Cópialo manualmente.",
+    "deleteSuccess": "Link eliminado",
+    "deleteError": "No pudimos eliminar el link. Inténtalo de nuevo.",
+    "updateSuccess": "Link actualizado",
+    "updateError": "No pudimos actualizar el link. Inténtalo de nuevo.",
+    "createSuccess": "Link creado",
+    "createError": "No pudimos crear el link. Inténtalo de nuevo."
+  },
+  "formDialog": {
+    "titleEdit": "Editar link",
+    "titleNew": "Nuevo link",
+    "fields": {
+      "title": "Título",
+      "assetGroup": "Grupo de activos a mostrar",
+      "active": "Link activo"
+    },
+    "placeholders": {
+      "title": "Ej: Apartamentos disponibles - Julio",
+      "assetGroupSelect": "Selecciona un grupo de activos",
+      "assetGroupEmpty": "Crea un grupo de activos primero"
+    }
+  },
+  "validation": {
+    "titleRequired": "El título es obligatorio",
+    "titleMax": "Máximo 150 caracteres",
+    "assetGroupRequired": "Selecciona un grupo de activos"
+  }
+}

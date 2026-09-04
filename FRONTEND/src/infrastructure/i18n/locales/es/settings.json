@@ -1,0 +1,19 @@
+{
+  "title": "Ajustes",
+  "description": "Gestiona tu cuenta, el perfil del negocio, la apariencia, el idioma y la seguridad.",
+  "tabs": {
+    "account": "Mi cuenta",
+    "profile": "Perfil",
+    "appearance": "Apariencia",
+    "signature": "Firma",
+    "language": "Idioma",
+    "security": "Seguridad"
+  },
+  "language": {
+    "title": "Idioma",
+    "description": "Elige el idioma en el que quieres ver la aplicación.",
+    "spanish": "Español (Latinoamérica)",
+    "english": "English",
+    "saved": "Idioma actualizado"
+  }
+}

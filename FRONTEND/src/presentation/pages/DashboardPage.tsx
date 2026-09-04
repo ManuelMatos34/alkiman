@@ -5,72 +5,62 @@ import {
   CalendarClock,
   Wallet,
   Tags,
-  ScrollText,
   ArrowRight,
 } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useCurrentLandlord } from "@/application/landlords/useCurrentLandlord"
+import { useAuth } from "@/infrastructure/auth/AuthContext"
 
 const modules = [
   {
-    label: "Activos",
-    description: "Inventario de bienes disponibles para alquilar.",
-    to: "/activos",
+    key: "assets",
+    to: "/alquileres/activos",
     icon: Package,
   },
   {
-    label: "Clientes",
-    description: "Base de clientes de tu negocio.",
-    to: "/clientes",
+    key: "customers",
+    to: "/alquileres/clientes",
     icon: Users,
   },
   {
-    label: "Rentas",
-    description: "Tablero de alquileres activos y contratos.",
-    to: "/rentas",
+    key: "rentals",
+    to: "/alquileres/rentas",
     icon: CalendarClock,
   },
   {
-    label: "Pagos",
-    description: "Libro diario de ingresos y egresos.",
-    to: "/pagos",
+    key: "payments",
+    to: "/alquileres/pagos",
     icon: Wallet,
   },
   {
-    label: "Categorías",
-    description: "Organización del inventario por categoría.",
-    to: "/categorias",
+    key: "categories",
+    to: "/alquileres/categorias",
     icon: Tags,
   },
-  {
-    label: "Bitácora",
-    description: "Historial de acciones sobre tu cuenta.",
-    to: "/bitacora",
-    icon: ScrollText,
-  },
-]
+] as const
 
 export function DashboardPage() {
-  const { data: landlord } = useCurrentLandlord()
+  const { t } = useTranslation("dashboard")
+  const { landlord } = useAuth()
 
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          Hola, {landlord?.businessName}
+          {t("greeting", { name: landlord?.businessName })}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Este es el punto de partida de tu negocio en Alkiman.
+          {t("subtitle")}
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {modules.map(({ label, description, to, icon: Icon }) => (
+        {modules.map(({ key, to, icon: Icon }) => (
           <Link key={to} to={to}>
             <Card className="h-full border-border/60 shadow-sm transition-colors hover:border-primary/40 hover:shadow-md">
               <CardHeader>
@@ -80,8 +70,12 @@ export function DashboardPage() {
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground" />
                 </div>
-                <CardTitle className="pt-2 text-base">{label}</CardTitle>
-                <CardDescription>{description}</CardDescription>
+                <CardTitle className="pt-2 text-base">
+                  {t(`modules.${key}.label`)}
+                </CardTitle>
+                <CardDescription>
+                  {t(`modules.${key}.description`)}
+                </CardDescription>
               </CardHeader>
             </Card>
           </Link>

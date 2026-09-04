@@ -1,0 +1,44 @@
+{
+  "buttons": {
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "continue": "Continue",
+    "next": "Next",
+    "create": "Create",
+    "add": "Add",
+    "search": "Search",
+    "export": "Export",
+    "import": "Import",
+    "view": "View",
+    "retry": "Retry"
+  },
+  "status": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "processing": "Processing...",
+    "sending": "Sending..."
+  },
+  "labels": {
+    "yes": "Yes",
+    "no": "No",
+    "optional": "Optional",
+    "actions": "Actions"
+  },
+  "messages": {
+    "genericError": "Something went wrong. Please try again.",
+    "requiredField": "This field is required",
+    "noResults": "No results found."
+  },
+  "pagination": {
+    "range": "Showing {{start}}–{{end}} of {{total}}",
+    "pageIndicator": "Page {{page}} of {{pageCount}}",
+    "previous": "Previous",
+    "next": "Next"
+  }
+}

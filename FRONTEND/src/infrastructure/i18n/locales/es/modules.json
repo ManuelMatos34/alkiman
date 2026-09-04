@@ -1,0 +1,8 @@
+{
+  "title": "Elige un módulo",
+  "subtitle": "Hola, {{name}}. Selecciona el módulo con el que quieres trabajar.",
+  "comingSoon": "Próximamente",
+  "enableButton": "Habilitar",
+  "enabling": "Habilitando...",
+  "enableError": "No se pudo habilitar el módulo. Inténtalo de nuevo."
+}

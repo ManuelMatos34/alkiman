@@ -1,0 +1,111 @@
+{
+  "catalog": {
+    "unavailable": {
+      "title": "Link not available",
+      "description": "This link doesn't exist or is no longer active. Check with whoever shared it with you."
+    },
+    "subtitle": "Choose the asset you want to rent to get started.",
+    "empty": "There are no assets available on this link yet.",
+    "noDescription": "No description.",
+    "rentButton": "Rent"
+  },
+  "checkout": {
+    "assetUnavailable": {
+      "title": "Asset not available",
+      "description": "This asset is no longer available on this link."
+    },
+    "backToCatalog": "Back to catalog",
+    "title": "Rent {{assetName}}",
+    "steps": {
+      "personalData": "Your info",
+      "rentalDetail": "Rental details",
+      "contract": "Contract",
+      "payment": "Payment",
+      "signature": "Digital signature"
+    },
+    "form": {
+      "fullName": {
+        "label": "Full name",
+        "placeholder": "E.g.: Maria Perez"
+      },
+      "email": {
+        "label": "Email",
+        "placeholder": "you@email.com"
+      },
+      "phone": {
+        "label": "Phone"
+      },
+      "address": {
+        "label": "Address"
+      },
+      "country": {
+        "label": "Country"
+      }
+    },
+    "rentalDetail": {
+      "info": "This asset is rented by <1>{{rentalType}}</1>: the minimum you can rent is 1 {{unit}}.",
+      "startDate": "Start date",
+      "periodsLabel": "Number of {{unit}}",
+      "quantityLabel": "Number of units",
+      "estimatedEndDate": "Estimated end date",
+      "basePrice": "Base price ({{rentalType}})",
+      "total": "Estimated total"
+    },
+    "payment": {
+      "sandboxBanner": "🧪 Test environment: no real charge is made.",
+      "loadingConfig": "Loading payment methods...",
+      "bothUnavailable": "Payments aren't available on this link yet. Please try again later.",
+      "stripe": {
+        "unavailable": "Card payments coming soon.",
+        "testCardHint": "Test card: {{cardNumber}}, any future expiry date and any 3-digit CVV.",
+        "confirmButton": "Confirm payment",
+        "confirming": "Confirming payment...",
+        "genericError": "We couldn't confirm the card payment. Try again."
+      },
+      "confirmed": {
+        "stripe": "Payment confirmed via Stripe.",
+        "changeMethod": "Change payment method"
+      }
+    },
+    "contract": {
+      "info": "Before signing and paying, read the contract: this is the text you're about to accept.",
+      "loading": "Loading the contract...",
+      "errorText": "We couldn't load the contract. Try again.",
+      "retry": "Retry",
+      "acceptLabel": "I read and accept the terms of this contract."
+    },
+    "signature": {
+      "info": "To complete the rental we need your digital signature: it's included in the contract we'll send you by email.",
+      "label": "Signature"
+    },
+    "nav": {
+      "confirm": "Confirm rental"
+    },
+    "success": {
+      "title": "All set! Your rental and payment were confirmed",
+      "summary": "You rented <1>{{assetName}}</1> for <2>{{price}}</2>.",
+      "paymentVerified": "Payment verified via {{provider}}.",
+      "emailNotice": "You'll receive by email the signed contract, including your digital signature, along with your rental details.",
+      "canClose": "You can close this window now.",
+      "backToCatalog": "Back to catalog"
+    },
+    "validation": {
+      "fullNameRequired": "Name is required",
+      "fullNameMax": "Maximum 150 characters",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Enter a valid email",
+      "phoneMax": "Maximum 50 characters",
+      "addressMax": "Maximum 250 characters",
+      "countryMax": "Maximum 100 characters",
+      "startDateRequired": "Select the start date",
+      "quantityRequired": "Enter a quantity",
+      "quantityInvalid": "Enter a valid quantity",
+      "quantityInteger": "Must be a whole number",
+      "quantityMin": "Minimum 1",
+      "signatureRequired": "Digital signature is required to complete the rental."
+    },
+    "errors": {
+      "checkoutFailed": "We couldn't process your rental. Try again."
+    }
+  }
+}

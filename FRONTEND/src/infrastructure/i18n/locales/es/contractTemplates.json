@@ -1,0 +1,75 @@
+{
+  "title": "Plantillas de Contrato",
+  "subtitle": "Define el texto de los contratos por Categoría. La plantilla activa de cada categoría se usa automáticamente al generar el contrato de una nueva renta.",
+  "newButton": "Nueva plantilla",
+  "filter": {
+    "allCategories": "Todas las categorías"
+  },
+  "table": {
+    "headers": {
+      "category": "Categoría",
+      "name": "Nombre",
+      "status": "Estado",
+      "created": "Creada",
+      "actions": "Acciones"
+    },
+    "empty": "Todavía no hay plantillas de contrato. Crea la primera.",
+    "statusActive": "Activa",
+    "statusInactive": "Inactiva"
+  },
+  "actions": {
+    "activate": "Activar"
+  },
+  "deleteDialog": {
+    "title": "Eliminar plantilla",
+    "description": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer."
+  },
+  "toast": {
+    "activateSuccess": "Plantilla activada",
+    "activateError": "No pudimos activar la plantilla. Inténtalo de nuevo.",
+    "deleteSuccess": "Plantilla eliminada",
+    "deleteError": "No pudimos eliminar la plantilla. Inténtalo de nuevo.",
+    "updateSuccess": "Plantilla actualizada",
+    "updateError": "No pudimos actualizar la plantilla. Inténtalo de nuevo.",
+    "createSuccess": "Plantilla creada",
+    "createError": "No pudimos crear la plantilla. Inténtalo de nuevo."
+  },
+  "formDialog": {
+    "titleEdit": "Editar plantilla",
+    "titleNew": "Nueva plantilla",
+    "fields": {
+      "category": "Categoría",
+      "name": "Nombre",
+      "content": "Contenido"
+    },
+    "placeholders": {
+      "category": "Selecciona una categoría",
+      "name": "Ej: Contrato estándar 2026",
+      "content": "Escribe el texto del contrato..."
+    },
+    "tokensHelp": "Estos textos se reemplazan automáticamente al generar el contrato:",
+    "tokens": {
+      "businessName": "Nombre del negocio",
+      "customerName": "Nombre completo del cliente",
+      "customerId": "Documento de identidad del cliente",
+      "customerPhone": "Teléfono del cliente",
+      "customerEmail": "Correo del cliente",
+      "customerAddress": "Dirección del cliente",
+      "assetName": "Nombre del activo rentado",
+      "assetDescription": "Descripción del activo",
+      "assetCategory": "Categoría del activo",
+      "startDate": "Fecha de inicio de la renta",
+      "endDate": "Fecha de fin de la renta",
+      "rentalType": "Modalidad de renta (diario, semanal, etc.)",
+      "basePrice": "Precio base del activo",
+      "totalPrice": "Precio total de la renta",
+      "todayDate": "Fecha en que se genera el contrato"
+    }
+  },
+  "validation": {
+    "categoryRequired": "La categoría es obligatoria",
+    "nameRequired": "El nombre es obligatorio",
+    "nameMax": "Máximo 150 caracteres",
+    "contentRequired": "El contenido es obligatorio"
+  }
+}

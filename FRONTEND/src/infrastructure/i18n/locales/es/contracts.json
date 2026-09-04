@@ -1,0 +1,43 @@
+{
+  "title": "Contratos",
+  "subtitle": "Cada renta genera automáticamente su contrato en PDF. Acá puedes verlo y, si quedó pendiente de firma, registrarla manualmente.",
+  "table": {
+    "headers": {
+      "customer": "Cliente",
+      "template": "Plantilla",
+      "status": "Estado",
+      "email": "Correo",
+      "created": "Creado",
+      "actions": "Acciones"
+    },
+    "empty": "Todavía no hay contratos generados.",
+    "templateFallback": "Plantilla por defecto"
+  },
+  "status": {
+    "pending": "Pendiente",
+    "signed": "Firmado"
+  },
+  "email": {
+    "sent": "Correo enviado",
+    "notSent": "Correo no enviado"
+  },
+  "actions": {
+    "viewPdf": "Ver PDF",
+    "sign": "Registrar firma",
+    "resendEmail": "Reenviar por correo"
+  },
+  "pdfDialog": {
+    "title": "Contrato de {{name}}",
+    "loadError": "No pudimos cargar el PDF del contrato.",
+    "iframeTitle": "Contrato en PDF"
+  },
+  "signDialog": {
+    "title": "Registrar firma de {{name}}"
+  },
+  "toast": {
+    "signSuccess": "Firma registrada",
+    "signError": "No pudimos registrar la firma. Inténtalo de nuevo.",
+    "resendSuccess": "Correo reenviado",
+    "resendError": "No pudimos reenviar el correo. Inténtalo de nuevo."
+  }
+}

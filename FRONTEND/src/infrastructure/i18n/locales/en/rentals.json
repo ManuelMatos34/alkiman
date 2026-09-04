@@ -1,0 +1,54 @@
+{
+  "title": "Rentals",
+  "subtitle": "Asset assignments to customers.",
+  "importButton": "Import rentals",
+  "newRental": "New rental",
+  "table": {
+    "headers": {
+      "asset": "Asset",
+      "customer": "Customer",
+      "startDate": "Start",
+      "endDate": "End",
+      "totalPrice": "Total price",
+      "status": "Status"
+    },
+    "empty": "You don't have any rentals yet. Create the first one.",
+    "emptyValue": "—"
+  },
+  "status": {
+    "Active": "Active",
+    "Completed": "Completed",
+    "Overdue": "Overdue",
+    "Cancelled": "Cancelled"
+  },
+  "toast": {
+    "statusUpdated": "Status updated",
+    "statusUpdateError": "We couldn't update the status. Try again.",
+    "created": "Rental created",
+    "createError": "We couldn't create the rental. Try again."
+  },
+  "dialog": {
+    "createTitle": "New rental",
+    "fields": {
+      "asset": "Asset",
+      "assetPlaceholder": "Select an available asset",
+      "assetPlaceholderEmpty": "No assets available",
+      "customer": "Customer",
+      "customerPlaceholder": "Select a customer",
+      "customerPlaceholderEmpty": "Create a customer first",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "totalPrice": "Total price"
+    }
+  },
+  "validation": {
+    "assetRequired": "Select an asset",
+    "customerRequired": "Select a customer",
+    "startDateRequired": "Enter the start date",
+    "endDateRequired": "Enter the end date",
+    "priceRequired": "Enter a price",
+    "priceInvalid": "Enter a valid price",
+    "priceNegative": "Price cannot be negative",
+    "endDateAfterStart": "End date must be after the start date"
+  }
+}

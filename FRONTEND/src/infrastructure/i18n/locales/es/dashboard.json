@@ -1,0 +1,26 @@
+{
+  "greeting": "Hola, {{name}}",
+  "subtitle": "Este es el punto de partida de tu negocio en Alkiman.",
+  "modules": {
+    "assets": {
+      "label": "Activos",
+      "description": "Inventario de bienes disponibles para alquilar."
+    },
+    "customers": {
+      "label": "Clientes",
+      "description": "Base de clientes de tu negocio."
+    },
+    "rentals": {
+      "label": "Rentas",
+      "description": "Tablero de alquileres activos y contratos."
+    },
+    "payments": {
+      "label": "Pagos",
+      "description": "Libro diario de ingresos y egresos."
+    },
+    "categories": {
+      "label": "Categorías",
+      "description": "Organización del inventario por categoría."
+    }
+  }
+}

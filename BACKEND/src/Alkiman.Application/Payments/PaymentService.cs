@@ -1,8 +1,10 @@
 using Alkiman.Application.Assets;
+using Alkiman.Application.AuditLogs;
 using Alkiman.Application.Common.Exceptions;
 using Alkiman.Application.Common.Interfaces;
 using Alkiman.Application.Rentals;
 using Alkiman.Domain.Entities;
+using Alkiman.Domain.Enums;
 
 namespace Alkiman.Application.Payments;
 
@@ -12,17 +14,20 @@ public class PaymentService : IPaymentService
     private readonly IRentalRepository _rentalRepository;
     private readonly IAssetRepository _assetRepository;
     private readonly ICurrentLandlordService _currentLandlord;
+    private readonly IAuditLogService _auditLog;
 
     public PaymentService(
         IPaymentRepository repository,
         IRentalRepository rentalRepository,
         IAssetRepository assetRepository,
-        ICurrentLandlordService currentLandlord)
+        ICurrentLandlordService currentLandlord,
+        IAuditLogService auditLog)
     {
         _repository = repository;
         _rentalRepository = rentalRepository;
         _assetRepository = assetRepository;
         _currentLandlord = currentLandlord;
+        _auditLog = auditLog;
     }
 
     public async Task<IReadOnlyList<PaymentResponse>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -70,10 +75,11 @@ public class PaymentService : IPaymentService
             PaymentDate = request.PaymentDate,
             StripeTransactionId = request.StripeTransactionId,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentLandlord.Auth0UserId
+            CreatedBy = _currentLandlord.UserId
         };
 
         await _repository.CreateAsync(payment, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Create, "TRX_Payments", payment.Id.ToString(), null, payment, cancellationToken);
         return ToResponse(payment);
     }
 

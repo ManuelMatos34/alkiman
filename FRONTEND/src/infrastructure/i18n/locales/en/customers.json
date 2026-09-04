@@ -1,0 +1,49 @@
+{
+  "title": "Customers",
+  "subtitle": "Directory of tenants renting your assets.",
+  "newCustomer": "New customer",
+  "table": {
+    "headers": {
+      "name": "Name",
+      "identity": "ID Number",
+      "phone": "Phone",
+      "email": "Email",
+      "actions": "Actions"
+    },
+    "empty": "You don't have any customers yet. Create the first one.",
+    "emptyValue": "—"
+  },
+  "toast": {
+    "deleted": "Customer deleted",
+    "deleteError": "We couldn't delete the customer. Try again.",
+    "updated": "Customer updated",
+    "updateError": "We couldn't update the customer. Try again.",
+    "created": "Customer created",
+    "createError": "We couldn't create the customer. Try again."
+  },
+  "delete": {
+    "title": "Delete customer",
+    "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+  },
+  "dialog": {
+    "editTitle": "Edit customer",
+    "createTitle": "New customer",
+    "fields": {
+      "fullName": "Full name",
+      "fullNamePlaceholder": "E.g.: John Smith",
+      "identityNumber": "ID Number",
+      "identityNumberPlaceholder": "E.g.: 001-1234567-8",
+      "phone": "Phone (optional)",
+      "phonePlaceholder": "E.g.: 809-555-1234",
+      "email": "Email (optional)",
+      "emailPlaceholder": "customer@email.com"
+    }
+  },
+  "validation": {
+    "fullNameRequired": "Name is required",
+    "fullNameMax": "Maximum 150 characters",
+    "identityNumberRequired": "ID number is required",
+    "identityNumberMax": "Maximum 50 characters",
+    "emailInvalid": "Enter a valid email"
+  }
+}

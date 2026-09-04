@@ -1,7 +1,9 @@
 using Alkiman.Application.Assets;
+using Alkiman.Application.AuditLogs;
 using Alkiman.Application.Common.Exceptions;
 using Alkiman.Application.Common.Interfaces;
 using Alkiman.Domain.Entities;
+using Alkiman.Domain.Enums;
 
 namespace Alkiman.Application.AssetBlocks;
 
@@ -10,15 +12,18 @@ public class AssetBlockService : IAssetBlockService
     private readonly IAssetBlockRepository _repository;
     private readonly IAssetRepository _assetRepository;
     private readonly ICurrentLandlordService _currentLandlord;
+    private readonly IAuditLogService _auditLog;
 
     public AssetBlockService(
         IAssetBlockRepository repository,
         IAssetRepository assetRepository,
-        ICurrentLandlordService currentLandlord)
+        ICurrentLandlordService currentLandlord,
+        IAuditLogService auditLog)
     {
         _repository = repository;
         _assetRepository = assetRepository;
         _currentLandlord = currentLandlord;
+        _auditLog = auditLog;
     }
 
     public async Task<IReadOnlyList<AssetBlockResponse>> GetAllByAssetAsync(Guid assetId, CancellationToken cancellationToken = default)
@@ -43,10 +48,11 @@ public class AssetBlockService : IAssetBlockService
             EndDate = request.EndDate,
             Reason = request.Reason,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentLandlord.Auth0UserId
+            CreatedBy = _currentLandlord.UserId
         };
 
         await _repository.CreateAsync(block, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Create, "INV_AssetBlocks", block.Id.ToString(), null, block, cancellationToken);
         return ToResponse(block);
     }
 
@@ -63,9 +69,10 @@ public class AssetBlockService : IAssetBlockService
         block.EndDate = request.EndDate;
         block.Reason = request.Reason;
         block.UpdatedAt = DateTime.UtcNow;
-        block.UpdatedBy = _currentLandlord.Auth0UserId;
+        block.UpdatedBy = _currentLandlord.UserId;
 
         await _repository.UpdateAsync(block, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Update, "INV_AssetBlocks", block.Id.ToString(), null, block, cancellationToken);
         return ToResponse(block);
     }
 
@@ -76,6 +83,7 @@ public class AssetBlockService : IAssetBlockService
         await EnsureAssetOwnedAsync(block.AssetId, cancellationToken);
 
         await _repository.DeleteAsync(id, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Delete, "INV_AssetBlocks", block.Id.ToString(), block, null, cancellationToken);
     }
 
     private async Task EnsureAssetOwnedAsync(Guid assetId, CancellationToken cancellationToken)

@@ -11,6 +11,7 @@ public record RentalResponse(
     string? ContractPdfUrl,
     decimal TotalPrice,
     RentalStatus Status,
+    Guid AccessToken,
     DateTime CreatedAt);
 
 public record CreateRentalRequest(Guid AssetId, Guid CustomerId, DateTime StartDate, DateTime EndDate, decimal TotalPrice);

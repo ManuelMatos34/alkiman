@@ -1,0 +1,111 @@
+{
+  "catalog": {
+    "unavailable": {
+      "title": "Link no disponible",
+      "description": "Este link no existe o ya no está activo. Consulta con quien te lo compartió."
+    },
+    "subtitle": "Elige el activo que quieres rentar para comenzar.",
+    "empty": "Todavía no hay activos disponibles en este link.",
+    "noDescription": "Sin descripción.",
+    "rentButton": "Rentar"
+  },
+  "checkout": {
+    "assetUnavailable": {
+      "title": "Activo no disponible",
+      "description": "Este activo ya no está disponible en este link."
+    },
+    "backToCatalog": "Volver al catálogo",
+    "title": "Rentar {{assetName}}",
+    "steps": {
+      "personalData": "Tus datos",
+      "rentalDetail": "Detalle de la renta",
+      "contract": "Contrato",
+      "payment": "Pago",
+      "signature": "Firma digital"
+    },
+    "form": {
+      "fullName": {
+        "label": "Nombre completo",
+        "placeholder": "Ej: María Pérez"
+      },
+      "email": {
+        "label": "Correo",
+        "placeholder": "tu@correo.com"
+      },
+      "phone": {
+        "label": "Teléfono"
+      },
+      "address": {
+        "label": "Dirección"
+      },
+      "country": {
+        "label": "País"
+      }
+    },
+    "rentalDetail": {
+      "info": "Este activo se renta por <1>{{rentalType}}</1>: el mínimo que puedes rentar es 1 {{unit}}.",
+      "startDate": "Fecha de inicio",
+      "periodsLabel": "Cantidad de {{unit}}",
+      "quantityLabel": "Cantidad de unidades",
+      "estimatedEndDate": "Fecha de fin estimada",
+      "basePrice": "Precio base ({{rentalType}})",
+      "total": "Total estimado"
+    },
+    "payment": {
+      "sandboxBanner": "🧪 Ambiente de prueba: no se realiza ningún cargo real.",
+      "loadingConfig": "Cargando métodos de pago...",
+      "bothUnavailable": "Los pagos todavía no están disponibles en este link. Vuelve a intentarlo más tarde.",
+      "stripe": {
+        "unavailable": "Pagos con tarjeta próximamente disponibles.",
+        "testCardHint": "Tarjeta de prueba: {{cardNumber}}, cualquier fecha de vencimiento futura y cualquier CVV de 3 dígitos.",
+        "confirmButton": "Confirmar pago",
+        "confirming": "Confirmando pago...",
+        "genericError": "No pudimos confirmar el pago con tarjeta. Inténtalo de nuevo."
+      },
+      "confirmed": {
+        "stripe": "Pago confirmado vía Stripe.",
+        "changeMethod": "Cambiar método de pago"
+      }
+    },
+    "contract": {
+      "info": "Antes de firmar y pagar, lee el contrato: este es el texto que vas a estar aceptando.",
+      "loading": "Cargando el contrato...",
+      "errorText": "No pudimos cargar el contrato. Inténtalo de nuevo.",
+      "retry": "Reintentar",
+      "acceptLabel": "Leí y acepto los términos de este contrato."
+    },
+    "signature": {
+      "info": "Para completar la renta necesitamos tu firma digital: se incluye en el contrato que te enviamos por correo.",
+      "label": "Firma"
+    },
+    "nav": {
+      "confirm": "Confirmar renta"
+    },
+    "success": {
+      "title": "¡Listo! Tu renta y pago fueron confirmados",
+      "summary": "Rentaste <1>{{assetName}}</1> por <2>{{price}}</2>.",
+      "paymentVerified": "Pago verificado vía {{provider}}.",
+      "emailNotice": "Vas a recibir por correo el contrato firmado con tu firma digital y el detalle de tu renta.",
+      "canClose": "Ya puedes cerrar esta ventana.",
+      "backToCatalog": "Volver al catálogo"
+    },
+    "validation": {
+      "fullNameRequired": "El nombre es obligatorio",
+      "fullNameMax": "Máximo 150 caracteres",
+      "emailRequired": "El correo es obligatorio",
+      "emailInvalid": "Ingresa un email válido",
+      "phoneMax": "Máximo 50 caracteres",
+      "addressMax": "Máximo 250 caracteres",
+      "countryMax": "Máximo 100 caracteres",
+      "startDateRequired": "Selecciona la fecha de inicio",
+      "quantityRequired": "Ingresa una cantidad",
+      "quantityInvalid": "Ingresa una cantidad válida",
+      "quantityInteger": "Debe ser un número entero",
+      "quantityMin": "Mínimo 1",
+      "signatureRequired": "La firma digital es obligatoria para completar la renta."
+    },
+    "errors": {
+      "checkoutFailed": "No pudimos procesar tu renta. Inténtalo de nuevo."
+    }
+  }
+}

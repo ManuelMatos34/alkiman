@@ -1,0 +1,21 @@
+{
+  "title": "Categories",
+  "subtitle": "Organize your asset inventory by category.",
+  "newCategory": "New category",
+  "table": {
+    "headers": {
+      "name": "Name",
+      "createdAt": "Created",
+      "actions": "Actions"
+    },
+    "empty": "You don't have any categories yet. Create the first one."
+  },
+  "toast": {
+    "deleted": "Category deleted",
+    "deleteError": "We couldn't delete the category. Try again."
+  },
+  "delete": {
+    "title": "Delete category",
+    "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+  }
+}

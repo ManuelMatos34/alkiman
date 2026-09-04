@@ -1,0 +1,48 @@
+{
+  "title": "Roles",
+  "subtitle": "Define los roles y los permisos que puede tener cada usuario.",
+  "newButton": "Nuevo rol",
+  "table": {
+    "headers": {
+      "name": "Nombre",
+      "description": "Descripción",
+      "permissions": "Permisos",
+      "users": "Usuarios",
+      "actions": "Acciones"
+    },
+    "empty": "Todavía no tienes roles personalizados.",
+    "permissionsCount": "{{count}} permisos"
+  },
+  "deleteDialog": {
+    "title": "Eliminar rol",
+    "description": "¿Seguro que quieres eliminar el rol \"{{name}}\"? Esta acción no se puede deshacer."
+  },
+  "toast": {
+    "deleteSuccess": "Rol eliminado",
+    "deleteError": "No pudimos eliminar el rol. Inténtalo de nuevo.",
+    "updateSuccess": "Rol actualizado",
+    "updateError": "No pudimos actualizar el rol. Inténtalo de nuevo.",
+    "createSuccess": "Rol creado",
+    "createError": "No pudimos crear el rol. Inténtalo de nuevo."
+  },
+  "formDialog": {
+    "titleEdit": "Editar rol",
+    "titleNew": "Nuevo rol",
+    "fields": {
+      "name": "Nombre",
+      "description": "Descripción",
+      "permissions": "Permisos"
+    },
+    "placeholders": {
+      "name": "Ej: Recepcionista",
+      "description": "Opcional"
+    },
+    "systemNote": "Este es un rol del sistema; su nombre y permisos no se pueden modificar."
+  },
+  "validation": {
+    "nameRequired": "El nombre es obligatorio",
+    "nameMax": "Máximo 100 caracteres",
+    "descriptionMax": "Máximo 300 caracteres",
+    "permissionsRequired": "Selecciona al menos un permiso"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "notFound": {
+    "title": "404",
+    "description": "La página que buscas no existe.",
+    "backHome": "Volver al inicio"
+  },
+  "forbidden": {
+    "title": "403",
+    "description": "No tienes permiso para acceder a esta sección.",
+    "backHome": "Volver al inicio"
+  },
+  "comingSoon": {
+    "description": "Estamos trabajando en esta sección. Pronto vas a poder gestionar {{title}} desde acá.",
+    "backToDashboard": "Volver al dashboard"
+  },
+  "moduleNotEnabled": {
+    "description": "Este módulo no está habilitado para tu negocio. Puedes activarlo desde el selector de módulos."
+  }
+}

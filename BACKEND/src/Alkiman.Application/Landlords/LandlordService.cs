@@ -6,6 +6,9 @@ namespace Alkiman.Application.Landlords;
 
 public class LandlordService : ILandlordService
 {
+    private static readonly string[] ValidThemeModes = ["light", "dark"];
+    private static readonly string[] ValidAccentColors = ["blue", "green", "violet", "orange", "pink", "red"];
+
     private readonly ILandlordRepository _repository;
     private readonly ICurrentLandlordService _currentLandlord;
 
@@ -17,46 +20,83 @@ public class LandlordService : ILandlordService
 
     public async Task<LandlordResponse> GetCurrentAsync(CancellationToken cancellationToken = default)
     {
-        var landlord = await _repository.GetByAuth0UserIdAsync(_currentLandlord.Auth0UserId, cancellationToken)
-            ?? throw new NotFoundException(nameof(Landlord), _currentLandlord.Auth0UserId);
-
-        return ToResponse(landlord);
-    }
-
-    public async Task<LandlordResponse> RegisterAsync(RegisterLandlordRequest request, CancellationToken cancellationToken = default)
-    {
-        var existing = await _repository.GetByAuth0UserIdAsync(_currentLandlord.Auth0UserId, cancellationToken);
-        if (existing is not null)
-            throw new AppValidationException("Ya existe un negocio registrado para este usuario.");
-
-        var landlord = new Landlord
-        {
-            Id = Guid.NewGuid(),
-            Auth0UserId = _currentLandlord.Auth0UserId,
-            BusinessName = request.BusinessName,
-            Email = request.Email,
-            CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentLandlord.Auth0UserId
-        };
-
-        await _repository.CreateAsync(landlord, cancellationToken);
+        var landlord = await GetCurrentLandlordAsync(cancellationToken);
         return ToResponse(landlord);
     }
 
     public async Task<LandlordResponse> UpdateCurrentAsync(UpdateLandlordRequest request, CancellationToken cancellationToken = default)
     {
-        var landlord = await _repository.GetByAuth0UserIdAsync(_currentLandlord.Auth0UserId, cancellationToken)
-            ?? throw new NotFoundException(nameof(Landlord), _currentLandlord.Auth0UserId);
+        var landlord = await GetCurrentLandlordAsync(cancellationToken);
 
         landlord.BusinessName = request.BusinessName;
-        landlord.Email = request.Email;
+        landlord.CountryId = request.CountryId;
+        landlord.StateId = request.StateId;
+        landlord.CityId = request.CityId;
+        landlord.Address = request.Address;
+        landlord.Phone1 = request.Phone1;
+        landlord.Phone2 = request.Phone2;
+        landlord.TaxId = request.TaxId;
         landlord.UpdatedAt = DateTime.UtcNow;
-        landlord.UpdatedBy = _currentLandlord.Auth0UserId;
+        landlord.UpdatedBy = _currentLandlord.UserId;
 
         await _repository.UpdateAsync(landlord, cancellationToken);
         return ToResponse(landlord);
     }
 
+    public async Task<LandlordResponse> UpdateAppearanceAsync(UpdateAppearanceRequest request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.AppName) || request.AppName.Length > 100)
+            throw new AppValidationException("El nombre de la aplicación es inválido.");
+
+        if (!ValidThemeModes.Contains(request.ThemeMode))
+            throw new AppValidationException("El modo de tema es inválido.");
+
+        if (!ValidAccentColors.Contains(request.AccentColor))
+            throw new AppValidationException("El color de acento es inválido.");
+
+        var landlord = await GetCurrentLandlordAsync(cancellationToken);
+
+        landlord.AppName = request.AppName;
+        landlord.ThemeMode = request.ThemeMode;
+        landlord.AccentColor = request.AccentColor;
+        landlord.UpdatedAt = DateTime.UtcNow;
+        landlord.UpdatedBy = _currentLandlord.UserId;
+
+        await _repository.UpdateAsync(landlord, cancellationToken);
+        return ToResponse(landlord);
+    }
+
+    public async Task<LandlordResponse> UpdateSignatureAsync(UpdateLandlordSignatureRequest request, CancellationToken cancellationToken = default)
+    {
+        var landlord = await GetCurrentLandlordAsync(cancellationToken);
+        landlord.SignatureBase64 = request.SignatureBase64;
+        landlord.UpdatedAt = DateTime.UtcNow;
+        landlord.UpdatedBy = _currentLandlord.UserId;
+        await _repository.UpdateAsync(landlord, cancellationToken);
+        return ToResponse(landlord);
+    }
+
+    private async Task<Landlord> GetCurrentLandlordAsync(CancellationToken cancellationToken)
+    {
+        var landlordId = await _currentLandlord.GetCurrentLandlordIdAsync(cancellationToken);
+        return await _repository.GetByIdAsync(landlordId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Landlord), landlordId);
+    }
+
     private static LandlordResponse ToResponse(Landlord landlord) =>
-        new(landlord.Id, landlord.BusinessName, landlord.Email, landlord.CreatedAt);
+        new(
+            landlord.Id,
+            landlord.BusinessName,
+            landlord.AppName,
+            landlord.ThemeMode,
+            landlord.AccentColor,
+            landlord.CountryId,
+            landlord.StateId,
+            landlord.CityId,
+            landlord.Address,
+            landlord.Phone1,
+            landlord.Phone2,
+            landlord.TaxId,
+            landlord.CreatedAt,
+            landlord.SignatureBase64);
 }

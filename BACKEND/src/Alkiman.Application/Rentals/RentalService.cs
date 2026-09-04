@@ -1,6 +1,8 @@
 using Alkiman.Application.Assets;
+using Alkiman.Application.AuditLogs;
 using Alkiman.Application.Common.Exceptions;
 using Alkiman.Application.Common.Interfaces;
+using Alkiman.Application.Contracts;
 using Alkiman.Application.Customers;
 using Alkiman.Domain.Entities;
 using Alkiman.Domain.Enums;
@@ -12,18 +14,24 @@ public class RentalService : IRentalService
     private readonly IRentalRepository _repository;
     private readonly IAssetRepository _assetRepository;
     private readonly ICustomerRepository _customerRepository;
+    private readonly IContractService _contractService;
     private readonly ICurrentLandlordService _currentLandlord;
+    private readonly IAuditLogService _auditLog;
 
     public RentalService(
         IRentalRepository repository,
         IAssetRepository assetRepository,
         ICustomerRepository customerRepository,
-        ICurrentLandlordService currentLandlord)
+        IContractService contractService,
+        ICurrentLandlordService currentLandlord,
+        IAuditLogService auditLog)
     {
         _repository = repository;
         _assetRepository = assetRepository;
         _customerRepository = customerRepository;
+        _contractService = contractService;
         _currentLandlord = currentLandlord;
+        _auditLog = auditLog;
     }
 
     public async Task<IReadOnlyList<RentalResponse>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -67,16 +75,29 @@ public class RentalService : IRentalService
             EndDate = request.EndDate,
             TotalPrice = request.TotalPrice,
             Status = RentalStatus.Active,
+            AccessToken = Guid.NewGuid(),
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentLandlord.Auth0UserId
+            CreatedBy = _currentLandlord.UserId
         };
 
         await _repository.CreateAsync(rental, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Create, "TRX_Rentals", rental.Id.ToString(), null, rental, cancellationToken);
+
+        // Cada renta que se crea debe generar su contrato automáticamente (con el detalle
+        // de la renta) y enviárselo al cliente por correo. Al crearse manualmente desde el
+        // panel todavía no hay firma del cliente a mano: el contrato queda "Pendiente" y se
+        // puede firmar luego desde el mantenimiento de Contratos.
+        var contract = await _contractService.GenerateForRentalAsync(
+            rental, asset, customer, landlordId, _currentLandlord.UserId, signatureImageBase64: null, cancellationToken);
+        rental.ContractPdfUrl = $"/api/contracts/{contract.Id}/pdf";
+        rental.UpdatedAt = DateTime.UtcNow;
+        rental.UpdatedBy = _currentLandlord.UserId;
+        await _repository.UpdateAsync(rental, cancellationToken);
 
         // Happy path: al asignar la renta, el activo pasa automáticamente a "Rentado".
         asset.Status = AssetStatus.Rented;
         asset.UpdatedAt = DateTime.UtcNow;
-        asset.UpdatedBy = _currentLandlord.Auth0UserId;
+        asset.UpdatedBy = _currentLandlord.UserId;
         await _assetRepository.UpdateAsync(asset, cancellationToken);
 
         return ToResponse(rental);
@@ -88,9 +109,10 @@ public class RentalService : IRentalService
 
         rental.ContractPdfUrl = request.ContractPdfUrl;
         rental.UpdatedAt = DateTime.UtcNow;
-        rental.UpdatedBy = _currentLandlord.Auth0UserId;
+        rental.UpdatedBy = _currentLandlord.UserId;
 
         await _repository.UpdateAsync(rental, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Update, "TRX_Rentals", rental.Id.ToString(), null, rental, cancellationToken);
         return ToResponse(rental);
     }
 
@@ -100,9 +122,10 @@ public class RentalService : IRentalService
 
         rental.Status = request.Status;
         rental.UpdatedAt = DateTime.UtcNow;
-        rental.UpdatedBy = _currentLandlord.Auth0UserId;
+        rental.UpdatedBy = _currentLandlord.UserId;
 
         await _repository.UpdateAsync(rental, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Update, "TRX_Rentals", rental.Id.ToString(), null, rental, cancellationToken);
 
         if (request.Status == RentalStatus.Completed)
         {
@@ -111,7 +134,7 @@ public class RentalService : IRentalService
             {
                 asset.Status = AssetStatus.Available;
                 asset.UpdatedAt = DateTime.UtcNow;
-                asset.UpdatedBy = _currentLandlord.Auth0UserId;
+                asset.UpdatedBy = _currentLandlord.UserId;
                 await _assetRepository.UpdateAsync(asset, cancellationToken);
             }
         }
@@ -134,5 +157,5 @@ public class RentalService : IRentalService
 
     private static RentalResponse ToResponse(Rental rental) => new(
         rental.Id, rental.AssetId, rental.CustomerId, rental.StartDate, rental.EndDate,
-        rental.ContractPdfUrl, rental.TotalPrice, rental.Status, rental.CreatedAt);
+        rental.ContractPdfUrl, rental.TotalPrice, rental.Status, rental.AccessToken, rental.CreatedAt);
 }

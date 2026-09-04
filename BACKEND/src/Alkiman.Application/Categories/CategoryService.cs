@@ -1,6 +1,8 @@
+using Alkiman.Application.AuditLogs;
 using Alkiman.Application.Common.Exceptions;
 using Alkiman.Application.Common.Interfaces;
 using Alkiman.Domain.Entities;
+using Alkiman.Domain.Enums;
 
 namespace Alkiman.Application.Categories;
 
@@ -8,11 +10,13 @@ public class CategoryService : ICategoryService
 {
     private readonly ICategoryRepository _repository;
     private readonly ICurrentLandlordService _currentLandlord;
+    private readonly IAuditLogService _auditLog;
 
-    public CategoryService(ICategoryRepository repository, ICurrentLandlordService currentLandlord)
+    public CategoryService(ICategoryRepository repository, ICurrentLandlordService currentLandlord, IAuditLogService auditLog)
     {
         _repository = repository;
         _currentLandlord = currentLandlord;
+        _auditLog = auditLog;
     }
 
     public async Task<IReadOnlyList<CategoryResponse>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -37,10 +41,11 @@ public class CategoryService : ICategoryService
             LandlordId = landlordId,
             Name = request.Name,
             CreatedAt = DateTime.UtcNow,
-            CreatedBy = _currentLandlord.Auth0UserId
+            CreatedBy = _currentLandlord.UserId
         };
 
         category.Id = await _repository.CreateAsync(category, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Create, "CFG_Categories", category.Id.ToString(), null, category, cancellationToken);
         return ToResponse(category);
     }
 
@@ -50,16 +55,18 @@ public class CategoryService : ICategoryService
 
         category.Name = request.Name;
         category.UpdatedAt = DateTime.UtcNow;
-        category.UpdatedBy = _currentLandlord.Auth0UserId;
+        category.UpdatedBy = _currentLandlord.UserId;
 
         await _repository.UpdateAsync(category, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Update, "CFG_Categories", category.Id.ToString(), null, category, cancellationToken);
         return ToResponse(category);
     }
 
     public async Task DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        await GetOwnedOrThrowAsync(id, cancellationToken);
+        var category = await GetOwnedOrThrowAsync(id, cancellationToken);
         await _repository.DeleteAsync(id, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Delete, "CFG_Categories", category.Id.ToString(), category, null, cancellationToken);
     }
 
     private async Task<Category> GetOwnedOrThrowAsync(int id, CancellationToken cancellationToken)

@@ -1,0 +1,21 @@
+{
+  "title": "Categorías",
+  "subtitle": "Organiza tu inventario de activos por categoría.",
+  "newCategory": "Nueva categoría",
+  "table": {
+    "headers": {
+      "name": "Nombre",
+      "createdAt": "Creada",
+      "actions": "Acciones"
+    },
+    "empty": "Todavía no tienes categorías. Crea la primera."
+  },
+  "toast": {
+    "deleted": "Categoría eliminada",
+    "deleteError": "No pudimos eliminar la categoría. Inténtalo de nuevo."
+  },
+  "delete": {
+    "title": "Eliminar categoría",
+    "description": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer."
+  }
+}

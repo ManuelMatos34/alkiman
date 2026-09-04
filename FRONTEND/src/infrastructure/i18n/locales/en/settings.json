@@ -1,0 +1,19 @@
+{
+  "title": "Settings",
+  "description": "Manage your account, business profile, appearance, language and security.",
+  "tabs": {
+    "account": "My account",
+    "profile": "Profile",
+    "appearance": "Appearance",
+    "signature": "Signature",
+    "language": "Language",
+    "security": "Security"
+  },
+  "language": {
+    "title": "Language",
+    "description": "Choose the language you want to see the application in.",
+    "spanish": "Spanish (Latin America)",
+    "english": "English",
+    "saved": "Language updated"
+  }
+}

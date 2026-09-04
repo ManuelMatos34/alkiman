@@ -1,0 +1,66 @@
+{
+  "title": "Assets",
+  "subtitle": "Inventory of goods available for rent.",
+  "newAsset": "New asset",
+  "table": {
+    "headers": {
+      "name": "Name",
+      "category": "Category",
+      "status": "Status",
+      "basePrice": "Base price",
+      "stock": "Stock",
+      "actions": "Actions"
+    },
+    "empty": "You don't have any assets yet. Create the first one.",
+    "noCategory": "—"
+  },
+  "status": {
+    "Available": "Available",
+    "Rented": "Rented",
+    "Maintenance": "Maintenance"
+  },
+  "toast": {
+    "statusUpdated": "Status updated",
+    "statusUpdateError": "We couldn't update the status. Try again.",
+    "deleted": "Asset deleted",
+    "deleteError": "We couldn't delete the asset. Try again.",
+    "updated": "Asset updated",
+    "updateError": "We couldn't update the asset. Try again.",
+    "created": "Asset created",
+    "createError": "We couldn't create the asset. Try again."
+  },
+  "delete": {
+    "title": "Delete asset",
+    "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+  },
+  "dialog": {
+    "editTitle": "Edit asset",
+    "createTitle": "New asset",
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "E.g.: Hammer drill",
+      "category": "Category",
+      "categoryPlaceholder": "Select a category",
+      "categoryPlaceholderEmpty": "Create a category first",
+      "rentalType": "Rental type",
+      "basePrice": "Base price",
+      "stock": "Stock",
+      "description": "Description (optional)",
+      "descriptionPlaceholder": "Additional details about the asset",
+      "imageUrl": "Image URL (optional)",
+      "imageUrlPlaceholder": "https://..."
+    }
+  },
+  "validation": {
+    "categoryRequired": "Select a category",
+    "nameRequired": "Name is required",
+    "nameMax": "Maximum 200 characters",
+    "priceRequired": "Enter a price",
+    "priceInvalid": "Enter a valid price",
+    "priceNegative": "Price cannot be negative",
+    "stockRequired": "Enter a stock",
+    "stockInvalid": "Enter a valid stock",
+    "stockInteger": "Stock must be a whole number",
+    "stockNegative": "Stock cannot be negative"
+  }
+}

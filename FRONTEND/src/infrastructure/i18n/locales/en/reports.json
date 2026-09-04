@@ -1,0 +1,55 @@
+{
+  "title": "Metrics",
+  "subtitle": "Profits, losses, overdue assets, and business performance.",
+  "sections": {
+    "finances": "Finances",
+    "rentals": "Rentals",
+    "assets": "Assets",
+    "overdueAssets": "Assets with overdue rentals",
+    "topAssets": "Assets with the most revenue",
+    "topCustomers": "Customers with the most consumption"
+  },
+  "stats": {
+    "totalIncome": "Total income",
+    "totalExpenses": "Total expenses",
+    "netProfit": "Net profit",
+    "totalContractedValue": "Total contracted value",
+    "totalRentals": "Total rentals",
+    "active": "Active",
+    "completed": "Completed",
+    "overdue": "Overdue",
+    "totalAssets": "Total assets",
+    "available": "Available",
+    "rented": "Rented",
+    "maintenance": "In maintenance",
+    "utilizationRate": "Utilization rate",
+    "inventoryValue": "Inventory value"
+  },
+  "charts": {
+    "incomeVsExpenses": {
+      "title": "Income vs. expenses (last 6 months)",
+      "incomeSeries": "Income",
+      "expensesSeries": "Expenses"
+    },
+    "revenueByCategory": {
+      "title": "Revenue by category",
+      "emptyState": "No categories with data yet.",
+      "incomeSeries": "Income"
+    }
+  },
+  "table": {
+    "headers": {
+      "asset": "Asset",
+      "customer": "Customer",
+      "dueDate": "Due date",
+      "daysOverdue": "Days overdue",
+      "amount": "Amount",
+      "rentals": "Rentals",
+      "income": "Income",
+      "totalPaid": "Total paid"
+    },
+    "daysOverdueSuffix": "days",
+    "emptyOverdue": "You have no overdue rentals. 🎉",
+    "emptyData": "Not enough data yet."
+  }
+}

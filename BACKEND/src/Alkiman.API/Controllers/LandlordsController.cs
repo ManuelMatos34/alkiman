@@ -1,3 +1,4 @@
+using Alkiman.Application.Common.Permissions;
 using Alkiman.Application.Landlords;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,20 +17,23 @@ public class LandlordsController : ControllerBase
         _service = service;
     }
 
-    /// <summary>Perfil del negocio del usuario autenticado.</summary>
+    /// <summary>Perfil del negocio del usuario autenticado. Cualquier usuario autenticado puede consultarlo.</summary>
     [HttpGet("me")]
     public async Task<ActionResult<LandlordResponse>> GetMe(CancellationToken cancellationToken)
         => Ok(await _service.GetCurrentAsync(cancellationToken));
 
-    /// <summary>Completa el registro del negocio (primer login tras crear la cuenta en Auth0).</summary>
-    [HttpPost("me")]
-    public async Task<ActionResult<LandlordResponse>> Register(RegisterLandlordRequest request, CancellationToken cancellationToken)
-    {
-        var result = await _service.RegisterAsync(request, cancellationToken);
-        return CreatedAtAction(nameof(GetMe), result);
-    }
-
     [HttpPut("me")]
+    [Authorize(Policy = PermissionCodes.SettingsManage)]
     public async Task<ActionResult<LandlordResponse>> UpdateMe(UpdateLandlordRequest request, CancellationToken cancellationToken)
         => Ok(await _service.UpdateCurrentAsync(request, cancellationToken));
+
+    [HttpPut("me/appearance")]
+    [Authorize(Policy = PermissionCodes.SettingsManage)]
+    public async Task<ActionResult<LandlordResponse>> UpdateAppearance(UpdateAppearanceRequest request, CancellationToken cancellationToken)
+        => Ok(await _service.UpdateAppearanceAsync(request, cancellationToken));
+
+    [HttpPut("me/signature")]
+    [Authorize(Policy = PermissionCodes.SettingsManage)]
+    public async Task<ActionResult<LandlordResponse>> UpdateSignature(UpdateLandlordSignatureRequest request, CancellationToken cancellationToken)
+        => Ok(await _service.UpdateSignatureAsync(request, cancellationToken));
 }

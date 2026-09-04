@@ -15,7 +15,7 @@ public class PaymentRepository : IPaymentRepository
     }
 
     private const string SelectColumns = """
-        Id, RentalId, LandlordId, Amount, Type, PaymentDate, StripeTransactionId,
+        Id, RentalId, LandlordId, Amount, Type, PaymentDate, StripeTransactionId, Provider, ExternalReference,
         CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
         """;
 
@@ -48,11 +48,28 @@ public class PaymentRepository : IPaymentRepository
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         const string sql = """
             INSERT INTO dbo.TRX_Payments
-                (Id, RentalId, LandlordId, Amount, Type, PaymentDate, StripeTransactionId, CreatedAt, CreatedBy)
+                (Id, RentalId, LandlordId, Amount, Type, PaymentDate, StripeTransactionId, Provider, ExternalReference, CreatedAt, CreatedBy)
             VALUES
-                (@Id, @RentalId, @LandlordId, @Amount, @Type, @PaymentDate, @StripeTransactionId, @CreatedAt, @CreatedBy)
+                (@Id, @RentalId, @LandlordId, @Amount, @Type, @PaymentDate, @StripeTransactionId, @Provider, @ExternalReference, @CreatedAt, @CreatedBy)
             """;
-        await connection.ExecuteAsync(sql, payment);
+        // Nota: Dapper convierte los enums a su tipo subyacente (int) en LookupDbType
+        // *antes* de consultar los TypeHandler registrados, por lo que un TypeHandler<T>
+        // para un enum nunca se aplica cuando se pasa la entidad completa como parámetros.
+        // Convertimos a texto explícitamente para evitar violar los CHECK constraints.
+        await connection.ExecuteAsync(sql, new
+        {
+            payment.Id,
+            payment.RentalId,
+            payment.LandlordId,
+            payment.Amount,
+            Type = payment.Type.ToString(),
+            payment.PaymentDate,
+            payment.StripeTransactionId,
+            payment.Provider,
+            payment.ExternalReference,
+            payment.CreatedAt,
+            payment.CreatedBy
+        });
         return payment.Id;
     }
 }

@@ -1,0 +1,8 @@
+{
+  "title": "Choose a module",
+  "subtitle": "Hi, {{name}}. Select the module you want to work with.",
+  "comingSoon": "Coming soon",
+  "enableButton": "Enable",
+  "enabling": "Enabling...",
+  "enableError": "Could not enable the module. Please try again."
+}

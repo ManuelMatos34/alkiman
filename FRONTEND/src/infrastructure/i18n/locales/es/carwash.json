@@ -1,0 +1,396 @@
+{
+  "nav": {
+    "board": "Tablero",
+    "washers": "Lavadores",
+    "services": "Servicios",
+    "extras": "Agregados",
+    "portalLinks": "Links del portal",
+    "changeModule": "Cambiar de módulo"
+  },
+  "setup": {
+    "title": "Configura tu Carwash",
+    "description": "Elige cómo trabajas. Esto define si el trabajo se reparte entre lavadores o lo haces todo tú.",
+    "hint": "Si eliges Empresa, cargas tu personal en la sección Lavadores. No hace falta crearles una cuenta: sólo se la das a quien además tenga que entrar al sistema.",
+    "confirm": "Empezar",
+    "modes": {
+      "Empresa": {
+        "title": "Empresa",
+        "description": "Varias personas trabajando. Asignas cada vehículo a un lavador y sigues su avance."
+      },
+      "Solitario": {
+        "title": "Trabajo solo",
+        "description": "Una sola persona. Los vehículos se asignan solos al iniciar el lavado, sin pasos extra."
+      }
+    },
+    "toast": {
+      "success": "Listo, tu Carwash quedó configurado.",
+      "error": "No se pudo guardar la configuración."
+    }
+  },
+  "validation": {
+    "nameRequired": "El nombre es obligatorio",
+    "nameMax": "El nombre no puede superar los 100 caracteres",
+    "descriptionMax": "La descripción no puede superar los 300 caracteres",
+    "priceRequired": "El precio es obligatorio",
+    "priceInvalid": "El precio debe ser un número válido",
+    "priceNegative": "El precio no puede ser negativo",
+    "minutesRequired": "La duración estimada es obligatoria",
+    "minutesInvalid": "La duración debe ser un número válido",
+    "minutesInteger": "La duración debe ser un número entero",
+    "minutesPositive": "La duración debe ser mayor a cero",
+    "minutesNonNegative": "La duración no puede ser negativa"
+  },
+  "vehicle": {
+    "sectionTitle": "Datos del vehículo",
+    "fields": {
+      "brand": "Marca",
+      "model": "Modelo",
+      "year": "Año",
+      "color": "Color"
+    },
+    "placeholders": {
+      "brand": "Ej: Toyota",
+      "model": "Ej: Corolla",
+      "year": "Ej: 2020",
+      "color": "Ej: Gris"
+    },
+    "validation": {
+      "brandMax": "La marca no puede superar los 60 caracteres",
+      "modelMax": "El modelo no puede superar los 60 caracteres",
+      "colorMax": "El color no puede superar los 40 caracteres",
+      "yearInvalid": "El año debe tener 4 dígitos",
+      "yearRange": "El año debe estar entre {{min}} y {{max}}"
+    }
+  },
+  "services": {
+    "title": "Servicios",
+    "subtitle": "Administra el catálogo de servicios de lavado que ofreces.",
+    "newButton": "Nuevo servicio",
+    "table": {
+      "headers": {
+        "name": "Nombre",
+        "price": "Precio",
+        "estimatedMinutes": "Duración",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "empty": "Todavía no hay servicios registrados.",
+      "minutesValue": "{{count}} min",
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo"
+    },
+    "dialog": {
+      "createTitle": "Nuevo servicio",
+      "editTitle": "Editar servicio",
+      "fields": {
+        "name": "Nombre",
+        "namePlaceholder": "Ej: Lavado básico",
+        "price": "Precio",
+        "estimatedMinutes": "Duración estimada (min)",
+        "description": "Descripción",
+        "descriptionPlaceholder": "Detalles del servicio (opcional)",
+        "active": "Servicio activo"
+      }
+    },
+    "toast": {
+      "created": "Servicio creado correctamente.",
+      "createError": "No se pudo crear el servicio.",
+      "updated": "Servicio actualizado correctamente.",
+      "updateError": "No se pudo actualizar el servicio.",
+      "deleted": "Servicio eliminado correctamente.",
+      "deleteError": "No se pudo eliminar el servicio."
+    },
+    "delete": {
+      "title": "Eliminar servicio",
+      "description": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer."
+    }
+  },
+  "extras": {
+    "title": "Agregados",
+    "subtitle": "Opciones que se suman al servicio base, como encerado u ozono.",
+    "newButton": "Nuevo agregado",
+    "pickerLabel": "Agregados",
+    "total": "Total",
+    "table": {
+      "headers": {
+        "name": "Nombre",
+        "price": "Precio",
+        "estimatedMinutes": "Duración",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "empty": "Todavía no hay agregados registrados.",
+      "minutesValue": "{{count}} min",
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo"
+    },
+    "dialog": {
+      "createTitle": "Nuevo agregado",
+      "editTitle": "Editar agregado",
+      "fields": {
+        "name": "Nombre",
+        "namePlaceholder": "Ej: Encerado",
+        "price": "Precio",
+        "estimatedMinutes": "Duración extra (min)",
+        "description": "Descripción",
+        "descriptionPlaceholder": "Detalles del agregado (opcional)",
+        "active": "Agregado activo"
+      }
+    },
+    "toast": {
+      "created": "Agregado creado correctamente.",
+      "createError": "No se pudo crear el agregado.",
+      "updated": "Agregado actualizado correctamente.",
+      "updateError": "No se pudo actualizar el agregado.",
+      "deleted": "Agregado eliminado correctamente.",
+      "deleteError": "No se pudo eliminar. Si ya se usó en un vehículo, desactívalo en vez de borrarlo."
+    },
+    "delete": {
+      "title": "Eliminar agregado",
+      "description": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer."
+    }
+  },
+  "portalLinks": {
+    "title": "Links del portal",
+    "subtitle": "Crea links públicos para que tus clientes se auto-registren en la cola.",
+    "newButton": "Nuevo link",
+    "table": {
+      "headers": {
+        "title": "Título",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "empty": "Todavía no hay links de portal creados.",
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo"
+    },
+    "actions": {
+      "copy": "Copiar link",
+      "open": "Abrir link",
+      "activate": "Activar",
+      "deactivate": "Desactivar"
+    },
+    "toast": {
+      "copySuccess": "Link copiado al portapapeles.",
+      "copyError": "No se pudo copiar el link.",
+      "activateSuccess": "Link activado correctamente.",
+      "deactivateSuccess": "Link desactivado correctamente.",
+      "toggleError": "No se pudo actualizar el estado del link.",
+      "createSuccess": "Link creado correctamente.",
+      "createError": "No se pudo crear el link."
+    },
+    "validation": {
+      "titleRequired": "El título es obligatorio",
+      "titleMax": "El título no puede superar los 150 caracteres"
+    },
+    "formDialog": {
+      "titleNew": "Nuevo link del portal",
+      "fields": {
+        "title": "Título"
+      },
+      "placeholders": {
+        "title": "Ej: Cola de lavado"
+      }
+    }
+  },
+  "board": {
+    "title": "Tablero de lavado",
+    "subtitle": "Sigue el avance de cada vehículo y asigna el trabajo a tus lavadores.",
+    "subtitleSolo": "Sigue el avance de cada vehículo en la cola.",
+    "registerButton": "Registrar vehículo",
+    "queueNumber": "Turno #{{number}}",
+    "columnEmpty": "No hay vehículos en esta columna.",
+    "arrivalPending": {
+      "title": "Turnos llamados"
+    },
+    "washer": {
+      "placeholder": "Lavador",
+      "unassigned": "Sin asignar",
+      "assignedTo": "Atendido por {{name}}"
+    },
+    "columns": {
+      "Waiting": "En espera",
+      "InProgress": "En proceso",
+      "Drying": "Secado",
+      "Waxing": "Encerado",
+      "Ready": "Listo"
+    },
+    "actions": {
+      "callArrival": "Llamar turno",
+      "confirmArrival": "Confirmar llegada",
+      "markExpired": "Marcar vencido",
+      "cancel": "Cancelar",
+      "advanceTo": {
+        "InProgress": "Iniciar lavado",
+        "Drying": "Pasar a secado",
+        "Waxing": "Pasar a encerado",
+        "Ready": "Marcar listo",
+        "Delivered": "Marcar entregado"
+      }
+    },
+    "toast": {
+      "advanceError": "No se pudo actualizar el estado del turno.",
+      "assignSuccess": "Lavador asignado correctamente.",
+      "assignError": "No se pudo asignar el lavador.",
+      "callArrivalSuccess": "Turno llamado correctamente.",
+      "callArrivalError": "No se pudo llamar al turno.",
+      "cancelSuccess": "Turno cancelado correctamente.",
+      "cancelError": "No se pudo cancelar el turno.",
+      "confirmArrivalSuccess": "Llegada confirmada correctamente.",
+      "confirmArrivalError": "No se pudo confirmar la llegada.",
+      "expireSuccess": "Turno marcado como vencido.",
+      "expireError": "No se pudo marcar el turno como vencido."
+    },
+    "registerDialog": {
+      "title": "Registrar vehículo",
+      "submit": "Registrar",
+      "validation": {
+        "customerNameRequired": "El nombre del cliente es obligatorio",
+        "customerNameMax": "El nombre no puede superar los 150 caracteres",
+        "customerPhoneRequired": "El teléfono es obligatorio",
+        "customerPhoneMax": "El teléfono no puede superar los 30 caracteres",
+        "customerEmailInvalid": "El correo electrónico no es válido",
+        "serviceRequired": "Selecciona un servicio",
+        "vehiclePlateRequired": "La placa del vehículo es obligatoria",
+        "vehiclePlateMax": "La placa no puede superar los 20 caracteres"
+      },
+      "fields": {
+        "customerName": "Nombre del cliente",
+        "customerNamePlaceholder": "Nombre completo",
+        "customerPhone": "Teléfono",
+        "customerPhonePlaceholder": "Ej: 809-555-0100",
+        "customerEmail": "Correo electrónico",
+        "customerEmailPlaceholder": "cliente@correo.com",
+        "service": "Servicio",
+        "servicePlaceholder": "Selecciona un servicio",
+        "serviceEmpty": "No hay servicios activos disponibles",
+        "vehiclePlate": "Placa del vehículo",
+        "vehiclePlatePlaceholder": "Ej: A123456"
+      },
+      "toast": {
+        "success": "Vehículo registrado correctamente.",
+        "error": "No se pudo registrar el vehículo."
+      }
+    }
+  },
+  "washers": {
+    "title": "Lavadores",
+    "subtitle": "El personal que lava. No son cuentas del sistema: dar de alta a alguien acá no le crea un usuario ni le da acceso al software.",
+    "newButton": "Nuevo lavador",
+    "table": {
+      "headers": {
+        "name": "Nombre",
+        "phone": "Teléfono",
+        "account": "Cuenta",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "empty": "Todavía no cargaste ningún lavador.",
+      "noAccount": "Sin acceso al sistema",
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo",
+      "deleteBlocked": "Ya tiene turnos registrados. Desactivalo para no perder el historial."
+    },
+    "dialog": {
+      "createTitle": "Nuevo lavador",
+      "editTitle": "Editar lavador",
+      "fields": {
+        "fullName": "Nombre completo",
+        "fullNamePlaceholder": "Ej: Juan Pérez",
+        "phone": "Teléfono",
+        "phonePlaceholder": "Opcional",
+        "account": "Cuenta del sistema",
+        "accountNone": "Sin cuenta (no inicia sesión)",
+        "accountHint": "Sólo si además tiene que entrar al sistema para mover su propia cola. La mayoría de los lavadores no lo necesita.",
+        "active": "Activo",
+        "activeHint": "Un lavador inactivo no se puede asignar, pero sigue apareciendo en los turnos que ya lavó."
+      }
+    },
+    "validation": {
+      "nameRequired": "El nombre es obligatorio.",
+      "nameMax": "El nombre no puede superar los 150 caracteres.",
+      "phoneMax": "El teléfono no puede superar los 30 caracteres."
+    },
+    "toast": {
+      "created": "Lavador creado correctamente.",
+      "createError": "No se pudo crear el lavador.",
+      "updated": "Lavador actualizado correctamente.",
+      "updateError": "No se pudo actualizar el lavador.",
+      "deleted": "Lavador eliminado correctamente.",
+      "deleteError": "No se pudo eliminar el lavador."
+    },
+    "delete": {
+      "title": "Eliminar lavador",
+      "description": "¿Seguro que quieres eliminar a \"{{name}}\"? Esta acción no se puede deshacer."
+    }
+  },
+  "join": {
+    "subtitle": "Regístrate en la cola de lavado sin necesidad de estar presente.",
+    "formTitle": "Tus datos",
+    "submitting": "Enviando...",
+    "submit": "Unirme a la cola",
+    "validation": {
+      "customerNameRequired": "El nombre es obligatorio",
+      "customerPhoneRequired": "El teléfono es obligatorio",
+      "customerEmailInvalid": "El correo electrónico no es válido",
+      "serviceRequired": "Selecciona un servicio",
+      "vehiclePlateRequired": "La placa del vehículo es obligatoria"
+    },
+    "toast": {
+      "error": "No se pudo registrar tu turno. Inténtalo de nuevo."
+    },
+    "unavailable": {
+      "title": "Link no disponible",
+      "description": "Este link no está disponible o ya no está activo."
+    },
+    "fields": {
+      "customerName": "Nombre",
+      "customerNamePlaceholder": "Tu nombre completo",
+      "customerPhone": "Teléfono",
+      "customerPhonePlaceholder": "Ej: 809-555-0100",
+      "customerEmail": "Correo electrónico",
+      "customerEmailPlaceholder": "tucorreo@correo.com",
+      "service": "Servicio",
+      "servicePlaceholder": "Selecciona un servicio",
+      "serviceEmpty": "No hay servicios disponibles",
+      "vehiclePlate": "Placa del vehículo",
+      "vehiclePlatePlaceholder": "Ej: A123456"
+    }
+  },
+  "ticketStatus": {
+    "title": "Estado de tu turno",
+    "subtitle": "Sigue en vivo el avance de tu vehículo.",
+    "queueNumber": "Número de turno",
+    "countdownLabel": "Tiempo para llegar",
+    "invalidLink": {
+      "title": "Link inválido",
+      "description": "El link que intentas abrir no es válido."
+    },
+    "notFound": {
+      "title": "Turno no encontrado",
+      "description": "No pudimos encontrar información sobre este turno."
+    },
+    "statusMessage": {
+      "Waiting": "Tu vehículo está en espera para comenzar el lavado.",
+      "ArrivalPending": "Te hemos llamado. Acércate antes de que termine el tiempo.",
+      "InProgress": "Tu vehículo está siendo lavado.",
+      "Drying": "Tu vehículo está en la etapa de secado.",
+      "Waxing": "Tu vehículo está siendo encerado.",
+      "Ready": "Tu vehículo está listo para retirar.",
+      "Delivered": "Tu vehículo ya fue entregado.",
+      "Cancelled": "Este turno fue cancelado.",
+      "Expired": "Este turno venció por falta de llegada."
+    }
+  },
+  "status": {
+    "Waiting": "En espera",
+    "ArrivalPending": "Llamado",
+    "InProgress": "En proceso",
+    "Drying": "Secado",
+    "Waxing": "Encerado",
+    "Ready": "Listo",
+    "Delivered": "Entregado",
+    "Cancelled": "Cancelado",
+    "Expired": "Vencido"
+  }
+}

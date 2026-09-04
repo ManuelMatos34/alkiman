@@ -18,30 +18,22 @@ public class LandlordRepository : ILandlordRepository
     {
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         const string sql = """
-            SELECT Id, Auth0UserId, BusinessName, Email, CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
+            SELECT Id, BusinessName, AppName, ThemeMode, AccentColor,
+                   CountryId, StateId, CityId, Address, Phone1, Phone2, TaxId,
+                   SignatureBase64,
+                   CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
             FROM dbo.CFG_Landlords
             WHERE Id = @Id
             """;
         return await connection.QuerySingleOrDefaultAsync<Landlord>(sql, new { Id = id });
     }
 
-    public async Task<Landlord?> GetByAuth0UserIdAsync(string auth0UserId, CancellationToken cancellationToken = default)
-    {
-        using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
-        const string sql = """
-            SELECT Id, Auth0UserId, BusinessName, Email, CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
-            FROM dbo.CFG_Landlords
-            WHERE Auth0UserId = @Auth0UserId
-            """;
-        return await connection.QuerySingleOrDefaultAsync<Landlord>(sql, new { Auth0UserId = auth0UserId });
-    }
-
     public async Task<Guid> CreateAsync(Landlord landlord, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         const string sql = """
-            INSERT INTO dbo.CFG_Landlords (Id, Auth0UserId, BusinessName, Email, CreatedAt, CreatedBy)
-            VALUES (@Id, @Auth0UserId, @BusinessName, @Email, @CreatedAt, @CreatedBy)
+            INSERT INTO dbo.CFG_Landlords (Id, BusinessName, CreatedAt, CreatedBy)
+            VALUES (@Id, @BusinessName, @CreatedAt, @CreatedBy)
             """;
         await connection.ExecuteAsync(sql, landlord);
         return landlord.Id;
@@ -53,7 +45,17 @@ public class LandlordRepository : ILandlordRepository
         const string sql = """
             UPDATE dbo.CFG_Landlords
             SET BusinessName = @BusinessName,
-                Email = @Email,
+                AppName = @AppName,
+                ThemeMode = @ThemeMode,
+                AccentColor = @AccentColor,
+                CountryId = @CountryId,
+                StateId = @StateId,
+                CityId = @CityId,
+                Address = @Address,
+                Phone1 = @Phone1,
+                Phone2 = @Phone2,
+                TaxId = @TaxId,
+                SignatureBase64 = @SignatureBase64,
                 UpdatedAt = @UpdatedAt,
                 UpdatedBy = @UpdatedBy
             WHERE Id = @Id

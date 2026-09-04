@@ -15,7 +15,8 @@ public class CustomerRepository : ICustomerRepository
     }
 
     private const string SelectColumns = """
-        Id, LandlordId, FullName, IdentityNumber, Phone, Email, CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
+        Id, LandlordId, FullName, IdentityNumber, Phone, Email, Address, Country,
+        CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
         """;
 
     public async Task<IReadOnlyList<Customer>> GetAllByLandlordAsync(Guid landlordId, CancellationToken cancellationToken = default)
@@ -46,8 +47,8 @@ public class CustomerRepository : ICustomerRepository
     {
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         const string sql = """
-            INSERT INTO dbo.CRM_Customers (Id, LandlordId, FullName, IdentityNumber, Phone, Email, CreatedAt, CreatedBy)
-            VALUES (@Id, @LandlordId, @FullName, @IdentityNumber, @Phone, @Email, @CreatedAt, @CreatedBy)
+            INSERT INTO dbo.CRM_Customers (Id, LandlordId, FullName, IdentityNumber, Phone, Email, Address, Country, CreatedAt, CreatedBy)
+            VALUES (@Id, @LandlordId, @FullName, @IdentityNumber, @Phone, @Email, @Address, @Country, @CreatedAt, @CreatedBy)
             """;
         await connection.ExecuteAsync(sql, customer);
         return customer.Id;
@@ -62,6 +63,8 @@ public class CustomerRepository : ICustomerRepository
                 IdentityNumber = @IdentityNumber,
                 Phone = @Phone,
                 Email = @Email,
+                Address = @Address,
+                Country = @Country,
                 UpdatedAt = @UpdatedAt,
                 UpdatedBy = @UpdatedBy
             WHERE Id = @Id

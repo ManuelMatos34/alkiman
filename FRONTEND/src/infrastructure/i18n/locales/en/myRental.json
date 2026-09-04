@@ -1,0 +1,66 @@
+{
+  "status": {
+    "Active": "Active",
+    "Completed": "Completed",
+    "Overdue": "Overdue",
+    "Cancelled": "Cancelled"
+  },
+  "requestType": {
+    "Extension": "extension",
+    "Cancellation": "cancellation"
+  },
+  "validation": {
+    "identifierRequired": "Enter your ID document or email address",
+    "extensionQuantityRequired": "Enter a quantity",
+    "extensionQuantityInvalid": "Enter a valid quantity",
+    "extensionQuantityInteger": "Must be a whole number",
+    "extensionQuantityMin": "Minimum 1",
+    "cancellationReasonRequired": "Tell us the reason for the cancellation",
+    "cancellationReasonMax": "Maximum 500 characters"
+  },
+  "errors": {
+    "verifyFailed": "We couldn't verify your identity. Try again.",
+    "extensionFailed": "We couldn't send your request. Try again.",
+    "cancellationFailed": "We couldn't send your request. Try again."
+  },
+  "invalidLink": {
+    "title": "Invalid link",
+    "description": "This link isn't valid. Check that you copied it in full."
+  },
+  "identity": {
+    "title": "Your rental",
+    "description": "Enter your ID document or email address to see your rental details.",
+    "label": "ID document or email address",
+    "placeholder": "E.g.: 001-1234567-8 or you@email.com",
+    "verifying": "Verifying..."
+  },
+  "details": {
+    "title": "Your rental",
+    "subtitle": "Here you can see your rental details and request changes if you need to.",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "totalPrice": "Total price",
+    "contractAvailable": "Your contract is signed and available in your email."
+  },
+  "requestSent": "Your request was sent, we'll let you know by email.",
+  "pendingRequest": "You already have a {{type}} request under review since {{date}}.",
+  "actions": {
+    "requestExtension": "Request extension",
+    "requestCancellation": "Request cancellation"
+  },
+  "extension": {
+    "title": "Request extension",
+    "description": "Let us know how many additional periods you need. The business will review your request and notify you by email.",
+    "quantityLabel": "Number of additional periods",
+    "submit": "Send request",
+    "sending": "Sending..."
+  },
+  "cancellation": {
+    "title": "Request cancellation",
+    "description": "Tell us why you want to cancel your rental early. The business will review your request and notify you by email.",
+    "reasonLabel": "Reason",
+    "reasonPlaceholder": "Tell us what happened...",
+    "submit": "Send request",
+    "sending": "Sending..."
+  }
+}

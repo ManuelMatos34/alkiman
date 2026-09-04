@@ -1,0 +1,65 @@
+{
+  "title": "Importar alquileres existentes",
+  "subtitle": "Mantenimiento para migrar rápido alquileres que ya llevas manualmente o en otro sistema.",
+  "backToRentals": "Volver a rentas",
+  "step1": {
+    "title": "1. Preparar el archivo CSV",
+    "description": "Descarga la plantilla, completa una fila por alquiler y sube el archivo. Si el cliente ya existe (misma identificación) o el activo ya existe (mismo nombre), se reutiliza; si no, se crea automáticamente con los datos de la fila.",
+    "requiredLabel": "Obligatorias:",
+    "requiredText": "customerFullName, customerIdentityNumber, assetName, startDate, endDate, totalPrice.",
+    "newAssetLabel": "Solo si el activo es nuevo:",
+    "newAssetText": "assetCategoryName (obligatoria en ese caso), assetBasePrice, assetStock, assetRentalType (Daily/Weekly/Biweekly/Monthly/Annual).",
+    "statusLabel": "status:",
+    "statusText": "Active, Completed u Overdue (por defecto Active).",
+    "dateFormat": "Fechas en formato AAAA-MM-DD.",
+    "downloadTemplate": "Descargar plantilla CSV"
+  },
+  "step2": {
+    "title": "2. Subir y revisar",
+    "table": {
+      "headers": {
+        "row": "#",
+        "customer": "Cliente",
+        "asset": "Activo",
+        "category": "Categoría",
+        "startDate": "Inicio",
+        "endDate": "Fin",
+        "totalPrice": "Precio total",
+        "status": "Estado"
+      },
+      "emptyValue": "—"
+    },
+    "rowsReady": "{{count}} fila(s) lista(s) para importar.",
+    "clear": "Limpiar",
+    "importing": "Importando...",
+    "importButton": "Importar {{count}} fila(s)",
+    "dropzone": "Sube un archivo CSV para ver la vista previa acá."
+  },
+  "step3": {
+    "title": "3. Resultado de la importación",
+    "totalRows": "{{count}} fila(s)",
+    "succeeded": "{{count}} importada(s)",
+    "failed": "{{count}} fallida(s)",
+    "table": {
+      "headers": {
+        "row": "#",
+        "result": "Resultado",
+        "detail": "Detalle"
+      }
+    },
+    "imported": "Importada",
+    "failedLabel": "Falló",
+    "newCustomer": "Cliente nuevo",
+    "newCategory": "Categoría nueva",
+    "newAsset": "Activo nuevo",
+    "noneValue": "—"
+  },
+  "toast": {
+    "parseError": "No pudimos leer el archivo. Verifica que sea un CSV válido.",
+    "noRows": "El archivo no tiene filas para importar.",
+    "rowsLoaded": "{{count}} fila(s) cargada(s). Revisa la vista previa antes de importar.",
+    "importSuccess": "Se importaron {{count}} alquiler(es) correctamente.",
+    "importPartial": "{{succeeded}} importado(s), {{failed}} fallido(s). Revisa el detalle.",
+    "importError": "No pudimos procesar la importación. Inténtalo de nuevo."
+  }
+}

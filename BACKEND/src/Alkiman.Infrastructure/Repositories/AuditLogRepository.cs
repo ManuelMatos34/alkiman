@@ -34,6 +34,19 @@ public class AuditLogRepository : IAuditLogRepository
             INSERT INTO dbo.AUD_AuditLogs (UserId, Type, TableName, PrimaryKey, OldValues, NewValues, Date)
             VALUES (@UserId, @Type, @TableName, @PrimaryKey, @OldValues, @NewValues, @Date)
             """;
-        await connection.ExecuteAsync(sql, auditLog);
+        // Nota: Dapper convierte los enums a su tipo subyacente (int) en LookupDbType
+        // *antes* de consultar los TypeHandler registrados, por lo que un TypeHandler<T>
+        // para un enum nunca se aplica cuando se pasa la entidad completa como parámetros.
+        // Convertimos a texto explícitamente para evitar violar los CHECK constraints.
+        await connection.ExecuteAsync(sql, new
+        {
+            auditLog.UserId,
+            Type = auditLog.Type.ToString(),
+            auditLog.TableName,
+            auditLog.PrimaryKey,
+            auditLog.OldValues,
+            auditLog.NewValues,
+            auditLog.Date
+        });
     }
 }

@@ -1,0 +1,49 @@
+{
+  "title": "Clientes",
+  "subtitle": "Directorio de inquilinos que rentan tus activos.",
+  "newCustomer": "Nuevo cliente",
+  "table": {
+    "headers": {
+      "name": "Nombre",
+      "identity": "Cédula / ID",
+      "phone": "Teléfono",
+      "email": "Email",
+      "actions": "Acciones"
+    },
+    "empty": "Todavía no tienes clientes. Crea el primero.",
+    "emptyValue": "—"
+  },
+  "toast": {
+    "deleted": "Cliente eliminado",
+    "deleteError": "No pudimos eliminar el cliente. Inténtalo de nuevo.",
+    "updated": "Cliente actualizado",
+    "updateError": "No pudimos actualizar el cliente. Inténtalo de nuevo.",
+    "created": "Cliente creado",
+    "createError": "No pudimos crear el cliente. Inténtalo de nuevo."
+  },
+  "delete": {
+    "title": "Eliminar cliente",
+    "description": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer."
+  },
+  "dialog": {
+    "editTitle": "Editar cliente",
+    "createTitle": "Nuevo cliente",
+    "fields": {
+      "fullName": "Nombre completo",
+      "fullNamePlaceholder": "Ej: Juan Pérez",
+      "identityNumber": "Cédula / Identificación",
+      "identityNumberPlaceholder": "Ej: 001-1234567-8",
+      "phone": "Teléfono (opcional)",
+      "phonePlaceholder": "Ej: 809-555-1234",
+      "email": "Email (opcional)",
+      "emailPlaceholder": "cliente@correo.com"
+    }
+  },
+  "validation": {
+    "fullNameRequired": "El nombre es obligatorio",
+    "fullNameMax": "Máximo 150 caracteres",
+    "identityNumberRequired": "La cédula/identificación es obligatoria",
+    "identityNumberMax": "Máximo 50 caracteres",
+    "emailInvalid": "Ingresa un email válido"
+  }
+}

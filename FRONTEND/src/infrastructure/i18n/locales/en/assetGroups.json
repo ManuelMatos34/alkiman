@@ -1,0 +1,48 @@
+{
+  "title": "Asset Groups",
+  "subtitle": "Group assets from any category under a common name (e.g.: \"Tools\", \"Building A\").",
+  "newGroup": "New group",
+  "table": {
+    "headers": {
+      "name": "Name",
+      "description": "Description",
+      "assets": "Assets",
+      "actions": "Actions"
+    },
+    "empty": "You don't have any asset groups yet. Create the first one.",
+    "noDescription": "—",
+    "assetsCount": "{{count}} assets"
+  },
+  "toast": {
+    "deleted": "Group deleted",
+    "deleteError": "We couldn't delete the group. Try again.",
+    "updated": "Group updated",
+    "updateError": "We couldn't update the group. Try again.",
+    "created": "Group created",
+    "createError": "We couldn't create the group. Try again."
+  },
+  "delete": {
+    "title": "Delete asset group",
+    "description": "Are you sure you want to delete the group \"{{name}}\"? This action cannot be undone."
+  },
+  "dialog": {
+    "editTitle": "Edit asset group",
+    "createTitle": "New asset group",
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "E.g.: Tools, Building A",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional",
+      "assets": "Group assets",
+      "assetsSearchPlaceholder": "Search asset...",
+      "noAssetsFound": "No assets match the search.",
+      "noCategory": "—"
+    }
+  },
+  "validation": {
+    "nameRequired": "Name is required",
+    "nameMax": "Maximum 150 characters",
+    "descriptionMax": "Maximum 500 characters",
+    "assetsRequired": "Select at least one asset"
+  }
+}

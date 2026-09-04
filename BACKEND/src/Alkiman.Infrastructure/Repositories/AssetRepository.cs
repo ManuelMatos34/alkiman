@@ -52,7 +52,25 @@ public class AssetRepository : IAssetRepository
             VALUES
                 (@Id, @LandlordId, @CategoryId, @Name, @Description, @ImageUrl, @Status, @RentalType, @BasePrice, @Stock, @CreatedAt, @CreatedBy)
             """;
-        await connection.ExecuteAsync(sql, asset);
+        // Nota: Dapper convierte los enums a su tipo subyacente (int) en LookupDbType
+        // *antes* de consultar los TypeHandler registrados, por lo que un TypeHandler<T>
+        // para un enum nunca se aplica cuando se pasa la entidad completa como parámetros.
+        // Convertimos a texto explícitamente para evitar violar los CHECK constraints.
+        await connection.ExecuteAsync(sql, new
+        {
+            asset.Id,
+            asset.LandlordId,
+            asset.CategoryId,
+            asset.Name,
+            asset.Description,
+            asset.ImageUrl,
+            Status = asset.Status.ToString(),
+            RentalType = asset.RentalType.ToString(),
+            asset.BasePrice,
+            asset.Stock,
+            asset.CreatedAt,
+            asset.CreatedBy
+        });
         return asset.Id;
     }
 
@@ -72,7 +90,21 @@ public class AssetRepository : IAssetRepository
                 UpdatedBy = @UpdatedBy
             WHERE Id = @Id
             """;
-        await connection.ExecuteAsync(sql, asset);
+        // Ver nota en CreateAsync: convertimos el enum a texto explícitamente para
+        // que Dapper no lo mande como su valor entero subyacente y viole el CHECK constraint.
+        await connection.ExecuteAsync(sql, new
+        {
+            asset.Id,
+            asset.CategoryId,
+            asset.Name,
+            asset.Description,
+            asset.ImageUrl,
+            Status = asset.Status.ToString(),
+            asset.BasePrice,
+            asset.Stock,
+            asset.UpdatedAt,
+            asset.UpdatedBy
+        });
     }
 
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)

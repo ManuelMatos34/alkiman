@@ -1,0 +1,53 @@
+{
+  "title": "Rental Portal",
+  "subtitle": "Generate public links so your customers can view and rent the assets of a group, without needing to register.",
+  "newButton": "New link",
+  "table": {
+    "headers": {
+      "title": "Title",
+      "assetGroup": "Asset group",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "empty": "You haven't generated any links yet. Create the first one.",
+    "statusActive": "Active",
+    "statusInactive": "Inactive"
+  },
+  "actions": {
+    "copy": "Copy link",
+    "open": "Open link"
+  },
+  "deleteDialog": {
+    "title": "Delete link",
+    "description": "Are you sure you want to delete the link \"{{title}}\"? Anyone with the link will no longer be able to access the portal."
+  },
+  "toast": {
+    "copySuccess": "Link copied to clipboard",
+    "copyError": "We couldn't copy the link. Please copy it manually.",
+    "deleteSuccess": "Link deleted",
+    "deleteError": "We couldn't delete the link. Please try again.",
+    "updateSuccess": "Link updated",
+    "updateError": "We couldn't update the link. Please try again.",
+    "createSuccess": "Link created",
+    "createError": "We couldn't create the link. Please try again."
+  },
+  "formDialog": {
+    "titleEdit": "Edit link",
+    "titleNew": "New link",
+    "fields": {
+      "title": "Title",
+      "assetGroup": "Asset group to display",
+      "active": "Active link"
+    },
+    "placeholders": {
+      "title": "E.g: Available apartments - July",
+      "assetGroupSelect": "Select an asset group",
+      "assetGroupEmpty": "Create an asset group first"
+    }
+  },
+  "validation": {
+    "titleRequired": "Title is required",
+    "titleMax": "Maximum 150 characters",
+    "assetGroupRequired": "Select an asset group"
+  }
+}

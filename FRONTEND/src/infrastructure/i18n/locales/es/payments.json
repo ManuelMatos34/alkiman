@@ -1,0 +1,20 @@
+{
+  "title": "Pagos",
+  "subtitle": "Historial de movimientos: débitos y créditos del negocio.",
+  "type": {
+    "income": "Ingreso",
+    "expense": "Egreso"
+  },
+  "table": {
+    "headers": {
+      "date": "Fecha",
+      "type": "Tipo",
+      "amount": "Monto",
+      "relatedRental": "Renta relacionada",
+      "reference": "Referencia"
+    },
+    "emptyState": "Todavía no hay movimientos registrados.",
+    "unknownAsset": "Activo",
+    "unknownCustomer": "Cliente"
+  }
+}

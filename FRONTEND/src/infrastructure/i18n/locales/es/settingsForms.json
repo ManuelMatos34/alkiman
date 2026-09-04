@@ -1,0 +1,104 @@
+{
+  "profile": {
+    "validation": {
+      "businessNameRequired": "El nombre del negocio es obligatorio"
+    },
+    "cardTitle": "Perfil del negocio",
+    "cardDescription": "Información de contacto y datos administrativos de tu negocio.",
+    "businessNameLabel": "Nombre del negocio",
+    "businessNamePlaceholder": "Ej: Alquileres Pérez",
+    "countryLabel": "País (opcional)",
+    "countryPlaceholder": "Selecciona un país",
+    "stateLabel": "Provincia / Estado (opcional)",
+    "statePlaceholder": "Selecciona una provincia",
+    "statePlaceholderNoCountry": "Elige un país primero",
+    "cityLabel": "Ciudad (opcional)",
+    "cityPlaceholder": "Selecciona una ciudad",
+    "cityPlaceholderNoState": "Elige una provincia primero",
+    "addressLabel": "Dirección (opcional)",
+    "addressPlaceholder": "Calle, número, sector",
+    "phone1Label": "Teléfono 1 (opcional)",
+    "phone1Placeholder": "Ej: 809-555-1234",
+    "phone2Label": "Teléfono 2 (opcional)",
+    "phone2Placeholder": "Ej: 809-555-5678",
+    "taxIdLabel": "RNC / Identificación fiscal (opcional)",
+    "taxIdPlaceholder": "Ej: 130-12345-6",
+    "saveButton": "Guardar cambios",
+    "toastSuccess": "Perfil actualizado",
+    "toastError": "No pudimos actualizar el perfil. Inténtalo de nuevo."
+  },
+  "appearance": {
+    "accentLabels": {
+      "blue": "Azul",
+      "green": "Verde",
+      "violet": "Violeta",
+      "orange": "Naranja",
+      "pink": "Rosa",
+      "red": "Rojo"
+    },
+    "validation": {
+      "appNameRequired": "El nombre de la aplicación es obligatorio"
+    },
+    "cardTitle": "Apariencia",
+    "cardDescription": "Personaliza el nombre y los colores de la aplicación. Los usuarios nuevos empiezan con estos valores por defecto.",
+    "appNameLabel": "Nombre de la aplicación",
+    "appNamePlaceholder": "Alkiman",
+    "themeLabel": "Tema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "accentColorLabel": "Color de acento",
+    "saveButton": "Guardar cambios",
+    "toastSuccess": "Apariencia actualizada",
+    "toastError": "No pudimos actualizar la apariencia. Inténtalo de nuevo."
+  },
+  "signature": {
+    "cardTitle": "Firma de la empresa",
+    "cardDescription": "Dibuja la firma que se va a imprimir junto a la del cliente en el PDF de cada contrato.",
+    "previewAlt": "Firma guardada de la empresa",
+    "changeButton": "Cambiar firma",
+    "toastSuccess": "Firma guardada",
+    "toastError": "No pudimos guardar la firma. Inténtalo de nuevo."
+  },
+  "myAccount": {
+    "validation": {
+      "fullNameRequired": "El nombre es obligatorio",
+      "emailInvalid": "Ingresa un email válido",
+      "currentPasswordRequired": "Ingresa tu contraseña actual",
+      "passwordMin": "Mínimo 8 caracteres",
+      "confirmPasswordRequired": "Confirma la contraseña",
+      "passwordMismatch": "Las contraseñas no coinciden"
+    },
+    "identityCardTitle": "Mi cuenta",
+    "identityCardDescription": "Tu nombre, email y rol dentro del negocio.",
+    "fullNameLabel": "Nombre completo",
+    "fullNamePlaceholder": "Ej: Juan Pérez",
+    "emailLabel": "Email",
+    "emailPlaceholder": "tu@correo.com",
+    "saveButton": "Guardar cambios",
+    "toastIdentitySuccess": "Datos actualizados",
+    "toastEmailTaken": "Ya existe una cuenta con ese email.",
+    "toastIdentityError": "No pudimos actualizar tus datos. Inténtalo de nuevo.",
+    "passwordCardTitle": "Cambiar contraseña",
+    "passwordCardDescription": "Actualiza la contraseña que usas para iniciar sesión.",
+    "currentPasswordLabel": "Contraseña actual",
+    "newPasswordLabel": "Contraseña nueva",
+    "confirmPasswordLabel": "Confirmar contraseña",
+    "passwordPlaceholder": "••••••••",
+    "changePasswordButton": "Cambiar contraseña",
+    "toastPasswordSuccess": "Contraseña actualizada",
+    "toastCurrentPasswordWrong": "La contraseña actual no es correcta.",
+    "toastPasswordError": "No pudimos actualizar la contraseña. Inténtalo de nuevo."
+  },
+  "security": {
+    "cardTitle": "Seguridad",
+    "cardDescription": "Gestiona la autenticación de doble factor (2FA) para tu cuenta.",
+    "twoFactorLabel": "Autenticación de doble factor",
+    "twoFactorDescription": "Agrega una capa extra de seguridad al iniciar sesión.",
+    "toastEnabled": "Doble factor activado",
+    "toastDisabled": "Doble factor desactivado",
+    "toastError": "No pudimos actualizar la configuración. Inténtalo de nuevo.",
+    "confirmDisableTitle": "¿Desactivar doble factor?",
+    "confirmDisableDescription": "Tu cuenta quedará protegida solo con tu contraseña. Puedes volver a activarlo cuando quieras.",
+    "disableButton": "Desactivar"
+  }
+}

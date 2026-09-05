@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { CarwashRegisterTicketDialog } from "@/presentation/components/CarwashRegisterTicketDialog"
+import { CarwashTipDialog } from "@/presentation/components/CarwashTipDialog"
 import { useCarwashQueue } from "@/application/carwash/useCarwashQueue"
 import { useCarwashSettings } from "@/application/carwash/useCarwashSettings"
 import { useCarwashWashers } from "@/application/carwash/useCarwashWashers"
@@ -99,7 +100,12 @@ export function CarwashBoardPage() {
   const expireTicket = useExpireTicket()
 
   const [registerOpen, setRegisterOpen] = useState(false)
+  const [tipTarget, setTipTarget] = useState<CarwashTicket | null>(null)
   const [now, setNow] = useState(() => Date.now())
+
+  // Default `Optional` y no `Disabled`: si por lo que sea la config no cargó, es preferible
+  // preguntar de más que entregar el vehículo perdiendo la propina en silencio.
+  const tipMode = settings?.tipMode ?? "Optional"
 
   const currencyFormatter = useMemo(
     () =>
@@ -115,19 +121,47 @@ export function CarwashBoardPage() {
   const arrivalPendingTickets = tickets?.filter((ticket) => ticket.status === "ArrivalPending") ?? []
   const showWasherPicker = !isSoloMode && canManage
 
-  function handleAdvance(ticket: CarwashTicket) {
-    const next = nextStatusFor(ticket)
-    if (!next) return
+  /**
+   * Entregar es el único paso que puede abrir un diálogo antes de mutar: es el momento
+   * (y el único) en que el cliente tiene la plata en la mano. El resto de las transiciones
+   * son mecánicas y se disparan directo, sin interponer un click de más al lavador.
+   */
+  function runAdvance(ticket: CarwashTicket, status: CarwashTicketStatus) {
+    if (status === "Delivered" && tipMode !== "Disabled") {
+      setTipTarget(ticket)
+      return
+    }
     advanceStatus.mutate(
-      { id: ticket.id, status: next },
+      { id: ticket.id, status },
       { onError: () => toast.error(t("board.toast.advanceError")) }
     )
   }
 
+  function handleAdvance(ticket: CarwashTicket) {
+    const next = nextStatusFor(ticket)
+    if (!next) return
+    runAdvance(ticket, next)
+  }
+
   function handleAdvanceTo(ticket: CarwashTicket, status: CarwashTicketStatus) {
+    runAdvance(ticket, status)
+  }
+
+  function handleConfirmTip(tipAmount: number | null) {
+    if (!tipTarget) return
     advanceStatus.mutate(
-      { id: ticket.id, status },
-      { onError: () => toast.error(t("board.toast.advanceError")) }
+      { id: tipTarget.id, status: "Delivered", tipAmount },
+      {
+        onSuccess: () => {
+          setTipTarget(null)
+          if (tipAmount !== null) {
+            toast.success(
+              t("tips.toast.recorded", { amount: currencyFormatter.format(tipAmount) })
+            )
+          }
+        },
+        onError: () => toast.error(t("board.toast.advanceError")),
+      }
     )
   }
 
@@ -404,6 +438,16 @@ export function CarwashBoardPage() {
       )}
 
       <CarwashRegisterTicketDialog open={registerOpen} onOpenChange={setRegisterOpen} />
+
+      <CarwashTipDialog
+        open={!!tipTarget}
+        onOpenChange={(open) => !open && setTipTarget(null)}
+        ticket={tipTarget}
+        tipMode={tipMode}
+        suggestedPercent={settings?.tipSuggestedPercent ?? 10}
+        isPending={advanceStatus.isPending}
+        onConfirm={handleConfirmTip}
+      />
     </div>
   )
 }

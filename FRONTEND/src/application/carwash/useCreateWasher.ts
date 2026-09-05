@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useApiClient } from "@/infrastructure/auth/useApiClient"
 import { carwashWashersQueryKey } from "@/application/carwash/useCarwashWashers"
-import { carwashLinkableUsersQueryKey } from "@/application/carwash/useCarwashLinkableUsers"
 import type { CarwashWasher, CreateCarwashWasherRequest } from "@/domain/types/carwash"
 
 export function useCreateWasher() {
@@ -15,8 +14,6 @@ export function useCreateWasher() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: carwashWashersQueryKey })
-      // Si se vinculó una cuenta, esa cuenta ya no está disponible para otro lavador.
-      queryClient.invalidateQueries({ queryKey: carwashLinkableUsersQueryKey })
     },
   })
 }

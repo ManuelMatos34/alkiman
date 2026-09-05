@@ -61,6 +61,7 @@ public static class PermissionCatalog
         new(PermissionCodes.CarwashView, "Carwash", "Ver la cola y el catálogo de servicios de Carwash", ModuleCodes.Carwash),
         new(PermissionCodes.CarwashManage, "Carwash", "Registrar vehículos y administrar servicios/extras/links de Carwash", ModuleCodes.Carwash),
         new(PermissionCodes.CarwashWork, "Carwash", "Avanzar el estado de los vehículos en la cola de Carwash", ModuleCodes.Carwash),
+        new(PermissionCodes.CarwashReports, "Carwash", "Ver métricas, facturación y ranking de lavadores de Carwash", ModuleCodes.Carwash),
     };
 
     public static readonly IReadOnlyList<string> AllCodes = All.Select(p => p.Code).ToList();

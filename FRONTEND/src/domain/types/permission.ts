@@ -60,6 +60,8 @@ export const PermissionCodes = {
   CarwashManage: "carwash.manage",
   /** Avanzar vehículos en la cola. Lo tiene el rol Lavador, que NO puede administrar el catálogo. */
   CarwashWork: "carwash.work",
+  /** Métricas, facturación y ranking de lavadores. Separado de CarwashView: ver la cola del día es operativo, ver cuánto factura el negocio no. */
+  CarwashReports: "carwash.reports",
 } as const
 
 export type PermissionCode = (typeof PermissionCodes)[keyof typeof PermissionCodes]

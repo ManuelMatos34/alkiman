@@ -29,6 +29,9 @@ public class CarwashService : ICarwashService
     private const string PortalCreatedBy = "carwash-portal";
     private const int DefaultArrivalDeadlineMinutes = 15;
 
+    /// <summary>Porcentaje sugerido de propina cuando el negocio todavía no eligió uno. Espejo del DEFAULT de CWS_Settings en el script 20.</summary>
+    private const decimal DefaultTipSuggestedPercent = 10m;
+
     /// <summary>
     /// Transiciones válidas de AdvanceStatusAsync: estado destino -> estados
     /// actuales que lo admiten. Es una lista y no un único origen porque el
@@ -96,7 +99,10 @@ public class CarwashService : ICarwashService
     {
         var landlordId = await _currentLandlord.GetCurrentLandlordIdAsync(cancellationToken);
         var settings = await _settingsRepository.GetByLandlordAsync(landlordId, cancellationToken);
-        return new CarwashSettingsResponse(settings?.OperationMode);
+        return new CarwashSettingsResponse(
+            settings?.OperationMode,
+            settings?.TipMode ?? CarwashTipMode.Optional,
+            settings?.TipSuggestedPercent ?? DefaultTipSuggestedPercent);
     }
 
     public async Task<CarwashSettingsResponse> SaveSettingsAsync(SaveCarwashSettingsRequest request, CancellationToken cancellationToken = default)
@@ -104,12 +110,25 @@ public class CarwashService : ICarwashService
         if (request.OperationMode is not (CarwashOperationMode.Empresa or CarwashOperationMode.Solitario))
             throw new AppValidationException($"Modo de operación inválido: '{request.OperationMode}'.");
 
+        // El diálogo de configuración inicial sólo pregunta el modo de operación,
+        // así que TipMode llega null desde ahí: se cae al default en vez de
+        // obligar a decidir sobre propinas antes de haber lavado un solo auto.
+        var tipMode = request.TipMode ?? CarwashTipMode.Optional;
+        if (!CarwashTipMode.IsValid(tipMode))
+            throw new AppValidationException($"Modo de propina inválido: '{request.TipMode}'.");
+
+        var tipPercent = request.TipSuggestedPercent ?? DefaultTipSuggestedPercent;
+        if (tipPercent is < 0m or > 100m)
+            throw new AppValidationException("El porcentaje sugerido de propina debe estar entre 0 y 100.");
+
         var landlordId = await _currentLandlord.GetCurrentLandlordIdAsync(cancellationToken);
         var now = DateTime.UtcNow;
         var settings = new CarwashSettings
         {
             LandlordId = landlordId,
             OperationMode = request.OperationMode,
+            TipMode = tipMode,
+            TipSuggestedPercent = tipPercent,
             CreatedAt = now,
             CreatedBy = _currentLandlord.UserId,
             UpdatedAt = now,
@@ -130,14 +149,14 @@ public class CarwashService : ICarwashService
         }
         else
         {
-            // En modo Solitario el que lava es el propio dueño, así que se le crea su
-            // ficha de lavador: sin ella el auto-asignado de AdvanceStatusAsync no
+            // En modo Solitario el que lava es el propio dueño, así que se le deja
+            // cargada su ficha: sin ella el auto-asignado de AdvanceStatusAsync no
             // tendría a quién apuntar y los turnos quedarían sin nombre en el historial.
-            await EnsureWasherForCurrentUserAsync(landlordId, cancellationToken);
+            await EnsureSoloWasherAsync(landlordId, cancellationToken);
         }
 
         await _auditLog.LogAsync(AuditActionType.Update, "CWS_Settings", landlordId.ToString(), null, settings, cancellationToken);
-        return new CarwashSettingsResponse(settings.OperationMode);
+        return new CarwashSettingsResponse(settings.OperationMode, settings.TipMode, settings.TipSuggestedPercent);
     }
 
     // ============================================================
@@ -510,7 +529,6 @@ public class CarwashService : ICarwashService
     {
         var landlordId = await _currentLandlord.GetCurrentLandlordIdAsync(cancellationToken);
         var fullName = ValidateWasherName(request.FullName);
-        await ValidateLinkedUserAsync(request.UserId, landlordId, washerId: null, cancellationToken);
 
         var washer = new CarwashWasher
         {
@@ -519,7 +537,6 @@ public class CarwashService : ICarwashService
             FullName = fullName,
             Phone = Normalize(request.Phone),
             IsActive = true,
-            UserId = request.UserId,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = _currentLandlord.UserId
         };
@@ -533,12 +550,10 @@ public class CarwashService : ICarwashService
     {
         var washer = await GetOwnedWasherOrThrowAsync(id, cancellationToken);
         var fullName = ValidateWasherName(request.FullName);
-        await ValidateLinkedUserAsync(request.UserId, washer.LandlordId, washer.Id, cancellationToken);
 
         washer.FullName = fullName;
         washer.Phone = Normalize(request.Phone);
         washer.IsActive = request.IsActive;
-        washer.UserId = request.UserId;
         washer.UpdatedAt = DateTime.UtcNow;
         washer.UpdatedBy = _currentLandlord.UserId;
 
@@ -559,28 +574,6 @@ public class CarwashService : ICarwashService
 
         await _washerRepository.DeleteAsync(washer.Id, cancellationToken);
         await _auditLog.LogAsync(AuditActionType.Delete, "CWS_Washers", washer.Id.ToString(), washer, null, cancellationToken);
-    }
-
-    public async Task<IReadOnlyList<CarwashLinkableUserResponse>> GetLinkableUsersAsync(Guid? washerId, CancellationToken cancellationToken = default)
-    {
-        var landlordId = await _currentLandlord.GetCurrentLandlordIdAsync(cancellationToken);
-        var washers = await _washerRepository.GetAllByLandlordAsync(landlordId, cancellationToken);
-
-        // Una cuenta no puede quedar vinculada a dos lavadores (índice único en
-        // CWS_Washers.UserId). Se excluyen las tomadas, salvo la del lavador que
-        // se está editando: si no, al abrir el formulario su propia cuenta
-        // desaparecería de la lista.
-        var taken = washers
-            .Where(w => w.UserId is not null && w.Id != washerId)
-            .Select(w => w.UserId!.Value)
-            .ToHashSet();
-
-        var users = await _userRepository.GetAllByLandlordAsync(landlordId, cancellationToken);
-        return users
-            .Where(u => u.IsActive && !taken.Contains(u.Id))
-            .OrderBy(u => u.FullName)
-            .Select(u => new CarwashLinkableUserResponse(u.Id, u.FullName, u.Email))
-            .ToList();
     }
 
     private async Task<CarwashWasher> GetOwnedWasherOrThrowAsync(Guid id, CancellationToken cancellationToken)
@@ -606,28 +599,34 @@ public class CarwashService : ICarwashService
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>
-    /// Le crea la ficha de lavador a la cuenta que está operando, si no la tiene.
-    /// Idempotente: se llama cada vez que se guarda el modo Solitario.
+    /// Deja al negocio con su único lavador en modo Solitario.
+    ///
+    /// Idempotente: se llama cada vez que se guarda el modo. Si ya hay algún lavador
+    /// cargado no toca nada —el usuario puede haberle puesto el nombre que quiso— y
+    /// sólo crea la ficha inicial cuando el plantel está vacío. El nombre sale de la
+    /// cuenta que está operando por comodidad, pero es un nombre y nada más: la ficha
+    /// no queda atada a esa cuenta de ninguna forma.
     /// </summary>
-    private async Task EnsureWasherForCurrentUserAsync(Guid landlordId, CancellationToken cancellationToken)
+    private async Task EnsureSoloWasherAsync(Guid landlordId, CancellationToken cancellationToken)
     {
-        if (!Guid.TryParse(_currentLandlord.UserId, out var currentUserId))
+        var washers = await _washerRepository.GetAllByLandlordAsync(landlordId, cancellationToken);
+        if (washers.Count > 0)
             return;
 
-        if (await _washerRepository.GetByUserIdAsync(currentUserId, cancellationToken) is not null)
-            return;
-
-        var user = await _userRepository.GetByIdAsync(currentUserId, cancellationToken);
-        if (user is null || user.LandlordId != landlordId)
-            return;
+        var fullName = "Yo";
+        if (Guid.TryParse(_currentLandlord.UserId, out var currentUserId))
+        {
+            var user = await _userRepository.GetByIdAsync(currentUserId, cancellationToken);
+            if (user is not null && user.LandlordId == landlordId && !string.IsNullOrWhiteSpace(user.FullName))
+                fullName = user.FullName;
+        }
 
         var washer = new CarwashWasher
         {
             Id = Guid.NewGuid(),
             LandlordId = landlordId,
-            FullName = user.FullName,
+            FullName = fullName,
             IsActive = true,
-            UserId = currentUserId,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = _currentLandlord.UserId
         };
@@ -635,47 +634,22 @@ public class CarwashService : ICarwashService
         await _washerRepository.CreateAsync(washer, cancellationToken);
     }
 
-    /// <summary>La cuenta a vincular tiene que ser del mismo negocio, estar activa y no pertenecer ya a otro lavador.</summary>
-    private async Task ValidateLinkedUserAsync(Guid? userId, Guid landlordId, Guid? washerId, CancellationToken cancellationToken)
-    {
-        if (userId is not { } id)
-            return;
-
-        var user = await _userRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new NotFoundException(nameof(User), id);
-
-        if (user.LandlordId != landlordId || !user.IsActive)
-            throw new AppValidationException("La cuenta seleccionada no está disponible.");
-
-        var existing = await _washerRepository.GetByUserIdAsync(id, cancellationToken);
-        if (existing is not null && existing.Id != washerId)
-            throw new AppValidationException($"La cuenta ya está vinculada al lavador '{existing.FullName}'.");
-    }
-
     private async Task<CarwashWasherResponse> ToWasherResponseAsync(CarwashWasher washer, CancellationToken cancellationToken)
     {
-        string? userEmail = null;
-        if (washer.UserId is { } userId)
-            userEmail = (await _userRepository.GetByIdAsync(userId, cancellationToken))?.Email;
-
         var canDelete = !await _washerRepository.HasTicketsAsync(washer.Id, cancellationToken);
 
         return new CarwashWasherResponse(
-            washer.Id, washer.FullName, washer.Phone, washer.IsActive, washer.UserId, userEmail, canDelete);
+            washer.Id, washer.FullName, washer.Phone, washer.IsActive, canDelete);
     }
 
     /// <summary>
-    /// El lavador vinculado a la cuenta que está operando, si tiene uno. Es lo que
-    /// permite que en modo Solitario el ticket quede a nombre de quien lo lava sin
-    /// pedirle un paso extra.
+    /// El lavador al que le toca el trabajo en modo Solitario: el único activo del
+    /// negocio. Si hay varios devuelve null y la asignación queda manual — con más
+    /// de una persona el negocio ya no es Solitario, y adivinar a quién atribuirle
+    /// el vehículo ensuciaría el ranking y las propinas.
     /// </summary>
-    private async Task<CarwashWasher?> GetCurrentUserWasherAsync(CancellationToken cancellationToken)
-    {
-        if (!Guid.TryParse(_currentLandlord.UserId, out var currentUserId))
-            return null;
-
-        return await _washerRepository.GetByUserIdAsync(currentUserId, cancellationToken);
-    }
+    private async Task<CarwashWasher?> GetSoloWasherAsync(Guid landlordId, CancellationToken cancellationToken)
+        => await _washerRepository.GetSingleActiveAsync(landlordId, cancellationToken);
 
     public async Task<CarwashTicketResponse> AssignWasherAsync(Guid ticketId, AssignWasherRequest request, CancellationToken cancellationToken = default)
     {
@@ -767,17 +741,16 @@ public class CarwashService : ICarwashService
             case CarwashTicketStatus.InProgress:
                 ticket.StartedAt = now;
                 // En modo Solitario no hay a quién asignarle el trabajo: el ticket
-                // queda a nombre de quien arranca el lavado, para que el historial y
-                // las métricas por persona funcionen igual que en modo Empresa sin
+                // queda a nombre del único lavador del negocio, para que el historial
+                // y las métricas por persona funcionen igual que en modo Empresa sin
                 // pedirle al usuario un paso extra.
                 //
-                // Requiere que la cuenta tenga un lavador vinculado; en modo Solitario
-                // se le crea al elegir el modo (ver SaveSettingsAsync).
+                // La ficha se crea al elegir el modo (ver SaveSettingsAsync).
                 if (ticket.AssignedToWasherId is null && await IsSoloModeAsync(ticket.LandlordId, cancellationToken))
                 {
-                    var currentWasher = await GetCurrentUserWasherAsync(cancellationToken);
-                    if (currentWasher is not null && currentWasher.LandlordId == ticket.LandlordId)
-                        ticket.AssignedToWasherId = currentWasher.Id;
+                    var soloWasher = await GetSoloWasherAsync(ticket.LandlordId, cancellationToken);
+                    if (soloWasher is not null)
+                        ticket.AssignedToWasherId = soloWasher.Id;
                 }
                 break;
             case CarwashTicketStatus.Ready:
@@ -785,6 +758,7 @@ public class CarwashService : ICarwashService
                 break;
             case CarwashTicketStatus.Delivered:
                 ticket.DeliveredAt = now;
+                ApplyTip(ticket, request.TipAmount);
                 break;
         }
         ticket.UpdatedAt = now;
@@ -880,6 +854,44 @@ public class CarwashService : ICarwashService
         return await ToTicketResponseAsync(ticket, cancellationToken);
     }
 
+    /// <summary>
+    /// Deja constancia de la propina al entregar el vehículo. NO cobra nada: el
+    /// módulo no procesa pagos, el monto es lo que el mostrador dice haber recibido
+    /// en efectivo.
+    ///
+    /// El lavador se congela acá y no se lee después de AssignedToWasherId a
+    /// propósito (ver <see cref="CarwashTicket.TipWasherId"/>): reasignar un ticket
+    /// ya entregado no debe mover plata de una persona a otra.
+    ///
+    /// Sin propina (null o 0) las dos columnas quedan en null. Un 0 explícito y un
+    /// null significan lo mismo para el negocio, y guardar sólo una de las dos
+    /// formas evita que el ranking tenga que decidir cuál es cuál.
+    /// </summary>
+    private static void ApplyTip(CarwashTicket ticket, decimal? tipAmount)
+    {
+        if (tipAmount is null or <= 0m)
+        {
+            if (tipAmount < 0m)
+                throw new AppValidationException("La propina no puede ser negativa.");
+
+            ticket.TipAmount = null;
+            ticket.TipWasherId = null;
+            return;
+        }
+
+        ticket.TipAmount = decimal.Round(tipAmount.Value, 2, MidpointRounding.AwayFromZero);
+
+        // Si nadie quedó asignado al lavado, la propina igual se registra: entró
+        // plata al negocio. Simplemente no se le atribuye a nadie, en vez de
+        // inventarle un dueño para que la tabla quede prolija.
+        ticket.TipWasherId = ticket.AssignedToWasherId;
+
+        // A propósito NO se valida contra el TipMode del negocio. TipMode decide
+        // qué PREGUNTA el mostrador, no qué acepta la base: rechazar la entrega de
+        // un auto ya lavado porque el front quedó desactualizado deja al cliente
+        // esperando en la caja por un problema de configuración.
+    }
+
     private async Task<CarwashTicket> GetOwnedTicketOrThrowAsync(Guid id, CancellationToken cancellationToken)
     {
         var landlordId = await _currentLandlord.GetCurrentLandlordIdAsync(cancellationToken);
@@ -909,6 +921,16 @@ public class CarwashService : ICarwashService
         if (ticket.AssignedToWasherId is { } assignedId)
             assignedToName = (await _washerRepository.GetByIdAsync(assignedId, cancellationToken))?.FullName;
 
+        // Casi siempre es el mismo lavador que el asignado; se reusa el nombre en
+        // vez de volver a la base. Sólo difieren si el ticket se reasignó después
+        // de entregarlo, que es justo el caso que TipWasherId existe para separar.
+        string? tipWasherName = ticket.TipWasherId switch
+        {
+            null => null,
+            var id when id == ticket.AssignedToWasherId => assignedToName,
+            var id => (await _washerRepository.GetByIdAsync(id.Value, cancellationToken))?.FullName
+        };
+
         return new CarwashTicketResponse(
             ticket.Id, ticket.QueueNumber, ticket.VehiclePlate,
             ticket.VehicleBrand, ticket.VehicleModel, ticket.VehicleYear, ticket.VehicleColor,
@@ -918,7 +940,9 @@ public class CarwashService : ICarwashService
             ticket.AssignedToWasherId, assignedToName,
             ticket.Status, ticket.Source,
             ticket.ArrivalDeadline, ticket.ArrivedAt, ticket.StartedAt, ticket.ReadyAt, ticket.DeliveredAt, ticket.CancelledAt,
-            ticket.Notes, ticket.CreatedAt);
+            ticket.Notes,
+            ticket.TipAmount, ticket.TipWasherId, tipWasherName,
+            ticket.CreatedAt);
     }
 
     private static IReadOnlyList<CarwashTicketExtraResponse> ToExtraResponses(IReadOnlyList<CarwashTicketExtra> extras)

@@ -80,6 +80,7 @@ public static class DependencyInjection
         services.AddScoped<ICarwashPortalLinkRepository, CarwashPortalLinkRepository>();
         services.AddScoped<ICarwashTicketRepository, CarwashTicketRepository>();
         services.AddScoped<ICarwashWasherRepository, CarwashWasherRepository>();
+        services.AddScoped<ICarwashMetricsRepository, CarwashMetricsRepository>();
         services.AddSingleton<IContractPdfRenderer, QuestPdfContractRenderer>();
 
         // Job en background: genera recordatorios automáticos 2 días antes del vencimiento

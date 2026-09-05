@@ -63,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<IModuleService, ModuleService>();
         services.AddScoped<IModuleProvisioner, ModuleProvisioner>();
         services.AddScoped<ICarwashService, CarwashService>();
+        services.AddScoped<ICarwashMetricsService, CarwashMetricsService>();
 
         return services;
     }

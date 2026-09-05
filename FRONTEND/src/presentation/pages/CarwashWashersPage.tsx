@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
-import { Plus, Pencil, Trash2, KeyRound } from "lucide-react"
+import { Plus, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { CarwashTipSettingsCard } from "@/presentation/components/CarwashTipSettingsCard"
 import { CarwashWasherFormDialog } from "@/presentation/components/CarwashWasherFormDialog"
 import { DeleteConfirmDialog } from "@/presentation/components/DeleteConfirmDialog"
 import { TablePagination } from "@/presentation/components/TablePagination"
@@ -81,7 +82,6 @@ export function CarwashWashersPage() {
             <TableRow>
               <TableHead>{t("washers.table.headers.name")}</TableHead>
               <TableHead>{t("washers.table.headers.phone")}</TableHead>
-              <TableHead>{t("washers.table.headers.account")}</TableHead>
               <TableHead>{t("washers.table.headers.status")}</TableHead>
               <TableHead className="w-[100px] text-right">
                 {t("washers.table.headers.actions")}
@@ -92,7 +92,7 @@ export function CarwashWashersPage() {
             {isLoading &&
               Array.from({ length: 3 }).map((_, index) => (
                 <TableRow key={index}>
-                  <TableCell colSpan={5}>
+                  <TableCell colSpan={4}>
                     <Skeleton className="h-6 w-full" />
                   </TableCell>
                 </TableRow>
@@ -100,7 +100,7 @@ export function CarwashWashersPage() {
 
             {!isLoading && washers?.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
                   {t("washers.table.empty")}
                 </TableCell>
               </TableRow>
@@ -111,16 +111,6 @@ export function CarwashWashersPage() {
                 <TableCell className="font-medium">{washer.fullName}</TableCell>
                 <TableCell className="text-muted-foreground">
                   {washer.phone ?? "—"}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {washer.userId ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <KeyRound className="h-3.5 w-3.5" />
-                      {washer.userEmail}
-                    </span>
-                  ) : (
-                    t("washers.table.noAccount")
-                  )}
                 </TableCell>
                 <TableCell>
                   <Badge variant={washer.isActive ? "default" : "secondary"}>
@@ -166,6 +156,10 @@ export function CarwashWashersPage() {
           onPageChange={setPage}
         />
       </div>
+
+      {/* La política de propinas va acá, junto a la gente que las recibe, y no en una
+          pantalla de ajustes aparte: es plata de este plantel. */}
+      <CarwashTipSettingsCard />
 
       <CarwashWasherFormDialog open={formOpen} onOpenChange={setFormOpen} washer={editingWasher} />
 

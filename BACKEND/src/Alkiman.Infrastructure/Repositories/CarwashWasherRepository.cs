@@ -15,7 +15,7 @@ public class CarwashWasherRepository : ICarwashWasherRepository
     }
 
     private const string SelectColumns = """
-        Id, LandlordId, FullName, Phone, IsActive, UserId, CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
+        Id, LandlordId, FullName, Phone, IsActive, CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
         """;
 
     public async Task<IReadOnlyList<CarwashWasher>> GetAllByLandlordAsync(Guid landlordId, CancellationToken cancellationToken = default)
@@ -42,23 +42,27 @@ public class CarwashWasherRepository : ICarwashWasherRepository
         return await connection.QuerySingleOrDefaultAsync<CarwashWasher>(sql, new { Id = id });
     }
 
-    public async Task<CarwashWasher?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<CarwashWasher?> GetSingleActiveAsync(Guid landlordId, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        // TOP 2 y no TOP 1: hace falta poder DISTINGUIR "hay exactamente uno" de
+        // "hay varios". Con TOP 1 las dos situaciones devuelven fila y el modo
+        // Solitario le terminaría asignando el trabajo a un lavador cualquiera.
         var sql = $"""
-            SELECT {SelectColumns}
+            SELECT TOP 2 {SelectColumns}
             FROM dbo.CWS_Washers
-            WHERE UserId = @UserId
+            WHERE LandlordId = @LandlordId AND IsActive = 1
             """;
-        return await connection.QuerySingleOrDefaultAsync<CarwashWasher>(sql, new { UserId = userId });
+        var rows = (await connection.QueryAsync<CarwashWasher>(sql, new { LandlordId = landlordId })).ToList();
+        return rows.Count == 1 ? rows[0] : null;
     }
 
     public async Task CreateAsync(CarwashWasher washer, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         const string sql = """
-            INSERT INTO dbo.CWS_Washers (Id, LandlordId, FullName, Phone, IsActive, UserId, CreatedAt, CreatedBy)
-            VALUES (@Id, @LandlordId, @FullName, @Phone, @IsActive, @UserId, @CreatedAt, @CreatedBy)
+            INSERT INTO dbo.CWS_Washers (Id, LandlordId, FullName, Phone, IsActive, CreatedAt, CreatedBy)
+            VALUES (@Id, @LandlordId, @FullName, @Phone, @IsActive, @CreatedAt, @CreatedBy)
             """;
         await connection.ExecuteAsync(sql, washer);
     }
@@ -71,7 +75,6 @@ public class CarwashWasherRepository : ICarwashWasherRepository
             SET FullName = @FullName,
                 Phone = @Phone,
                 IsActive = @IsActive,
-                UserId = @UserId,
                 UpdatedAt = @UpdatedAt,
                 UpdatedBy = @UpdatedBy
             WHERE Id = @Id

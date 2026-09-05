@@ -2,10 +2,70 @@
   "nav": {
     "board": "Tablero",
     "washers": "Lavadores",
+    "metrics": "Métricas",
     "services": "Servicios",
     "extras": "Agregados",
     "portalLinks": "Links del portal",
     "changeModule": "Cambiar de módulo"
+  },
+  "metrics": {
+    "title": "Métricas",
+    "subtitle": "Cuántos vehículos lavaste, qué servicios se venden más y cómo rinde cada lavador.",
+    "loadError": "No se pudieron cargar las métricas.",
+    "emptyRange": "No hay vehículos entregados en este rango.",
+    "deliveredNote": "Todo se cuenta por fecha de entrega: un vehículo que entró ayer y salió hoy suma a hoy, igual que la caja del día.",
+    "minutesValue": "{{count}} min",
+    "filters": {
+      "from": "Desde",
+      "to": "Hasta",
+      "lastDays": "Últimos {{count}} días"
+    },
+    "sections": {
+      "volume": "Volumen",
+      "revenue": "Facturación",
+      "washerRanking": "Ranking de lavadores",
+      "topExtras": "Agregados más vendidos"
+    },
+    "stats": {
+      "washed": "Vehículos lavados",
+      "averageServiceTime": "Tiempo promedio",
+      "averageServiceTimeHint": "Desde que arranca el lavado hasta que se entrega.",
+      "cancellationRate": "Turnos perdidos",
+      "cancellationRateHint": "{{cancelled}} cancelados y {{expired}} vencidos.",
+      "totalRevenue": "Facturación total",
+      "totalRevenueHint": "{{services}} en servicios y {{extras}} en agregados.",
+      "averageTicket": "Ticket promedio",
+      "tipsTotal": "Propinas",
+      "tipsCoverageHint": "{{percent}}% de los vehículos dejó propina."
+    },
+    "charts": {
+      "daily": {
+        "title": "Vehículos y facturación por día",
+        "washedSeries": "Vehículos",
+        "revenueSeries": "Facturación"
+      },
+      "topServices": {
+        "title": "Servicios más usados",
+        "countSeries": "Vehículos"
+      },
+      "hourly": {
+        "title": "Horarios con más movimiento",
+        "subtitle": "Hora en que se entregó cada vehículo.",
+        "washedSeries": "Vehículos"
+      }
+    },
+    "table": {
+      "washer": "Lavador",
+      "washed": "Vehículos",
+      "averageTime": "Tiempo promedio",
+      "revenue": "Facturación",
+      "tips": "Propinas",
+      "inactive": "Inactivo",
+      "extra": "Agregado",
+      "timesSold": "Veces vendido",
+      "emptyWashers": "Todavía no hay trabajo registrado por lavador en este rango.",
+      "emptyExtras": "No se vendieron agregados en este rango."
+    }
   },
   "setup": {
     "title": "Configura tu Carwash",
@@ -273,6 +333,50 @@
       }
     }
   },
+  "tips": {
+    "dialog": {
+      "title": "Entregar vehículo",
+      "description": "Registra la propina que el cliente dejó, si dejó alguna.",
+      "descriptionWasher": "Registra la propina que el cliente dejó para {{name}}, si dejó alguna.",
+      "serviceTotal": "Total del servicio",
+      "quickPicks": "Atajos",
+      "amount": "Propina",
+      "amountPlaceholder": "0.00",
+      "amountHint": "Esto no cobra nada: sólo deja asentado lo que ya se recibió en mano.",
+      "amountInvalid": "Ingresa un monto válido mayor o igual a cero.",
+      "skip": "Entregar sin propina",
+      "confirm": "Entregar"
+    },
+    "toast": {
+      "recorded": "Entregado. Propina de {{amount}} registrada."
+    },
+    "settings": {
+      "title": "Propinas",
+      "subtitle": "Qué se pregunta al entregar un vehículo. El sistema no cobra la propina: la registra.",
+      "percent": "Porcentaje sugerido",
+      "percentHint": "Se usa para pre-cargar el monto al entregar. El encargado igual lo puede cambiar.",
+      "percentInvalid": "El porcentaje debe estar entre 0 y 100.",
+      "save": "Guardar",
+      "modes": {
+        "Disabled": {
+          "title": "No preguntar",
+          "description": "Al entregar no se pide nada. No se lleva registro de propinas."
+        },
+        "Optional": {
+          "title": "Preguntar",
+          "description": "Al entregar se pide el monto con el campo vacío. Es lo más común."
+        },
+        "Suggested": {
+          "title": "Sugerir monto",
+          "description": "Igual que preguntar, pero el campo llega pre-cargado con el porcentaje."
+        }
+      },
+      "toast": {
+        "saved": "Configuración de propinas guardada.",
+        "error": "No se pudo guardar la configuración de propinas."
+      }
+    }
+  },
   "washers": {
     "title": "Lavadores",
     "subtitle": "El personal que lava. No son cuentas del sistema: dar de alta a alguien acá no le crea un usuario ni le da acceso al software.",
@@ -281,12 +385,10 @@
       "headers": {
         "name": "Nombre",
         "phone": "Teléfono",
-        "account": "Cuenta",
         "status": "Estado",
         "actions": "Acciones"
       },
       "empty": "Todavía no cargaste ningún lavador.",
-      "noAccount": "Sin acceso al sistema",
       "statusActive": "Activo",
       "statusInactive": "Inactivo",
       "deleteBlocked": "Ya tiene turnos registrados. Desactivalo para no perder el historial."
@@ -299,9 +401,6 @@
         "fullNamePlaceholder": "Ej: Juan Pérez",
         "phone": "Teléfono",
         "phonePlaceholder": "Opcional",
-        "account": "Cuenta del sistema",
-        "accountNone": "Sin cuenta (no inicia sesión)",
-        "accountHint": "Sólo si además tiene que entrar al sistema para mover su propia cola. La mayoría de los lavadores no lo necesita.",
         "active": "Activo",
         "activeHint": "Un lavador inactivo no se puede asignar, pero sigue apareciendo en los turnos que ya lavó."
       }

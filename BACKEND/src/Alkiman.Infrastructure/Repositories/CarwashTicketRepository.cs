@@ -18,6 +18,7 @@ public class CarwashTicketRepository : ICarwashTicketRepository
         Id, LandlordId, CustomerId, ServiceId, AssignedToWasherId, QueueNumber, VehiclePlate,
         VehicleBrand, VehicleModel, VehicleYear, VehicleColor, ServicePrice,
         Status, Source, AccessToken, ArrivalDeadline, ArrivedAt, StartedAt, ReadyAt, DeliveredAt, CancelledAt, Notes,
+        TipAmount, TipWasherId,
         CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
         """;
 
@@ -98,6 +99,8 @@ public class CarwashTicketRepository : ICarwashTicketRepository
                 DeliveredAt = @DeliveredAt,
                 CancelledAt = @CancelledAt,
                 Notes = @Notes,
+                TipAmount = @TipAmount,
+                TipWasherId = @TipWasherId,
                 UpdatedAt = @UpdatedAt,
                 UpdatedBy = @UpdatedBy
             WHERE Id = @Id

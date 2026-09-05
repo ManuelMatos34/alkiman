@@ -52,4 +52,7 @@ public static class PermissionCodes
 
     /// <summary>Avanzar el estado de los vehículos en la cola. Separado de <see cref="CarwashManage"/> para que el rol "Lavador" pueda mover la cola sin poder administrar el catálogo ni los links públicos.</summary>
     public const string CarwashWork = "carwash.work";
+
+    /// <summary>Métricas, facturación y ranking de lavadores. Separado de <see cref="CarwashView"/> por el mismo motivo que <see cref="ReportsView"/> lo está en Alquileres: ver la cola del día es operativo, ver cuánto factura el negocio y quién rinde más no lo es.</summary>
+    public const string CarwashReports = "carwash.reports";
 }

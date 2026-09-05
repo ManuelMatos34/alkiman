@@ -2,10 +2,114 @@
   "nav": {
     "board": "Board",
     "washers": "Washers",
+    "metrics": "Metrics",
     "services": "Services",
     "extras": "Add-ons",
     "portalLinks": "Portal links",
     "changeModule": "Change module"
+  },
+  "metrics": {
+    "title": "Metrics",
+    "subtitle": "How many vehicles you washed, which services sell most and how each washer performs.",
+    "loadError": "Metrics could not be loaded.",
+    "emptyRange": "No vehicles were delivered in this range.",
+    "deliveredNote": "Everything is counted by delivery date: a vehicle that came in yesterday and left today counts for today, just like the day's till.",
+    "minutesValue": "{{count}} min",
+    "filters": {
+      "from": "From",
+      "to": "To",
+      "lastDays": "Last {{count}} days"
+    },
+    "sections": {
+      "volume": "Volume",
+      "revenue": "Revenue",
+      "washerRanking": "Washer ranking",
+      "topExtras": "Best-selling add-ons"
+    },
+    "stats": {
+      "washed": "Vehicles washed",
+      "averageServiceTime": "Average time",
+      "averageServiceTimeHint": "From the moment the wash starts until delivery.",
+      "cancellationRate": "Lost tickets",
+      "cancellationRateHint": "{{cancelled}} cancelled and {{expired}} expired.",
+      "totalRevenue": "Total revenue",
+      "totalRevenueHint": "{{services}} in services and {{extras}} in add-ons.",
+      "averageTicket": "Average ticket",
+      "tipsTotal": "Tips",
+      "tipsCoverageHint": "{{percent}}% of vehicles left a tip."
+    },
+    "charts": {
+      "daily": {
+        "title": "Vehicles and revenue per day",
+        "washedSeries": "Vehicles",
+        "revenueSeries": "Revenue"
+      },
+      "topServices": {
+        "title": "Most used services",
+        "countSeries": "Vehicles"
+      },
+      "hourly": {
+        "title": "Busiest hours",
+        "subtitle": "Hour each vehicle was delivered.",
+        "washedSeries": "Vehicles"
+      }
+    },
+    "table": {
+      "washer": "Washer",
+      "washed": "Vehicles",
+      "averageTime": "Average time",
+      "revenue": "Revenue",
+      "tips": "Tips",
+      "inactive": "Inactive",
+      "extra": "Add-on",
+      "timesSold": "Times sold",
+      "emptyWashers": "No work recorded per washer in this range yet.",
+      "emptyExtras": "No add-ons were sold in this range."
+    }
+  },
+  "tips": {
+    "dialog": {
+      "title": "Deliver vehicle",
+      "description": "Record the tip the customer left, if any.",
+      "descriptionWasher": "Record the tip the customer left for {{name}}, if any.",
+      "serviceTotal": "Service total",
+      "quickPicks": "Shortcuts",
+      "amount": "Tip",
+      "amountPlaceholder": "0.00",
+      "amountHint": "This does not charge anything: it only records what was already handed over.",
+      "amountInvalid": "Enter a valid amount greater than or equal to zero.",
+      "skip": "Deliver without tip",
+      "confirm": "Deliver"
+    },
+    "toast": {
+      "recorded": "Delivered. {{amount}} tip recorded."
+    },
+    "settings": {
+      "title": "Tips",
+      "subtitle": "What gets asked when a vehicle is delivered. The system does not charge the tip: it records it.",
+      "percent": "Suggested percentage",
+      "percentHint": "Used to pre-fill the amount on delivery. The attendant can still change it.",
+      "percentInvalid": "The percentage must be between 0 and 100.",
+      "save": "Save",
+      "modes": {
+        "Disabled": {
+          "title": "Don't ask",
+          "description": "Nothing is asked on delivery. No tips are recorded."
+        },
+        "Optional": {
+          "title": "Ask",
+          "description": "On delivery the amount is asked with an empty field. This is the most common."
+        },
+        "Suggested": {
+          "title": "Suggest an amount",
+          "description": "Same as asking, but the field arrives pre-filled with the percentage."
+        }
+      },
+      "toast": {
+        "saved": "Tip settings saved.",
+        "error": "Tip settings could not be saved."
+      }
+    }
   },
   "setup": {
     "title": "Set up your Carwash",
@@ -281,12 +385,10 @@
       "headers": {
         "name": "Name",
         "phone": "Phone",
-        "account": "Account",
         "status": "Status",
         "actions": "Actions"
       },
       "empty": "You have not added any washers yet.",
-      "noAccount": "No system access",
       "statusActive": "Active",
       "statusInactive": "Inactive",
       "deleteBlocked": "Already has tickets. Deactivate instead so you keep the history."
@@ -299,9 +401,6 @@
         "fullNamePlaceholder": "e.g. John Smith",
         "phone": "Phone",
         "phonePlaceholder": "Optional",
-        "account": "System account",
-        "accountNone": "No account (does not sign in)",
-        "accountHint": "Only if they also need to sign in to move their own queue. Most washers do not.",
         "active": "Active",
         "activeHint": "An inactive washer cannot be assigned, but still shows on the tickets they already washed."
       }

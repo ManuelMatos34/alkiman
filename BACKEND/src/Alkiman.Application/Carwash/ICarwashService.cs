@@ -32,8 +32,6 @@ public interface ICarwashService
     Task<CarwashWasherResponse> UpdateWasherAsync(Guid id, UpdateWasherRequest request, CancellationToken cancellationToken = default);
     /// <summary>Solo si nunca lavó nada; si tiene tickets hay que desactivarlo para no perder el historial.</summary>
     Task DeleteWasherAsync(Guid id, CancellationToken cancellationToken = default);
-    /// <summary>Cuentas del negocio disponibles para vincular a un lavador (excluye las ya vinculadas a otro).</summary>
-    Task<IReadOnlyList<CarwashLinkableUserResponse>> GetLinkableUsersAsync(Guid? washerId, CancellationToken cancellationToken = default);
 
     // Cola (autenticado)
     Task<IReadOnlyList<CarwashTicketResponse>> GetQueueAsync(CancellationToken cancellationToken = default);

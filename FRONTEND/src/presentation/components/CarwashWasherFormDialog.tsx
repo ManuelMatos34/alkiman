@@ -24,20 +24,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { useCreateWasher } from "@/application/carwash/useCreateWasher"
 import { useUpdateWasher } from "@/application/carwash/useUpdateWasher"
-import { useCarwashLinkableUsers } from "@/application/carwash/useCarwashLinkableUsers"
 import type { CarwashWasher } from "@/domain/types/carwash"
-
-/** Valor centinela del Select: Radix no admite `value=""` en un SelectItem. */
-const NO_ACCOUNT = "__none__"
 
 function buildWasherFormSchema(t: TFunction) {
   return z.object({
@@ -48,7 +37,6 @@ function buildWasherFormSchema(t: TFunction) {
       .max(150, t("washers.validation.nameMax")),
     phone: z.string().trim().max(30, t("washers.validation.phoneMax")).optional(),
     isActive: z.boolean(),
-    userId: z.string(),
   })
 }
 
@@ -63,9 +51,9 @@ interface CarwashWasherFormDialogProps {
 /**
  * Alta/edición de un lavador.
  *
- * El campo de cuenta es opcional a propósito: un lavador es una ficha del
- * módulo, no una identidad del sistema. Sólo se vincula una cuenta cuando esa
- * persona además tiene que iniciar sesión para mover su propia cola.
+ * Sólo pide nombre, teléfono y estado: la ficha del lavador es personal del
+ * módulo, no una identidad del sistema, y no se vincula con ninguna cuenta.
+ * Quien además deba iniciar sesión se crea aparte, en Usuarios del sistema.
  */
 export function CarwashWasherFormDialog({
   open,
@@ -76,7 +64,6 @@ export function CarwashWasherFormDialog({
   const isEditing = !!washer
   const createWasher = useCreateWasher()
   const updateWasher = useUpdateWasher()
-  const { data: linkableUsers } = useCarwashLinkableUsers(washer?.id, open)
 
   const washerFormSchema = useMemo(() => buildWasherFormSchema(t), [t])
 
@@ -86,7 +73,6 @@ export function CarwashWasherFormDialog({
       fullName: "",
       phone: "",
       isActive: true,
-      userId: NO_ACCOUNT,
     },
   })
 
@@ -96,7 +82,6 @@ export function CarwashWasherFormDialog({
         fullName: washer?.fullName ?? "",
         phone: washer?.phone ?? "",
         isActive: washer?.isActive ?? true,
-        userId: washer?.userId ?? NO_ACCOUNT,
       })
     }
   }, [open, washer, form])
@@ -105,7 +90,6 @@ export function CarwashWasherFormDialog({
     const common = {
       fullName: values.fullName,
       phone: values.phone?.length ? values.phone : null,
-      userId: values.userId === NO_ACCOUNT ? null : values.userId,
     }
 
     if (washer) {
@@ -170,35 +154,6 @@ export function CarwashWasherFormDialog({
                   <FormControl>
                     <Input placeholder={t("washers.dialog.fields.phonePlaceholder")} {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="userId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("washers.dialog.fields.account")}</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value={NO_ACCOUNT}>
-                        {t("washers.dialog.fields.accountNone")}
-                      </SelectItem>
-                      {linkableUsers?.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.fullName} · {user.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>{t("washers.dialog.fields.accountHint")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

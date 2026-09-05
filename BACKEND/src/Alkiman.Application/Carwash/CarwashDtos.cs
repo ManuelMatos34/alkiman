@@ -9,9 +9,17 @@ namespace Alkiman.Application.Carwash;
 /// significa que todavía no se eligió modo: el front usa eso para mostrar el
 /// diálogo de configuración inicial.
 /// </summary>
-public record CarwashSettingsResponse(string? OperationMode);
+public record CarwashSettingsResponse(
+    string? OperationMode,
+    // Ver CarwashTipMode. Con OperationMode en null todavía no hay fila guardada,
+    // así que estos dos vienen con el default del dominio.
+    string TipMode,
+    decimal TipSuggestedPercent);
 
-public record SaveCarwashSettingsRequest(string OperationMode);
+public record SaveCarwashSettingsRequest(
+    string OperationMode,
+    string? TipMode,
+    decimal? TipSuggestedPercent);
 
 // ============================================================
 // Catálogo
@@ -59,26 +67,22 @@ public record CreateCarwashPortalLinkRequest(string Title);
 public record CarwashTicketExtraResponse(int ExtraId, string Name, decimal Price);
 
 /// <summary>
-/// Un lavador del directorio del módulo (CWS_Washers). <see cref="UserId"/> con
-/// valor significa que además tiene cuenta en el sistema; en null —lo normal— es
-/// alguien a quien se le asigna trabajo pero no inicia sesión.
+/// Un lavador del directorio del módulo (CWS_Washers): nombre, teléfono y estado.
+///
+/// No hay campo de cuenta ni de usuario, y es deliberado: la ficha del lavador y
+/// la identidad del sistema son cosas separadas (ver <see cref="CarwashWasher"/>).
 /// </summary>
 public record CarwashWasherResponse(
     Guid Id,
     string FullName,
     string? Phone,
     bool IsActive,
-    Guid? UserId,
-    string? UserEmail,
     /// <summary>false si ya tiene tickets: el front ofrece desactivar en vez de eliminar, para no perder el historial.</summary>
     bool CanDelete);
 
-public record CreateWasherRequest(string FullName, string? Phone, Guid? UserId);
+public record CreateWasherRequest(string FullName, string? Phone);
 
-public record UpdateWasherRequest(string FullName, string? Phone, bool IsActive, Guid? UserId);
-
-/// <summary>Cuenta del negocio que se puede vincular a un lavador (ver <c>GetLinkableUsersAsync</c>).</summary>
-public record CarwashLinkableUserResponse(Guid Id, string FullName, string Email);
+public record UpdateWasherRequest(string FullName, string? Phone, bool IsActive);
 
 public record AssignWasherRequest(Guid? WasherId);
 
@@ -115,6 +119,11 @@ public record CarwashTicketResponse(
     DateTime? DeliveredAt,
     DateTime? CancelledAt,
     string? Notes,
+    // Propina confirmada al entregar y a quién se le atribuyó. Null mientras el
+    // ticket no esté entregado, o si el negocio no maneja propinas.
+    decimal? TipAmount,
+    Guid? TipWasherId,
+    string? TipWasherName,
     DateTime CreatedAt);
 
 /// <summary>Alta presencial de un vehículo por el Encargado: busca-o-crea al cliente por teléfono/email.</summary>
@@ -130,7 +139,12 @@ public record RegisterTicketRequest(
     int? VehicleYear,
     string? VehicleColor);
 
-public record AdvanceStatusRequest(string Status);
+/// <summary>
+/// Avance de estado. <see cref="TipAmount"/> sólo se mira al pasar a Delivered:
+/// es el monto que el mostrador confirma haber recibido, no un cargo. Null o 0
+/// significan "sin propina" y son válidos siempre — el sistema no cobra nada.
+/// </summary>
+public record AdvanceStatusRequest(string Status, decimal? TipAmount);
 
 // ============================================================
 // Público (sin login)

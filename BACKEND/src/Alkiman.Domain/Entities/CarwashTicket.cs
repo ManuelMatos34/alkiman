@@ -41,6 +41,22 @@ public class CarwashTicket : IAuditable
     public DateTime? CancelledAt { get; set; }
     public string? Notes { get; set; }
 
+    /// <summary>
+    /// Propina que el mostrador confirmó haber recibido al entregar el vehículo.
+    /// NULL = no se registró ninguna. Carwash no procesa pagos, así que esto no
+    /// cobra nada: deja constancia de plata que cambió de manos en efectivo.
+    /// </summary>
+    public decimal? TipAmount { get; set; }
+
+    /// <summary>
+    /// A quién se le atribuyó la propina, congelado al entregar. Separado de
+    /// <see cref="AssignedToWasherId"/> a propósito, por el mismo motivo que
+    /// <see cref="ServicePrice"/> no se lee del catálogo de servicios: si el
+    /// ranking leyera la columna operativa, reasignar un ticket ya entregado le
+    /// movería lo ganado de una persona a otra sin que nadie lo note.
+    /// </summary>
+    public Guid? TipWasherId { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = default!;
     public DateTime? UpdatedAt { get; set; }

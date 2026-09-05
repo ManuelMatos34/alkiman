@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useApiClient } from "@/infrastructure/auth/useApiClient"
 import { carwashWashersQueryKey } from "@/application/carwash/useCarwashWashers"
-import { carwashLinkableUsersQueryKey } from "@/application/carwash/useCarwashLinkableUsers"
 import { carwashQueueQueryKey } from "@/application/carwash/useCarwashQueue"
 import type { CarwashWasher, UpdateCarwashWasherRequest } from "@/domain/types/carwash"
 
@@ -16,7 +15,6 @@ export function useUpdateWasher() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: carwashWashersQueryKey })
-      queryClient.invalidateQueries({ queryKey: carwashLinkableUsersQueryKey })
       // El tablero muestra el nombre del lavador en cada tarjeta: si se renombró,
       // la cola quedó desactualizada.
       queryClient.invalidateQueries({ queryKey: carwashQueueQueryKey })

@@ -20,13 +20,29 @@ export type CarwashTicketSource = "Presencial" | "Portal"
  */
 export type CarwashOperationMode = "Empresa" | "Solitario"
 
+/**
+ * Política de propinas del negocio.
+ *
+ * Ninguno COBRA: Carwash no procesa pagos, el servicio se paga en efectivo en el
+ * mostrador. Lo único que cambia entre modos es qué se pregunta al entregar.
+ * `Disabled`: no se pregunta.
+ * `Optional`: se pregunta con el campo vacío.
+ * `Suggested`: se pregunta con el campo pre-cargado con `tipSuggestedPercent`.
+ */
+export type CarwashTipMode = "Disabled" | "Optional" | "Suggested"
+
 /** `operationMode` en `null` significa que todavía no se eligió modo: hay que mostrar el diálogo inicial. */
 export interface CarwashSettings {
   operationMode: CarwashOperationMode | null
+  tipMode: CarwashTipMode
+  tipSuggestedPercent: number
 }
 
 export interface SaveCarwashSettingsRequest {
   operationMode: CarwashOperationMode
+  /** Opcional: el diálogo de configuración inicial sólo manda el modo de operación. */
+  tipMode?: CarwashTipMode
+  tipSuggestedPercent?: number
 }
 
 /** Servicio del catálogo de Carwash (ej: "Lavado básico", "Lavado premium"). */
@@ -101,18 +117,16 @@ export interface CarwashTicketExtra {
 /**
  * Un lavador del directorio del módulo.
  *
- * NO es un usuario del sistema: es una entidad propia de Carwash, el mismo lugar
- * que ocupa `Customer` en Alquileres. La persona que lava no necesita cuenta.
- * `userId` con valor significa que además tiene una, y entonces puede iniciar
- * sesión y mover su propia cola.
+ * NO es un usuario del sistema y no se puede vincular con uno: es una entidad
+ * propia de Carwash, el mismo lugar que ocupa `Customer` en Alquileres. Es una
+ * ficha de personal, nada más. Quien además tenga que entrar al software se
+ * crea aparte, en Usuarios del sistema, sin relación con esta ficha.
  */
 export interface CarwashWasher {
   id: string
   fullName: string
   phone: string | null
   isActive: boolean
-  userId: string | null
-  userEmail: string | null
   /** false si ya tiene turnos: hay que desactivarlo en vez de eliminarlo, para no perder el historial. */
   canDelete: boolean
 }
@@ -120,21 +134,12 @@ export interface CarwashWasher {
 export interface CreateCarwashWasherRequest {
   fullName: string
   phone?: string | null
-  userId?: string | null
 }
 
 export interface UpdateCarwashWasherRequest {
   fullName: string
   phone?: string | null
   isActive: boolean
-  userId?: string | null
-}
-
-/** Cuenta del negocio que se le puede vincular a un lavador. */
-export interface CarwashLinkableUser {
-  id: string
-  fullName: string
-  email: string
 }
 
 /** Vehículo en la cola de Carwash. */
@@ -161,6 +166,10 @@ export interface CarwashTicket {
   source: CarwashTicketSource
   arrivalDeadline: string | null
   notes: string | null
+  /** Propina confirmada al entregar. `null` mientras el ticket no esté entregado o si no hubo. */
+  tipAmount: number | null
+  tipWasherId: string | null
+  tipWasherName: string | null
   createdAt: string
 }
 
@@ -180,6 +189,78 @@ export interface RegisterCarwashTicketRequest {
 
 export interface AdvanceCarwashTicketStatusRequest {
   status: CarwashTicketStatus
+  /** Sólo se mira al pasar a `Delivered`. Es lo que el mostrador confirma haber recibido, no un cargo. */
+  tipAmount?: number | null
+}
+
+// ---- Métricas del módulo ----
+
+export interface CarwashVolumeSummary {
+  washed: number
+  cancelled: number
+  /** No-shows del portal: reservaron y no llegaron antes del vencimiento. */
+  expired: number
+  stillInQueue: number
+  /** (cancelados + vencidos) sobre el total de los que salieron de la cola. */
+  cancellationRatePercent: number
+  averageServiceMinutes: number | null
+}
+
+export interface CarwashRevenueSummary {
+  servicesRevenue: number
+  extrasRevenue: number
+  totalRevenue: number
+  averageTicket: number
+  tipsTotal: number
+  /** Porcentaje de entregas con propina: dice si la política está funcionando. */
+  tipsCoveragePercent: number
+}
+
+export interface CarwashDailyPoint {
+  date: string
+  washed: number
+  revenue: number
+}
+
+export interface CarwashServiceUsage {
+  serviceId: number
+  serviceName: string
+  count: number
+  revenue: number
+}
+
+export interface CarwashExtraUsage {
+  extraId: number
+  extraName: string
+  count: number
+  revenue: number
+}
+
+export interface CarwashHourlyPoint {
+  hour: number
+  washed: number
+}
+
+export interface CarwashWasherRanking {
+  washerId: string
+  washerName: string
+  isActive: boolean
+  washed: number
+  revenue: number
+  tipsTotal: number
+  averageServiceMinutes: number | null
+}
+
+export interface CarwashMetrics {
+  fromDate: string
+  toDate: string
+  volume: CarwashVolumeSummary
+  revenue: CarwashRevenueSummary
+  dailyVolume: CarwashDailyPoint[]
+  topServices: CarwashServiceUsage[]
+  topExtras: CarwashExtraUsage[]
+  hourlyDistribution: CarwashHourlyPoint[]
+  washerRanking: CarwashWasherRanking[]
 }
 
 export interface AssignWasherRequest {

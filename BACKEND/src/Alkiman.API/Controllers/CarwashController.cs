@@ -22,11 +22,27 @@ namespace Alkiman.API.Controllers;
 public class CarwashController : ControllerBase
 {
     private readonly ICarwashService _service;
+    private readonly ICarwashMetricsService _metrics;
 
-    public CarwashController(ICarwashService service)
+    public CarwashController(ICarwashService service, ICarwashMetricsService metrics)
     {
         _service = service;
+        _metrics = metrics;
     }
+
+    // ---- Métricas ----
+
+    /// <summary>
+    /// Tablero del módulo: volumen, facturación, servicios más usados, distribución
+    /// horaria y ranking de lavadores. Rango inclusivo; sin fechas, los últimos 30 días.
+    /// </summary>
+    [HttpGet("metrics")]
+    [Authorize(Policy = PermissionCodes.CarwashReports)]
+    public async Task<ActionResult<CarwashMetricsResponse>> GetMetrics(
+        [FromQuery] DateTime? from,
+        [FromQuery] DateTime? to,
+        CancellationToken cancellationToken)
+        => Ok(await _metrics.GetMetricsAsync(from, to, cancellationToken));
 
     // ---- Configuración del módulo ----
 
@@ -153,12 +169,6 @@ public class CarwashController : ControllerBase
         await _service.DeleteWasherAsync(id, cancellationToken);
         return NoContent();
     }
-
-    /// <summary>Cuentas del negocio que se le pueden vincular a un lavador. El vínculo es opcional: ver CarwashWasher.UserId.</summary>
-    [HttpGet("washers/linkable-users")]
-    [Authorize(Policy = PermissionCodes.CarwashManage)]
-    public async Task<ActionResult<IReadOnlyList<CarwashLinkableUserResponse>>> GetLinkableUsers([FromQuery] Guid? washerId, CancellationToken cancellationToken)
-        => Ok(await _service.GetLinkableUsersAsync(washerId, cancellationToken));
 
     [HttpPut("queue/{id:guid}/assign")]
     [Authorize(Policy = PermissionCodes.CarwashManage)]

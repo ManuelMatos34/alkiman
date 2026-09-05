@@ -1,5 +1,5 @@
 import { Route } from "react-router-dom"
-import { CarFront, Wrench, Link2, Sparkles, Users } from "lucide-react"
+import { CarFront, Wrench, Link2, Sparkles, Users, BarChart3 } from "lucide-react"
 import { PermissionCodes } from "@/domain/types/permission"
 import { PermissionRoute } from "@/presentation/components/PermissionRoute"
 import { CarwashOperationModeDialog } from "@/presentation/components/CarwashOperationModeDialog"
@@ -8,6 +8,7 @@ import { CarwashServicesPage } from "@/presentation/pages/CarwashServicesPage"
 import { CarwashExtrasPage } from "@/presentation/pages/CarwashExtrasPage"
 import { CarwashPortalLinksPage } from "@/presentation/pages/CarwashPortalLinksPage"
 import { CarwashWashersPage } from "@/presentation/pages/CarwashWashersPage"
+import { CarwashMetricsPage } from "@/presentation/pages/CarwashMetricsPage"
 import type { ModuleDefinition } from "@/presentation/modules/types"
 
 export const carwashModule: ModuleDefinition = {
@@ -24,6 +25,12 @@ export const carwashModule: ModuleDefinition = {
       to: "/lavadores",
       icon: Users,
       permission: PermissionCodes.CarwashManage,
+    },
+    {
+      labelKey: "nav.metrics",
+      to: "/metricas",
+      icon: BarChart3,
+      permission: PermissionCodes.CarwashReports,
     },
     {
       labelKey: "nav.services",
@@ -53,6 +60,12 @@ export const carwashModule: ModuleDefinition = {
     <>
       <Route element={<PermissionRoute permission={PermissionCodes.CarwashView} />}>
         <Route index element={<CarwashBoardPage />} />
+      </Route>
+
+      {/* Métricas va con su propio permiso, no con CarwashManage: administrar el
+          catálogo y ver la facturación del negocio son cosas distintas. */}
+      <Route element={<PermissionRoute permission={PermissionCodes.CarwashReports} />}>
+        <Route path="metricas" element={<CarwashMetricsPage />} />
       </Route>
 
       <Route element={<PermissionRoute permission={PermissionCodes.CarwashManage} />}>

@@ -7,11 +7,18 @@ namespace Alkiman.Domain.Entities;
 /// nombre de quién queda el historial. Tabla: CWS_Washers.
 ///
 /// Es una entidad DEL MÓDULO, no una identidad del sistema —el mismo lugar que
-/// ocupa <see cref="Customer"/> en Alquileres—. Un lavador no necesita cuenta:
+/// ocupa <see cref="Customer"/> en Alquileres—. Un lavador no tiene cuenta:
 /// el personal de un lavadero rota, y obligar a crear un usuario con email y
 /// contraseña por cada persona que pasa una franela no tiene sentido.
 ///
-/// Ver <see cref="UserId"/> para el caso en que sí la necesita.
+/// La separación es total y sin excepciones: no hay forma de vincular esta ficha
+/// con una fila de CFG_Users. Existió una (CWS_Washers.UserId) y se eliminó en el
+/// script 21 porque preguntarle al usuario por una "cuenta" al dar de alta a un
+/// lavador mezclaba dos conceptos que no tienen por qué mezclarse.
+///
+/// Quien además tenga que entrar al software es, simplemente, un usuario del
+/// sistema con el rol "Lavador" (permiso carwash.work). Son dos altas separadas
+/// porque son dos cosas separadas.
 /// </summary>
 public class CarwashWasher : IAuditable
 {
@@ -26,19 +33,6 @@ public class CarwashWasher : IAuditable
     /// por eso se desactiva en vez de borrarse.
     /// </summary>
     public bool IsActive { get; set; }
-
-    /// <summary>
-    /// Vínculo OPCIONAL con una cuenta del sistema (CFG_Users).
-    ///
-    /// null —lo normal— es un lavador que no entra al software: se le asigna
-    /// trabajo desde el tablero y nada más. Con valor, esa persona además inicia
-    /// sesión y mueve la cola por su cuenta, que es para lo que existe el rol de
-    /// sistema "Lavador".
-    ///
-    /// La cuenta y el lavador siguen siendo cosas distintas: dar de baja al
-    /// usuario no borra el historial del lavador.
-    /// </summary>
-    public Guid? UserId { get; set; }
 
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = default!;

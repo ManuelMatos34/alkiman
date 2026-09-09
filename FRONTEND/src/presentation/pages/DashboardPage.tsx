@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useAuth } from "@/infrastructure/auth/AuthContext"
+import { WhatsAppStatsCard } from "@/presentation/components/WhatsAppStatsCard"
 
 const modules = [
   {
@@ -57,6 +58,10 @@ export function DashboardPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           {t("subtitle")}
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <WhatsAppStatsCard />
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

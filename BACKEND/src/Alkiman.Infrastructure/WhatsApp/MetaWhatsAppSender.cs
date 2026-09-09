@@ -2,7 +2,9 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Alkiman.Application.Common.Interfaces;
 using Alkiman.Application.WhatsApp;
+using Alkiman.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -27,14 +29,23 @@ public class MetaWhatsAppSender : IWhatsAppSender
     private readonly string? _phoneNumberId;
     private readonly string? _accessToken;
     private readonly string _apiVersion;
+    private readonly IWhatsAppMessageRepository _messageRepository;
+    private readonly ICurrentLandlordService _currentLandlord;
 
-    public MetaWhatsAppSender(HttpClient http, IConfiguration configuration, ILogger<MetaWhatsAppSender> logger)
+    public MetaWhatsAppSender(
+        HttpClient http,
+        IConfiguration configuration,
+        ILogger<MetaWhatsAppSender> logger,
+        IWhatsAppMessageRepository messageRepository,
+        ICurrentLandlordService currentLandlord)
     {
         _http = http;
         _logger = logger;
         _phoneNumberId = configuration["WhatsApp:PhoneNumberId"];
         _accessToken   = configuration["WhatsApp:AccessToken"];
         _apiVersion    = configuration["WhatsApp:ApiVersion"] ?? "v20.0";
+        _messageRepository = messageRepository;
+        _currentLandlord   = currentLandlord;
 
         _http.BaseAddress = new Uri("https://graph.facebook.com/");
     }
@@ -86,24 +97,50 @@ public class MetaWhatsAppSender : IWhatsAppSender
         request.Headers.Add("Authorization", $"Bearer {_accessToken}");
         request.Content = content;
 
+        WhatsAppSendResult result;
         try
         {
             var response = await _http.SendAsync(request, ct);
             if (response.IsSuccessStatusCode)
-                return new WhatsAppSendResult(true);
-
-            var errorBody = await response.Content.ReadAsStringAsync(ct);
-            _logger.LogWarning("WhatsApp API error {Status} para plantilla {Template}: {Body}",
-                (int)response.StatusCode, templateName, errorBody);
-
-            var errorMessage = TryExtractErrorMessage(errorBody);
-            return new WhatsAppSendResult(false, errorMessage);
+            {
+                result = new WhatsAppSendResult(true);
+            }
+            else
+            {
+                var errorBody = await response.Content.ReadAsStringAsync(ct);
+                _logger.LogWarning("WhatsApp API error {Status} para plantilla {Template}: {Body}",
+                    (int)response.StatusCode, templateName, errorBody);
+                result = new WhatsAppSendResult(false, TryExtractErrorMessage(errorBody));
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Excepción enviando WhatsApp a {Phone} con plantilla {Template}", normalizedPhone, templateName);
-            return new WhatsAppSendResult(false, ex.Message);
+            result = new WhatsAppSendResult(false, ex.Message);
         }
+
+        // Persistir el registro de envío de forma best-effort (no interrumpe el flujo si falla).
+        try
+        {
+            var landlordId = await _currentLandlord.GetCurrentLandlordIdAsync(ct);
+            var record = new WhatsAppMessage
+            {
+                LandlordId   = landlordId,
+                ToPhone      = normalizedPhone,
+                TemplateName = templateName,
+                Status       = result.Success ? "Sent" : "Failed",
+                ErrorMessage = result.ErrorMessage,
+                SentAt       = result.Success ? DateTime.UtcNow : null,
+                CreatedAt    = DateTime.UtcNow,
+            };
+            await _messageRepository.CreateAsync(record, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "No se pudo persistir el registro de WhatsApp para plantilla {Template}", templateName);
+        }
+
+        return result;
     }
 
     /// <summary>

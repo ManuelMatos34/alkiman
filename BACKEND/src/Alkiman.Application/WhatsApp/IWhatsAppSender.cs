@@ -41,7 +41,7 @@ public static class WhatsAppTemplates
     /// Parámetros: {{1}} nombre, {{2}} placa, {{3}} estado
     /// Ejemplo body: "Hola {{1}}, el estado de tu vehículo {{2}} cambió a: *{{3}}*."
     /// </summary>
-    public const string CarwashStatus = "alkiman_carwash_status";
+    public const string CarwashStatus = "alkiman_cws_status";
 
     /// <summary>
     /// Plantilla: cambio de estado con límite de tiempo (ArrivalPending).

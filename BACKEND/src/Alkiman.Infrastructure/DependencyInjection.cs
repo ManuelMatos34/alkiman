@@ -28,6 +28,8 @@ using Alkiman.Application.Payments.Gateways;
 using Alkiman.Infrastructure.BackgroundJobs;
 using Alkiman.Infrastructure.Email;
 using Alkiman.Infrastructure.Payments;
+using Alkiman.Infrastructure.WhatsApp;
+using Alkiman.Application.WhatsApp;
 using Alkiman.Infrastructure.Pdf;
 using Alkiman.Infrastructure.Persistence;
 using Alkiman.Infrastructure.Persistence.TypeHandlers;
@@ -96,6 +98,11 @@ public static class DependencyInjection
         // EmailSendResult de fallo explícito (mismo comportamiento que tenía NoOpEmailSender),
         // así que no hace falta un fallback condicional acá.
         services.AddHttpClient<IEmailSender, ResendEmailSender>();
+
+        // Envío de WhatsApp vía Meta Cloud API (gratuito hasta 1,000 conversaciones/mes).
+        // Si WhatsApp:PhoneNumberId o WhatsApp:AccessToken están vacíos, MetaWhatsAppSender
+        // devuelve un resultado de fallo explícito y los servicios caen en el fallback de email.
+        services.AddHttpClient<IWhatsAppSender, MetaWhatsAppSender>();
 
         // Gateway de pago sandbox/test (Stripe): ver Alkiman.Application.Payments.Gateways.
         services.AddScoped<IStripeGateway, StripeGateway>();

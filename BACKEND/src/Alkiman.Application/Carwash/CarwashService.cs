@@ -5,6 +5,7 @@ using Alkiman.Application.Common.Interfaces;
 using Alkiman.Application.Customers;
 using Alkiman.Application.Emails;
 using Alkiman.Application.Landlords;
+using Alkiman.Application.WhatsApp;
 using Alkiman.Application.Payments.Gateways;
 using Alkiman.Application.Portal;
 using Alkiman.Application.Users;
@@ -58,6 +59,7 @@ public class CarwashService : ICarwashService
     private readonly ICurrentLandlordService _currentLandlord;
     private readonly IAuditLogService _auditLog;
     private readonly IEmailSender _emailSender;
+    private readonly IWhatsAppSender _whatsAppSender;
     private readonly IStripeGateway _stripeGateway;
 
     public CarwashService(
@@ -73,6 +75,7 @@ public class CarwashService : ICarwashService
         ICurrentLandlordService currentLandlord,
         IAuditLogService auditLog,
         IEmailSender emailSender,
+        IWhatsAppSender whatsAppSender,
         IStripeGateway stripeGateway)
     {
         _serviceRepository = serviceRepository;
@@ -87,6 +90,7 @@ public class CarwashService : ICarwashService
         _currentLandlord = currentLandlord;
         _auditLog = auditLog;
         _emailSender = emailSender;
+        _whatsAppSender = whatsAppSender;
         _stripeGateway = stripeGateway;
     }
 
@@ -1330,9 +1334,25 @@ public class CarwashService : ICarwashService
             if (customer is null || string.IsNullOrWhiteSpace(customer.Email))
                 return;
 
-            var subject = $"Tu vehículo {ticket.VehiclePlate} — {StatusLabel(ticket.Status)}";
+            var hasDeadline = ticket.Status == CarwashTicketStatus.ArrivalPending && ticket.ArrivalDeadline.HasValue;
 
-            var deadlineNote = ticket.Status == CarwashTicketStatus.ArrivalPending && ticket.ArrivalDeadline.HasValue
+            // ── WhatsApp (preferido) ──────────────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(customer.Phone))
+            {
+                var template   = hasDeadline ? WhatsAppTemplates.CarwashStatusWithDeadline : WhatsAppTemplates.CarwashStatus;
+                var parameters = hasDeadline
+                    ? new[] { customer.FullName.Split(' ')[0], ticket.VehiclePlate, StatusLabel(ticket.Status), ticket.ArrivalDeadline!.Value.ToString("HH:mm") }
+                    : new[] { customer.FullName.Split(' ')[0], ticket.VehiclePlate, StatusLabel(ticket.Status) };
+
+                var wa = await _whatsAppSender.SendTemplateAsync(customer.Phone, template, "es", parameters, cancellationToken);
+                if (wa.Success) return;
+            }
+
+            // ── Fallback: email ───────────────────────────────────────────────
+            if (string.IsNullOrWhiteSpace(customer.Email)) return;
+
+            var subject = $"Tu vehículo {ticket.VehiclePlate} — {StatusLabel(ticket.Status)}";
+            var deadlineNote = hasDeadline
                 ? $"Tienes hasta las <strong>{ticket.ArrivalDeadline:HH:mm}</strong> para llegar."
                 : string.Empty;
 
@@ -1363,7 +1383,7 @@ public class CarwashService : ICarwashService
                 return;
 
             var washer = await _washerRepository.GetByIdAsync(ticket.TipWasherId.Value, cancellationToken);
-            if (washer is null || string.IsNullOrWhiteSpace(washer.Email))
+            if (washer is null || (string.IsNullOrWhiteSpace(washer.Phone) && string.IsNullOrWhiteSpace(washer.Email)))
                 return;
 
             var landlord = await _landlordRepository.GetByIdAsync(ticket.LandlordId, cancellationToken);
@@ -1371,6 +1391,21 @@ public class CarwashService : ICarwashService
 
             var tip = ticket.TipAmount!.Value;
             var todayTotal = await _ticketRepository.GetTodayTipsByWasherAsync(washer.Id, cancellationToken);
+
+            // ── WhatsApp (preferido) ──────────────────────────────────────────
+            if (!string.IsNullOrWhiteSpace(washer.Phone))
+            {
+                var wa = await _whatsAppSender.SendTemplateAsync(
+                    washer.Phone,
+                    WhatsAppTemplates.WasherTip,
+                    "es",
+                    [washer.FullName.Split(' ')[0], tip.ToString("C"), ticket.QueueNumber.ToString(), todayTotal.ToString("C")],
+                    cancellationToken);
+                if (wa.Success) return;
+            }
+
+            // ── Fallback: email HTML ──────────────────────────────────────────
+            if (string.IsNullOrWhiteSpace(washer.Email)) return;
 
             var html = $"""
                 <!DOCTYPE html>

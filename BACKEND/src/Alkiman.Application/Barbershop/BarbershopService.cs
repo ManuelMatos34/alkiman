@@ -3,6 +3,7 @@ using Alkiman.Application.Common.Exceptions;
 using Alkiman.Application.Common.Interfaces;
 using Alkiman.Application.Emails;
 using Alkiman.Application.Landlords;
+using Alkiman.Application.WhatsApp;
 using Alkiman.Domain.Enums;
 using Microsoft.Extensions.Configuration;
 
@@ -42,6 +43,7 @@ public class BarbershopService : IBarbershopService
     private readonly ICurrentLandlordService _currentLandlord;
     private readonly IAuditLogService _auditLog;
     private readonly IEmailSender _emailSender;
+    private readonly IWhatsAppSender _whatsAppSender;
     private readonly IConfiguration _configuration;
 
     public BarbershopService(
@@ -50,6 +52,7 @@ public class BarbershopService : IBarbershopService
         ICurrentLandlordService currentLandlord,
         IAuditLogService auditLog,
         IEmailSender emailSender,
+        IWhatsAppSender whatsAppSender,
         IConfiguration configuration)
     {
         _repository = repository;
@@ -57,6 +60,7 @@ public class BarbershopService : IBarbershopService
         _currentLandlord = currentLandlord;
         _auditLog = auditLog;
         _emailSender = emailSender;
+        _whatsAppSender = whatsAppSender;
         _configuration = configuration;
     }
 
@@ -758,8 +762,9 @@ public class BarbershopService : IBarbershopService
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(entity.ClientEmail))
-                return;
+            var hasPhone = !string.IsNullOrWhiteSpace(entity.ClientPhone);
+            var hasEmail = !string.IsNullOrWhiteSpace(entity.ClientEmail);
+            if (!hasPhone && !hasEmail) return;
 
             var landlord = await _landlordRepository.GetByIdAsync(link.LandlordId, cancellationToken);
             var businessName = landlord?.BusinessName ?? "Alkiman";
@@ -771,11 +776,25 @@ public class BarbershopService : IBarbershopService
                 stylistName = stylist?.FullName;
             }
 
-            var serviceName = service?.Name ?? "—";
-            var stylistLine = stylistName != null ? $"Estilista: <strong>{stylistName}</strong>." : string.Empty;
+            var serviceName  = service?.Name ?? "—";
+            var fecha        = entity.ScheduledAt.ToString("dd/MM/yyyy");
+            var hora         = entity.ScheduledAt.ToString("HH:mm");
 
-            var baseUrl = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
+            // ── WhatsApp (preferido) ──────────────────────────────────────────
+            if (hasPhone)
+            {
+                var parameters = new[] { entity.ClientName.Split(' ')[0], businessName, fecha, hora, serviceName };
+                var wa = await _whatsAppSender.SendTemplateAsync(
+                    entity.ClientPhone!, WhatsAppTemplates.BarbershopBooking, "es", parameters, cancellationToken);
+                if (wa.Success) return;
+            }
+
+            // ── Fallback: email ───────────────────────────────────────────────
+            if (!hasEmail) return;
+
+            var baseUrl     = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
             var trackingUrl = $"{baseUrl}/barberia/cita/{entity.TrackingToken}";
+            var stylistLine = stylistName != null ? $"💈 Estilista: <strong>{stylistName}</strong>." : string.Empty;
 
             var subject = $"Tu cita en {businessName} está confirmada";
             var body = EmailTemplate.Build(
@@ -783,17 +802,17 @@ public class BarbershopService : IBarbershopService
                 greeting: $"Hola {entity.ClientName},",
                 paragraphs:
                 [
-                    $"Tu cita ha sido registrada. Aquí tienes los detalles:",
-                    $"📅 <strong>{entity.ScheduledAt:dd/MM/yyyy}</strong> a las <strong>{entity.ScheduledAt:HH:mm}</strong><br>" +
+                    "Tu cita ha sido registrada. Aquí tienes los detalles:",
+                    $"📅 <strong>{fecha}</strong> a las <strong>{hora}</strong><br>" +
                     $"✂️ Servicio: <strong>{serviceName}</strong><br>" +
-                    (stylistLine.Length > 0 ? $"💈 {stylistLine}" : string.Empty),
+                    (stylistLine.Length > 0 ? stylistLine : string.Empty),
                     "Puedes consultar el estado de tu cita en cualquier momento usando el botón de abajo."
                 ],
                 ctaLabel: "Ver estado de mi cita",
                 ctaUrl: trackingUrl,
                 businessName: businessName);
 
-            await _emailSender.SendAsync(entity.ClientEmail, entity.ClientName, subject, body, cancellationToken);
+            await _emailSender.SendAsync(entity.ClientEmail!, entity.ClientName, subject, body, cancellationToken);
         }
         catch
         {

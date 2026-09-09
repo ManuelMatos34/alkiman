@@ -4,6 +4,7 @@ using Alkiman.Application.Common.Interfaces;
 using Alkiman.Application.Contracts;
 using Alkiman.Application.Customers;
 using Alkiman.Application.Emails;
+using Alkiman.Application.WhatsApp;
 using Alkiman.Application.Rentals;
 using Alkiman.Domain.Common;
 using Alkiman.Domain.Entities;
@@ -25,6 +26,7 @@ public class RentalRequestService : IRentalRequestService
     private readonly ICustomerRepository _customerRepository;
     private readonly IEmailRepository _emailRepository;
     private readonly IEmailSender _emailSender;
+    private readonly IWhatsAppSender _whatsAppSender;
     private readonly IContractRepository _contractRepository;
     private readonly ICurrentLandlordService _currentLandlord;
 
@@ -35,6 +37,7 @@ public class RentalRequestService : IRentalRequestService
         ICustomerRepository customerRepository,
         IEmailRepository emailRepository,
         IEmailSender emailSender,
+        IWhatsAppSender whatsAppSender,
         IContractRepository contractRepository,
         ICurrentLandlordService currentLandlord)
     {
@@ -44,6 +47,7 @@ public class RentalRequestService : IRentalRequestService
         _customerRepository = customerRepository;
         _emailRepository = emailRepository;
         _emailSender = emailSender;
+        _whatsAppSender = whatsAppSender;
         _contractRepository = contractRepository;
         _currentLandlord = currentLandlord;
     }
@@ -160,11 +164,28 @@ public class RentalRequestService : IRentalRequestService
     /// <summary>Notifica al cliente el resultado de su pedido. Nunca lanza: no puede bloquear la aprobación/rechazo (mismo criterio que ContractService.TrySendContractEmailAsync).</summary>
     private async Task TryNotifyCustomerAsync(Guid landlordId, Customer customer, RentalRequest request, Asset asset, bool approved, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(customer.Email))
-            return;
+        var hasPhone = !string.IsNullOrWhiteSpace(customer.Phone);
+        var hasEmail = !string.IsNullOrWhiteSpace(customer.Email);
+        if (!hasPhone && !hasEmail) return;
 
         var actionLabel = request.Type == RentalRequestType.Extension ? "prórroga" : "cancelación";
-        var subject = $"Tu pedido de {actionLabel} fue {(approved ? "aprobado" : "rechazado")}";
+        var resultado   = approved ? "aprobado" : "rechazado";
+        var subject     = $"Tu pedido de {actionLabel} fue {resultado}";
+
+        // ── WhatsApp (preferido) ──────────────────────────────────────────
+        if (hasPhone)
+        {
+            var wa = await _whatsAppSender.SendTemplateAsync(
+                customer.Phone!,
+                WhatsAppTemplates.RentalDecision,
+                "es",
+                [customer.FullName.Split(' ')[0], actionLabel, resultado],
+                cancellationToken);
+            if (wa.Success) return;
+        }
+
+        // ── Fallback: email ───────────────────────────────────────────────
+        if (!hasEmail) return;
 
         string body;
         if (approved)

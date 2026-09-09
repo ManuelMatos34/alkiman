@@ -6,6 +6,7 @@ import { AppearanceSettingsForm } from "@/presentation/components/AppearanceSett
 import { SignatureSettingsForm } from "@/presentation/components/SignatureSettingsForm"
 import { LanguageSettingsForm } from "@/presentation/components/LanguageSettingsForm"
 import { SecuritySettingsPanel } from "@/presentation/components/SecuritySettingsPanel"
+import { WhatsAppConfigCard } from "@/presentation/components/WhatsAppConfigCard"
 import { useAuth } from "@/infrastructure/auth/AuthContext"
 import { PermissionCodes } from "@/domain/types/permission"
 
@@ -33,6 +34,9 @@ export function SettingsPage() {
           {canManageSettings && (
             <TabsTrigger value="firma">{t("tabs.signature")}</TabsTrigger>
           )}
+          {canManageSettings && (
+            <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+          )}
           <TabsTrigger value="idioma">{t("tabs.language")}</TabsTrigger>
           <TabsTrigger value="seguridad">{t("tabs.security")}</TabsTrigger>
         </TabsList>
@@ -56,6 +60,12 @@ export function SettingsPage() {
         {canManageSettings && (
           <TabsContent value="firma">
             <SignatureSettingsForm />
+          </TabsContent>
+        )}
+
+        {canManageSettings && (
+          <TabsContent value="whatsapp">
+            <WhatsAppConfigCard />
           </TabsContent>
         )}
 

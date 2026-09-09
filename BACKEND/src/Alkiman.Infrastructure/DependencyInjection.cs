@@ -88,7 +88,9 @@ public static class DependencyInjection
         services.AddScoped<IVehicleCatalogRepository, VehicleCatalogRepository>();
         services.AddScoped<IBarbershopRepository, BarbershopRepository>();
         services.AddScoped<IWhatsAppMessageRepository, WhatsAppMessageRepository>();
+        services.AddScoped<ILandlordWhatsAppRepository, LandlordWhatsAppRepository>();
         services.AddScoped<IWhatsAppStatsService, WhatsAppStatsService>();
+        services.AddScoped<IWhatsAppConfigService, WhatsAppConfigService>();
         services.AddSingleton<IContractPdfRenderer, QuestPdfContractRenderer>();
 
         // Job en background: genera recordatorios automáticos 2 días antes del vencimiento

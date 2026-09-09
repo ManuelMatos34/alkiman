@@ -26,26 +26,29 @@ public class MetaWhatsAppSender : IWhatsAppSender
 
     private readonly HttpClient _http;
     private readonly ILogger<MetaWhatsAppSender> _logger;
-    private readonly string? _phoneNumberId;
-    private readonly string? _accessToken;
+    private readonly string? _fallbackPhoneNumberId;
+    private readonly string? _fallbackAccessToken;
     private readonly string _apiVersion;
     private readonly IWhatsAppMessageRepository _messageRepository;
     private readonly ICurrentLandlordService _currentLandlord;
+    private readonly ILandlordWhatsAppRepository _landlordWhatsAppRepo;
 
     public MetaWhatsAppSender(
         HttpClient http,
         IConfiguration configuration,
         ILogger<MetaWhatsAppSender> logger,
         IWhatsAppMessageRepository messageRepository,
-        ICurrentLandlordService currentLandlord)
+        ICurrentLandlordService currentLandlord,
+        ILandlordWhatsAppRepository landlordWhatsAppRepo)
     {
         _http = http;
         _logger = logger;
-        _phoneNumberId = configuration["WhatsApp:PhoneNumberId"];
-        _accessToken   = configuration["WhatsApp:AccessToken"];
-        _apiVersion    = configuration["WhatsApp:ApiVersion"] ?? "v20.0";
-        _messageRepository = messageRepository;
-        _currentLandlord   = currentLandlord;
+        _fallbackPhoneNumberId = configuration["WhatsApp:PhoneNumberId"];
+        _fallbackAccessToken   = configuration["WhatsApp:AccessToken"];
+        _apiVersion            = configuration["WhatsApp:ApiVersion"] ?? "v20.0";
+        _messageRepository     = messageRepository;
+        _currentLandlord       = currentLandlord;
+        _landlordWhatsAppRepo  = landlordWhatsAppRepo;
 
         _http.BaseAddress = new Uri("https://graph.facebook.com/");
     }
@@ -57,7 +60,27 @@ public class MetaWhatsAppSender : IWhatsAppSender
         IEnumerable<string> bodyParameters,
         CancellationToken ct = default)
     {
-        if (string.IsNullOrWhiteSpace(_phoneNumberId) || string.IsNullOrWhiteSpace(_accessToken))
+        // Resolve credentials: DB config takes priority; fall back to IConfiguration.
+        var landlordId = await _currentLandlord.GetCurrentLandlordIdAsync(ct);
+        var dbConfig = await _landlordWhatsAppRepo.GetByLandlordIdAsync(landlordId, ct);
+
+        string? phoneNumberId;
+        string? accessToken;
+
+        if (dbConfig is { IsActive: true } &&
+            !string.IsNullOrWhiteSpace(dbConfig.PhoneNumberId) &&
+            !string.IsNullOrWhiteSpace(dbConfig.AccessToken))
+        {
+            phoneNumberId = dbConfig.PhoneNumberId;
+            accessToken   = dbConfig.AccessToken;
+        }
+        else
+        {
+            phoneNumberId = _fallbackPhoneNumberId;
+            accessToken   = _fallbackAccessToken;
+        }
+
+        if (string.IsNullOrWhiteSpace(phoneNumberId) || string.IsNullOrWhiteSpace(accessToken))
             return new WhatsAppSendResult(false, "WhatsApp no está configurado (PhoneNumberId o AccessToken vacío).");
 
         var normalizedPhone = NormalizePhone(toPhone);
@@ -93,8 +116,8 @@ public class MetaWhatsAppSender : IWhatsAppSender
         var json    = JsonSerializer.Serialize(payload, JsonOptions);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiVersion}/{_phoneNumberId}/messages");
-        request.Headers.Add("Authorization", $"Bearer {_accessToken}");
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{_apiVersion}/{phoneNumberId}/messages");
+        request.Headers.Add("Authorization", $"Bearer {accessToken}");
         request.Content = content;
 
         WhatsAppSendResult result;
@@ -122,7 +145,6 @@ public class MetaWhatsAppSender : IWhatsAppSender
         // Persistir el registro de envío de forma best-effort (no interrumpe el flujo si falla).
         try
         {
-            var landlordId = await _currentLandlord.GetCurrentLandlordIdAsync(ct);
             var record = new WhatsAppMessage
             {
                 LandlordId   = landlordId,

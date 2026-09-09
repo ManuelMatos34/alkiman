@@ -1,11 +1,9 @@
 using Alkiman.Application.Assets;
 using Alkiman.Application.Common.Exceptions;
 using Alkiman.Application.Common.Interfaces;
-using Alkiman.Application.Contracts;
 using Alkiman.Application.Customers;
-using Alkiman.Application.Emails;
-using Alkiman.Application.WhatsApp;
 using Alkiman.Application.Rentals;
+using Alkiman.Application.WhatsApp;
 using Alkiman.Domain.Common;
 using Alkiman.Domain.Entities;
 using Alkiman.Domain.Enums;
@@ -24,10 +22,7 @@ public class RentalRequestService : IRentalRequestService
     private readonly IRentalRepository _rentalRepository;
     private readonly IAssetRepository _assetRepository;
     private readonly ICustomerRepository _customerRepository;
-    private readonly IEmailRepository _emailRepository;
-    private readonly IEmailSender _emailSender;
     private readonly IWhatsAppSender _whatsAppSender;
-    private readonly IContractRepository _contractRepository;
     private readonly ICurrentLandlordService _currentLandlord;
 
     public RentalRequestService(
@@ -35,20 +30,14 @@ public class RentalRequestService : IRentalRequestService
         IRentalRepository rentalRepository,
         IAssetRepository assetRepository,
         ICustomerRepository customerRepository,
-        IEmailRepository emailRepository,
-        IEmailSender emailSender,
         IWhatsAppSender whatsAppSender,
-        IContractRepository contractRepository,
         ICurrentLandlordService currentLandlord)
     {
         _repository = repository;
         _rentalRepository = rentalRepository;
         _assetRepository = assetRepository;
         _customerRepository = customerRepository;
-        _emailRepository = emailRepository;
-        _emailSender = emailSender;
         _whatsAppSender = whatsAppSender;
-        _contractRepository = contractRepository;
         _currentLandlord = currentLandlord;
     }
 
@@ -161,109 +150,28 @@ public class RentalRequestService : IRentalRequestService
         return (request, rental, asset, customer);
     }
 
-    /// <summary>Notifica al cliente el resultado de su pedido. Nunca lanza: no puede bloquear la aprobación/rechazo (mismo criterio que ContractService.TrySendContractEmailAsync).</summary>
-    private async Task TryNotifyCustomerAsync(Guid landlordId, Customer customer, RentalRequest request, Asset asset, bool approved, CancellationToken cancellationToken)
+    /// <summary>Notifica al cliente el resultado de su pedido vía WhatsApp. Nunca lanza: no puede bloquear la aprobación/rechazo. Si el cliente no tiene teléfono, no se envía nada.</summary>
+    private async Task TryNotifyCustomerAsync(Guid _, Customer customer, RentalRequest request, Asset __, bool approved, CancellationToken cancellationToken)
     {
-        var hasPhone = !string.IsNullOrWhiteSpace(customer.Phone);
-        var hasEmail = !string.IsNullOrWhiteSpace(customer.Email);
-        if (!hasPhone && !hasEmail) return;
+        if (string.IsNullOrWhiteSpace(customer.Phone))
+            return;
 
         var actionLabel = request.Type == RentalRequestType.Extension ? "prórroga" : "cancelación";
         var resultado   = approved ? "aprobado" : "rechazado";
-        var subject     = $"Tu pedido de {actionLabel} fue {resultado}";
 
-        // ── WhatsApp (preferido) ──────────────────────────────────────────
-        if (hasPhone)
+        try
         {
-            var wa = await _whatsAppSender.SendTemplateAsync(
-                customer.Phone!,
+            await _whatsAppSender.SendTemplateAsync(
+                customer.Phone,
                 WhatsAppTemplates.RentalDecision,
                 "es",
                 [customer.FullName.Split(' ')[0], actionLabel, resultado],
                 cancellationToken);
-            if (wa.Success) return;
         }
-
-        // ── Fallback: email ───────────────────────────────────────────────
-        if (!hasEmail) return;
-
-        string body;
-        if (approved)
+        catch
         {
-            var extraLine = request.Type == RentalRequestType.Extension && request.ProposedEndDate.HasValue
-                ? $"Tu renta ahora vence el <strong>{request.ProposedEndDate:dd/MM/yyyy}</strong>."
-                : string.Empty;
-
-            body = EmailTemplate.Build(
-                title: $"Pedido de {actionLabel} aprobado",
-                greeting: $"Hola {customer.FullName},",
-                paragraphs: string.IsNullOrEmpty(extraLine)
-                    ? [$"Tu pedido de <strong>{actionLabel}</strong> fue <strong>aprobado</strong>. ✅"]
-                    : [$"Tu pedido de <strong>{actionLabel}</strong> fue <strong>aprobado</strong>. ✅", extraLine]);
+            // Best effort: un fallo de notificación nunca debe bloquear la aprobación/rechazo.
         }
-        else
-        {
-            var reasonLine = !string.IsNullOrWhiteSpace(request.StaffNote)
-                ? $"Motivo: {request.StaffNote}"
-                : string.Empty;
-
-            body = EmailTemplate.Build(
-                title: $"Pedido de {actionLabel} rechazado",
-                greeting: $"Hola {customer.FullName},",
-                paragraphs: string.IsNullOrEmpty(reasonLine)
-                    ? [$"Tu pedido de <strong>{actionLabel}</strong> fue <strong>rechazado</strong>."]
-                    : [$"Tu pedido de <strong>{actionLabel}</strong> fue <strong>rechazado</strong>.", reasonLine]);
-        }
-
-        EmailSendResult result;
-        if (approved && request.Type == RentalRequestType.Cancellation)
-        {
-            Contract? contract = null;
-            try
-            {
-                contract = await _contractRepository.GetByRentalIdAsync(request.RentalId, cancellationToken);
-            }
-            catch
-            {
-                // Best effort: si falla la búsqueda del contrato, seguimos con el envío sin adjunto.
-            }
-
-            if (contract is not null && contract.PdfContent is { Length: > 0 })
-            {
-                result = await _emailSender.SendWithAttachmentsAsync(
-                    customer.Email!,
-                    customer.FullName,
-                    subject,
-                    body,
-                    new[] { new EmailAttachment($"contrato-{asset.Name}.pdf", "application/pdf", contract.PdfContent) },
-                    cancellationToken);
-            }
-            else
-            {
-                result = await _emailSender.SendAsync(customer.Email!, customer.FullName, subject, body, cancellationToken);
-            }
-        }
-        else
-        {
-            result = await _emailSender.SendAsync(customer.Email!, customer.FullName, subject, body, cancellationToken);
-        }
-
-        var message = new EmailMessage
-        {
-            LandlordId = landlordId,
-            CustomerId = customer.Id,
-            Type = "Individual",
-            RecipientName = customer.FullName,
-            RecipientEmail = customer.Email!,
-            Subject = subject,
-            Body = body,
-            Status = result.Success ? "Sent" : "Failed",
-            ErrorMessage = result.Success ? null : result.ErrorMessage,
-            SentAt = result.Success ? DateTime.UtcNow : null,
-            CreatedAt = DateTime.UtcNow,
-            CreatedBy = "system:rental-requests"
-        };
-        await _emailRepository.CreateAsync(message, cancellationToken);
     }
 
     private static RentalRequestResponse ToResponse(RentalRequest request, Asset? asset, Customer? customer) => new(

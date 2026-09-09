@@ -1,11 +1,9 @@
 using Alkiman.Application.AuditLogs;
 using Alkiman.Application.Common.Exceptions;
 using Alkiman.Application.Common.Interfaces;
-using Alkiman.Application.Emails;
 using Alkiman.Application.Landlords;
 using Alkiman.Application.WhatsApp;
 using Alkiman.Domain.Enums;
-using Microsoft.Extensions.Configuration;
 
 // Entity aliases to avoid name collision between the Application service class
 // 'BarbershopService' and the Domain entity 'Alkiman.Domain.Entities.BarbershopService'.
@@ -42,26 +40,20 @@ public class BarbershopService : IBarbershopService
     private readonly ILandlordRepository _landlordRepository;
     private readonly ICurrentLandlordService _currentLandlord;
     private readonly IAuditLogService _auditLog;
-    private readonly IEmailSender _emailSender;
     private readonly IWhatsAppSender _whatsAppSender;
-    private readonly IConfiguration _configuration;
 
     public BarbershopService(
         IBarbershopRepository repository,
         ILandlordRepository landlordRepository,
         ICurrentLandlordService currentLandlord,
         IAuditLogService auditLog,
-        IEmailSender emailSender,
-        IWhatsAppSender whatsAppSender,
-        IConfiguration configuration)
+        IWhatsAppSender whatsAppSender)
     {
         _repository = repository;
         _landlordRepository = landlordRepository;
         _currentLandlord = currentLandlord;
         _auditLog = auditLog;
-        _emailSender = emailSender;
         _whatsAppSender = whatsAppSender;
-        _configuration = configuration;
     }
 
     // ============================================================
@@ -753,7 +745,7 @@ public class BarbershopService : IBarbershopService
         return link;
     }
 
-    /// <summary>Envía email de confirmación al cliente si tiene email. Best-effort: nunca lanza.</summary>
+    /// <summary>Envía confirmación de cita al cliente vía WhatsApp. Best-effort: nunca lanza. Si el cliente no tiene teléfono, no se envía nada.</summary>
     private async Task TrySendBookingConfirmationAsync(
         BarbershopAppointmentEntity entity,
         BarbershopServiceEntity? service,
@@ -762,57 +754,19 @@ public class BarbershopService : IBarbershopService
     {
         try
         {
-            var hasPhone = !string.IsNullOrWhiteSpace(entity.ClientPhone);
-            var hasEmail = !string.IsNullOrWhiteSpace(entity.ClientEmail);
-            if (!hasPhone && !hasEmail) return;
+            if (string.IsNullOrWhiteSpace(entity.ClientPhone))
+                return;
 
             var landlord = await _landlordRepository.GetByIdAsync(link.LandlordId, cancellationToken);
             var businessName = landlord?.BusinessName ?? "Alkiman";
 
-            string? stylistName = null;
-            if (entity.StylistId.HasValue)
-            {
-                var stylist = await _repository.GetStylistByIdAsync(entity.StylistId.Value, cancellationToken);
-                stylistName = stylist?.FullName;
-            }
+            var serviceName = service?.Name ?? "—";
+            var fecha       = entity.ScheduledAt.ToString("dd/MM/yyyy");
+            var hora        = entity.ScheduledAt.ToString("HH:mm");
 
-            var serviceName  = service?.Name ?? "—";
-            var fecha        = entity.ScheduledAt.ToString("dd/MM/yyyy");
-            var hora         = entity.ScheduledAt.ToString("HH:mm");
-
-            // ── WhatsApp (preferido) ──────────────────────────────────────────
-            if (hasPhone)
-            {
-                var parameters = new[] { entity.ClientName.Split(' ')[0], businessName, fecha, hora, serviceName };
-                var wa = await _whatsAppSender.SendTemplateAsync(
-                    entity.ClientPhone!, WhatsAppTemplates.BarbershopBooking, "es", parameters, cancellationToken);
-                if (wa.Success) return;
-            }
-
-            // ── Fallback: email ───────────────────────────────────────────────
-            if (!hasEmail) return;
-
-            var baseUrl     = _configuration["Frontend:BaseUrl"] ?? "http://localhost:5173";
-            var trackingUrl = $"{baseUrl}/barberia/cita/{entity.TrackingToken}";
-            var stylistLine = stylistName != null ? $"💈 Estilista: <strong>{stylistName}</strong>." : string.Empty;
-
-            var subject = $"Tu cita en {businessName} está confirmada";
-            var body = EmailTemplate.Build(
-                title: "Cita confirmada",
-                greeting: $"Hola {entity.ClientName},",
-                paragraphs:
-                [
-                    "Tu cita ha sido registrada. Aquí tienes los detalles:",
-                    $"📅 <strong>{fecha}</strong> a las <strong>{hora}</strong><br>" +
-                    $"✂️ Servicio: <strong>{serviceName}</strong><br>" +
-                    (stylistLine.Length > 0 ? stylistLine : string.Empty),
-                    "Puedes consultar el estado de tu cita en cualquier momento usando el botón de abajo."
-                ],
-                ctaLabel: "Ver estado de mi cita",
-                ctaUrl: trackingUrl,
-                businessName: businessName);
-
-            await _emailSender.SendAsync(entity.ClientEmail!, entity.ClientName, subject, body, cancellationToken);
+            var parameters = new[] { entity.ClientName.Split(' ')[0], businessName, fecha, hora, serviceName };
+            await _whatsAppSender.SendTemplateAsync(
+                entity.ClientPhone, WhatsAppTemplates.BarbershopBooking, "es", parameters, cancellationToken);
         }
         catch
         {

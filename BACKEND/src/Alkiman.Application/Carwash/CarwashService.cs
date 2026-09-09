@@ -1325,45 +1325,23 @@ public class CarwashService : ICarwashService
         return customer;
     }
 
-    /// <summary>Notifica al cliente el cambio de estado del ticket, best-effort: nunca lanza (mismo criterio que RentalRequestService.TryNotifyCustomerAsync). No usa una tabla de historial propia -- reutiliza IEmailSender directamente, sin registrar en EmailMessage (esa tabla es específica de Alquileres).</summary>
+    /// <summary>Notifica al cliente el cambio de estado del ticket vía WhatsApp. Best-effort: nunca lanza. Si el cliente no tiene teléfono, no se envía nada.</summary>
     private async Task TryNotifyCustomerAsync(CarwashTicket ticket, CancellationToken cancellationToken)
     {
         try
         {
             var customer = await _customerRepository.GetByIdAsync(ticket.CustomerId, cancellationToken);
-            if (customer is null || string.IsNullOrWhiteSpace(customer.Email))
+            if (customer is null || string.IsNullOrWhiteSpace(customer.Phone))
                 return;
 
             var hasDeadline = ticket.Status == CarwashTicketStatus.ArrivalPending && ticket.ArrivalDeadline.HasValue;
 
-            // ── WhatsApp (preferido) ──────────────────────────────────────────
-            if (!string.IsNullOrWhiteSpace(customer.Phone))
-            {
-                var template   = hasDeadline ? WhatsAppTemplates.CarwashStatusWithDeadline : WhatsAppTemplates.CarwashStatus;
-                var parameters = hasDeadline
-                    ? new[] { customer.FullName.Split(' ')[0], ticket.VehiclePlate, StatusLabel(ticket.Status), ticket.ArrivalDeadline!.Value.ToString("HH:mm") }
-                    : new[] { customer.FullName.Split(' ')[0], ticket.VehiclePlate, StatusLabel(ticket.Status) };
+            var template   = hasDeadline ? WhatsAppTemplates.CarwashStatusWithDeadline : WhatsAppTemplates.CarwashStatus;
+            var parameters = hasDeadline
+                ? new[] { customer.FullName.Split(' ')[0], ticket.VehiclePlate, StatusLabel(ticket.Status), ticket.ArrivalDeadline!.Value.ToString("HH:mm") }
+                : new[] { customer.FullName.Split(' ')[0], ticket.VehiclePlate, StatusLabel(ticket.Status) };
 
-                var wa = await _whatsAppSender.SendTemplateAsync(customer.Phone, template, "es", parameters, cancellationToken);
-                if (wa.Success) return;
-            }
-
-            // ── Fallback: email ───────────────────────────────────────────────
-            if (string.IsNullOrWhiteSpace(customer.Email)) return;
-
-            var subject = $"Tu vehículo {ticket.VehiclePlate} — {StatusLabel(ticket.Status)}";
-            var deadlineNote = hasDeadline
-                ? $"Tienes hasta las <strong>{ticket.ArrivalDeadline:HH:mm}</strong> para llegar."
-                : string.Empty;
-
-            var body = EmailTemplate.Build(
-                title: "Actualización de estado",
-                greeting: $"Hola {customer.FullName},",
-                paragraphs: string.IsNullOrEmpty(deadlineNote)
-                    ? [$"El estado de tu vehículo <strong>{ticket.VehiclePlate}</strong> cambió a: <strong>{StatusLabel(ticket.Status)}</strong>."]
-                    : [$"El estado de tu vehículo <strong>{ticket.VehiclePlate}</strong> cambió a: <strong>{StatusLabel(ticket.Status)}</strong>.", deadlineNote]);
-
-            await _emailSender.SendAsync(customer.Email, customer.FullName, subject, body, cancellationToken);
+            await _whatsAppSender.SendTemplateAsync(customer.Phone, template, "es", parameters, cancellationToken);
         }
         catch
         {

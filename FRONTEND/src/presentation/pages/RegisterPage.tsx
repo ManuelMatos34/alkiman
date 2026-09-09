@@ -27,6 +27,7 @@ function buildRegisterFormSchema(t: TFunction) {
         .trim()
         .min(1, t("register.validation.businessNameRequired"))
         .max(150, t("register.validation.maxChars")),
+      phone: z.string().trim().max(30).optional(),
       fullName: z
         .string()
         .trim()
@@ -60,6 +61,7 @@ export function RegisterPage() {
     resolver: zodResolver(registerFormSchema),
     defaultValues: {
       businessName: "",
+      phone: "",
       fullName: "",
       email: "",
       password: "",
@@ -78,7 +80,7 @@ export function RegisterPage() {
   async function onSubmit(values: RegisterFormValues) {
     setFormError(null)
     try {
-      await register(values.businessName, values.fullName, values.email, values.password)
+      await register(values.businessName, values.fullName, values.email, values.password, values.phone || undefined)
       navigate("/", { replace: true })
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 409) {
@@ -114,6 +116,20 @@ export function RegisterPage() {
                   <FormLabel>{t("register.businessNameLabel")}</FormLabel>
                   <FormControl>
                     <Input placeholder={t("register.businessNamePlaceholder")} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Teléfono del negocio <span className="text-muted-foreground font-normal">(opcional)</span></FormLabel>
+                  <FormControl>
+                    <Input type="tel" placeholder="+52 55 1234 5678" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

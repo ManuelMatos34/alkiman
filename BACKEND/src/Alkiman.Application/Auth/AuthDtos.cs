@@ -1,6 +1,6 @@
 namespace Alkiman.Application.Auth;
 
-public record RegisterRequest(string BusinessName, string FullName, string Email, string Password);
+public record RegisterRequest(string BusinessName, string FullName, string Email, string Password, string? Phone = null);
 
 public record LoginRequest(string Email, string Password);
 

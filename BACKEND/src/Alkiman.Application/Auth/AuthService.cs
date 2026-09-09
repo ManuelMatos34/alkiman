@@ -97,6 +97,7 @@ public class AuthService : IAuthService
         {
             Id = landlordId,
             BusinessName = request.BusinessName.Trim(),
+            Phone1 = request.Phone,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = createdBy,
         };

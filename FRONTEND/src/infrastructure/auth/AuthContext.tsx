@@ -65,7 +65,8 @@ interface AuthContextValue {
     businessName: string,
     fullName: string,
     email: string,
-    password: string
+    password: string,
+    phone?: string
   ) => Promise<void>
   logout: () => void
   /**
@@ -181,8 +182,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const register = useCallback(
-    async (businessName: string, fullName: string, email: string, password: string) => {
-      const request: RegisterRequest = { businessName, fullName, email, password }
+    async (businessName: string, fullName: string, email: string, password: string, phone?: string) => {
+      const request: RegisterRequest = { businessName, fullName, email, password, ...(phone ? { phone } : {}) }
       const { data } = await apiClient.post<AuthResponse>("/api/auth/register", request)
       persistSession(toSession(data))
     },

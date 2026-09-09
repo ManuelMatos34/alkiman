@@ -13,10 +13,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
@@ -26,60 +23,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  MetricsDateFilter,
+  MetricsSection,
+  StatCard,
+  daysAgo,
+  toDateInputValue,
+} from "@/presentation/components/metrics"
 import { useBarbershopMetrics } from "@/application/barbershop/useBarbershopMetrics"
+import { exportSectionsToCsv } from "@/infrastructure/export/exportToCsv"
 import { getIntlLocale } from "@/infrastructure/i18n/localeMap"
-
-function toDateInputValue(date: Date) {
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
-  return `${date.getFullYear()}-${month}-${day}`
-}
-
-function daysAgo(days: number) {
-  const date = new Date()
-  date.setDate(date.getDate() - days)
-  return date
-}
-
-const PRESET_DAYS = [7, 30, 90] as const
-
-interface StatCardProps {
-  label: string
-  value: string
-  icon: React.ComponentType<{ className?: string }>
-  tone?: "default" | "positive" | "negative"
-}
-
-function StatCard({ label, value, icon: Icon, tone = "default" }: StatCardProps) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-3 px-6">
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p
-            className={
-              "text-2xl font-semibold tracking-tight " +
-              (tone === "positive"
-                ? "text-emerald-600"
-                : tone === "negative"
-                  ? "text-destructive"
-                  : "")
-            }
-          >
-            {value}
-          </p>
-        </div>
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-          <Icon className="h-5 w-5 text-muted-foreground" />
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-lg font-semibold tracking-tight">{children}</h2>
-}
 
 export function BarbershopMetricsPage() {
   const { t, i18n } = useTranslation("barbershop")
@@ -113,48 +66,39 @@ export function BarbershopMetricsPage() {
     return dayLabelFormatter.format(new Date(year, month - 1, day))
   }
 
-  function applyPreset(days: number) {
-    setFrom(toDateInputValue(daysAgo(days - 1)))
-    setTo(toDateInputValue(new Date()))
-  }
+  function handleExport() {
+    if (!data) return
 
-  const rangeFilter = (
-    <div className="flex flex-wrap items-end gap-3">
-      <div className="space-y-1.5">
-        <Label htmlFor="barbershop-metrics-from">{t("metrics.presets.last7").replace("7 ", "")}</Label>
-        <Input
-          id="barbershop-metrics-from"
-          type="date"
-          value={from}
-          max={to}
-          onChange={(e) => setFrom(e.target.value)}
-          className="w-40"
-        />
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="barbershop-metrics-to">{t("metrics.presets.last30").replace("30 ", "")}</Label>
-        <Input
-          id="barbershop-metrics-to"
-          type="date"
-          value={to}
-          min={from}
-          onChange={(e) => setTo(e.target.value)}
-          className="w-40"
-        />
-      </div>
-      <div className="flex gap-2">
-        {PRESET_DAYS.map((days) => (
-          <Button key={days} variant="outline" size="sm" onClick={() => applyPreset(days)}>
-            {days === 7
-              ? t("metrics.presets.last7")
-              : days === 30
-                ? t("metrics.presets.last30")
-                : t("metrics.presets.last90")}
-          </Button>
-        ))}
-      </div>
-    </div>
-  )
+    const { stylistRanking, topServices } = data
+
+    exportSectionsToCsv(`alkiman-barbershop-${from}-${to}`, [
+      {
+        title: t("metrics.stats.total"),
+        headers: [
+          t("metrics.stats.total"),
+          t("metrics.stats.completed"),
+          t("metrics.stats.cancelled"),
+          t("metrics.stats.revenue"),
+        ],
+        rows: [[
+          data.totalAppointments,
+          data.completedAppointments,
+          data.cancelledAppointments,
+          currencyFormatter.format(data.totalRevenue),
+        ]],
+      },
+      {
+        title: t("metrics.charts.stylists"),
+        headers: [t("metrics.table.stylistName"), t("metrics.table.count"), t("metrics.table.revenue")],
+        rows: stylistRanking.map((s) => [s.stylistName, s.count, currencyFormatter.format(s.revenue)]),
+      },
+      {
+        title: t("metrics.charts.services"),
+        headers: [t("metrics.charts.services"), t("metrics.table.count")],
+        rows: topServices.map((s) => [s.serviceName, s.count]),
+      },
+    ])
+  }
 
   const header = (
     <div className="space-y-4">
@@ -162,7 +106,17 @@ export function BarbershopMetricsPage() {
         <h1 className="text-2xl font-semibold tracking-tight">{t("metrics.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("metrics.subtitle")}</p>
       </div>
-      {rangeFilter}
+      <MetricsDateFilter
+        from={from}
+        to={to}
+        onFromChange={setFrom}
+        onToChange={setTo}
+        fromLabel={t("metrics.filters.from")}
+        toLabel={t("metrics.filters.to")}
+        presetLabel={(count) => t("metrics.filters.lastDays", { count })}
+        onExport={data ? handleExport : undefined}
+        exportLabel={t("metrics.filters.exportCsv")}
+      />
     </div>
   )
 
@@ -173,7 +127,7 @@ export function BarbershopMetricsPage() {
         <Card>
           <CardContent className="flex items-center gap-3 px-6 py-10 text-sm text-muted-foreground">
             <AlertTriangle className="h-5 w-5 text-destructive" />
-            {t("toast.updateError")}
+            {t("metrics.loadError")}
           </CardContent>
         </Card>
       </div>
@@ -309,9 +263,9 @@ export function BarbershopMetricsPage() {
         </CardContent>
       </Card>
 
-      {/* Stylist ranking table */}
+      {/* Stylist ranking */}
       <div className="space-y-3">
-        <SectionTitle>{t("metrics.charts.stylists")}</SectionTitle>
+        <MetricsSection>{t("metrics.charts.stylists")}</MetricsSection>
         <div className="rounded-lg border border-border/60">
           <Table>
             <TableHeader>

@@ -1,6 +1,12 @@
 {
   "title": "Metrics",
   "subtitle": "Profits, losses, overdue assets, and business performance.",
+  "filters": {
+    "from": "From",
+    "to": "To",
+    "lastDays": "Last {{count}} days",
+    "exportCsv": "Export CSV"
+  },
   "sections": {
     "finances": "Finances",
     "rentals": "Rentals",

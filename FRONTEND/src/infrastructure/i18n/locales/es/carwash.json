@@ -19,7 +19,8 @@
     "filters": {
       "from": "Desde",
       "to": "Hasta",
-      "lastDays": "Últimos {{count}} días"
+      "lastDays": "Últimos {{count}} días",
+      "exportCsv": "Exportar CSV"
     },
     "sections": {
       "volume": "Volumen",

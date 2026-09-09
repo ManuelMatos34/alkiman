@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   TrendingUp,
@@ -34,52 +34,26 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { TablePagination } from "@/presentation/components/TablePagination"
+import {
+  MetricsDateFilter,
+  MetricsSection,
+  StatCard,
+  daysAgo,
+  toDateInputValue,
+} from "@/presentation/components/metrics"
 import { usePagination } from "@/presentation/hooks/usePagination"
 import { useReportSummary } from "@/application/reports/useReportSummary"
+import { exportSectionsToCsv } from "@/infrastructure/export/exportToCsv"
 import { getIntlLocale } from "@/infrastructure/i18n/localeMap"
 
-interface StatCardProps {
-  label: string
-  value: string
-  icon: React.ComponentType<{ className?: string }>
-  tone?: "default" | "positive" | "negative"
-}
-
-function StatCard({ label, value, icon: Icon, tone = "default" }: StatCardProps) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-3 px-6">
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p
-            className={
-              "text-2xl font-semibold tracking-tight " +
-              (tone === "positive"
-                ? "text-emerald-600"
-                : tone === "negative"
-                  ? "text-destructive"
-                  : "")
-            }
-          >
-            {value}
-          </p>
-        </div>
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-          <Icon className="h-5 w-5 text-muted-foreground" />
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-lg font-semibold tracking-tight">{children}</h2>
-}
-
-/** Tablero de métricas: finanzas, rentas, activos, vencidos y rankings del negocio. */
 export function ReportsPage() {
   const { t, i18n } = useTranslation("reports")
-  const { data, isLoading } = useReportSummary()
+
+  const [from, setFrom] = useState(() => toDateInputValue(daysAgo(364)))
+  const [to, setTo] = useState(() => toDateInputValue(new Date()))
+
+  const { data, isLoading } = useReportSummary(from, to)
+
   const {
     page: overduePage,
     setPage: setOverduePage,
@@ -122,35 +96,129 @@ export function ReportsPage() {
     return monthLabelFormatter.format(new Date(year, month - 1, 1))
   }
 
+  function handleExport() {
+    if (!data) return
+
+    const { overdueRentals, topAssets, topCustomers } = data
+
+    exportSectionsToCsv(`alkiman-reportes-${from}-${to}`, [
+      {
+        title: t("sections.finances"),
+        headers: [
+          t("stats.totalIncome"),
+          t("stats.totalExpenses"),
+          t("stats.netProfit"),
+          t("stats.totalContractedValue"),
+        ],
+        rows: [[
+          currencyFormatter.format(data.financial.totalIncome),
+          currencyFormatter.format(data.financial.totalExpenses),
+          currencyFormatter.format(data.financial.netProfit),
+          currencyFormatter.format(data.financial.totalContractedValue),
+        ]],
+      },
+      {
+        title: t("sections.rentals"),
+        headers: [t("stats.totalRentals"), t("stats.active"), t("stats.completed"), t("stats.overdue")],
+        rows: [[
+          data.rentals.total,
+          data.rentals.active,
+          data.rentals.completed,
+          data.rentals.overdue,
+        ]],
+      },
+      {
+        title: t("sections.assets"),
+        headers: [
+          t("stats.totalAssets"),
+          t("stats.available"),
+          t("stats.rented"),
+          t("stats.maintenance"),
+          t("stats.utilizationRate"),
+          t("stats.inventoryValue"),
+        ],
+        rows: [[
+          data.assets.total,
+          data.assets.available,
+          data.assets.rented,
+          data.assets.maintenance,
+          `${data.assets.utilizationRatePercent}%`,
+          currencyFormatter.format(data.assets.inventoryValue),
+        ]],
+      },
+      {
+        title: t("sections.overdueAssets"),
+        headers: [
+          t("table.headers.asset"),
+          t("table.headers.customer"),
+          t("table.headers.dueDate"),
+          t("table.headers.daysOverdue"),
+          t("table.headers.amount"),
+        ],
+        rows: overdueRentals.map((o) => [
+          o.assetName,
+          o.customerName,
+          dateFormatter.format(new Date(o.endDate)),
+          o.daysOverdue,
+          currencyFormatter.format(o.totalPrice),
+        ]),
+      },
+      {
+        title: t("sections.topAssets"),
+        headers: [t("table.headers.asset"), t("table.headers.rentals"), t("table.headers.income")],
+        rows: topAssets.map((a) => [a.assetName, a.rentalsCount, currencyFormatter.format(a.revenue)]),
+      },
+      {
+        title: t("sections.topCustomers"),
+        headers: [t("table.headers.customer"), t("table.headers.rentals"), t("table.headers.totalPaid")],
+        rows: topCustomers.map((c) => [c.customerName, c.rentalsCount, currencyFormatter.format(c.totalPaid)]),
+      },
+    ])
+  }
+
+  const header = (
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
+      </div>
+      <MetricsDateFilter
+        from={from}
+        to={to}
+        onFromChange={setFrom}
+        onToChange={setTo}
+        fromLabel={t("filters.from")}
+        toLabel={t("filters.to")}
+        presetLabel={(count) => t("filters.lastDays", { count })}
+        presetDays={[30, 90, 365]}
+        onExport={data ? handleExport : undefined}
+        exportLabel={t("filters.exportCsv")}
+      />
+    </div>
+  )
+
   if (isLoading || !data) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-        </div>
+        {header}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <Skeleton key={index} className="h-24 w-full" />
+          {Array.from({ length: 8 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full" />
           ))}
         </div>
       </div>
     )
   }
 
-  const { financial, rentals, assets, revenueByCategory, revenueByMonth, overdueRentals, topAssets, topCustomers } =
-    data
+  const { financial, rentals, assets, revenueByCategory, revenueByMonth, overdueRentals, topAssets, topCustomers } = data
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("subtitle")}</p>
-      </div>
+      {header}
 
       {/* Finanzas */}
       <div className="space-y-3">
-        <SectionTitle>{t("sections.finances")}</SectionTitle>
+        <MetricsSection>{t("sections.finances")}</MetricsSection>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             label={t("stats.totalIncome")}
@@ -180,7 +248,7 @@ export function ReportsPage() {
 
       {/* Rentas */}
       <div className="space-y-3">
-        <SectionTitle>{t("sections.rentals")}</SectionTitle>
+        <MetricsSection>{t("sections.rentals")}</MetricsSection>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label={t("stats.totalRentals")} value={String(rentals.total)} icon={Receipt} />
           <StatCard label={t("stats.active")} value={String(rentals.active)} icon={TrendingUp} />
@@ -196,7 +264,7 @@ export function ReportsPage() {
 
       {/* Activos */}
       <div className="space-y-3">
-        <SectionTitle>{t("sections.assets")}</SectionTitle>
+        <MetricsSection>{t("sections.assets")}</MetricsSection>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label={t("stats.totalAssets")} value={String(assets.total)} icon={Boxes} />
           <StatCard label={t("stats.available")} value={String(assets.available)} icon={Boxes} />
@@ -276,7 +344,7 @@ export function ReportsPage() {
 
       {/* Rentas vencidas */}
       <div className="space-y-3">
-        <SectionTitle>{t("sections.overdueAssets")}</SectionTitle>
+        <MetricsSection>{t("sections.overdueAssets")}</MetricsSection>
         <div className="rounded-lg border border-border/60">
           <Table>
             <TableHeader>
@@ -328,7 +396,7 @@ export function ReportsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Top activos */}
         <div className="space-y-3">
-          <SectionTitle>{t("sections.topAssets")}</SectionTitle>
+          <MetricsSection>{t("sections.topAssets")}</MetricsSection>
           <div className="rounded-lg border border-border/60">
             <Table>
               <TableHeader>
@@ -362,7 +430,7 @@ export function ReportsPage() {
 
         {/* Top clientes */}
         <div className="space-y-3">
-          <SectionTitle>{t("sections.topCustomers")}</SectionTitle>
+          <MetricsSection>{t("sections.topCustomers")}</MetricsSection>
           <div className="rounded-lg border border-border/60">
             <Table>
               <TableHeader>

@@ -23,10 +23,7 @@ import {
   YAxis,
 } from "recharts"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
@@ -36,71 +33,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  MetricsDateFilter,
+  MetricsSection,
+  StatCard,
+  daysAgo,
+  toDateInputValue,
+} from "@/presentation/components/metrics"
 import { useCarwashMetrics } from "@/application/carwash/useCarwashMetrics"
+import { exportSectionsToCsv } from "@/infrastructure/export/exportToCsv"
 import { getIntlLocale } from "@/infrastructure/i18n/localeMap"
 
-/**
- * Fecha local en formato YYYY-MM-DD.
- *
- * A mano y no con toISOString(): ese convierte a UTC primero, así que en cualquier
- * huso al oeste de Greenwich (el nuestro) "hoy" a las 20:00 se manda como mañana y
- * el rango queda corrido un día.
- */
-function toDateInputValue(date: Date) {
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
-  return `${date.getFullYear()}-${month}-${day}`
-}
-
-function daysAgo(days: number) {
-  const date = new Date()
-  date.setDate(date.getDate() - days)
-  return date
-}
-
-const PRESET_DAYS = [7, 30, 90] as const
-
-interface StatCardProps {
-  label: string
-  value: string
-  hint?: string
-  icon: React.ComponentType<{ className?: string }>
-  tone?: "default" | "positive" | "negative"
-}
-
-function StatCard({ label, value, hint, icon: Icon, tone = "default" }: StatCardProps) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between gap-3 px-6">
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">{label}</p>
-          <p
-            className={
-              "text-2xl font-semibold tracking-tight " +
-              (tone === "positive"
-                ? "text-emerald-600"
-                : tone === "negative"
-                  ? "text-destructive"
-                  : "")
-            }
-          >
-            {value}
-          </p>
-          {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-        </div>
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-          <Icon className="h-5 w-5 text-muted-foreground" />
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-lg font-semibold tracking-tight">{children}</h2>
-}
-
-/** Tablero del módulo Carwash: volumen, facturación, servicios, horarios y lavadores. */
 export function CarwashMetricsPage() {
   const { t, i18n } = useTranslation("carwash")
 
@@ -128,54 +71,64 @@ export function CarwashMetricsPage() {
     [i18n.language]
   )
 
-  /** Las fechas vienen como "2026-09-03T00:00:00": se parte el string para no reinterpretarlas en UTC. */
   function dayLabel(isoDate: string) {
     const [year, month, day] = isoDate.slice(0, 10).split("-").map(Number)
     return dayLabelFormatter.format(new Date(year, month - 1, day))
-  }
-
-  function applyPreset(days: number) {
-    setFrom(toDateInputValue(daysAgo(days - 1)))
-    setTo(toDateInputValue(new Date()))
   }
 
   function minutesLabel(minutes: number | null) {
     return minutes === null ? "—" : t("metrics.minutesValue", { count: minutes })
   }
 
-  const rangeFilter = (
-    <div className="flex flex-wrap items-end gap-3">
-      <div className="space-y-1.5">
-        <Label htmlFor="metrics-from">{t("metrics.filters.from")}</Label>
-        <Input
-          id="metrics-from"
-          type="date"
-          value={from}
-          max={to}
-          onChange={(event) => setFrom(event.target.value)}
-          className="w-40"
-        />
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="metrics-to">{t("metrics.filters.to")}</Label>
-        <Input
-          id="metrics-to"
-          type="date"
-          value={to}
-          min={from}
-          onChange={(event) => setTo(event.target.value)}
-          className="w-40"
-        />
-      </div>
-      <div className="flex gap-2">
-        {PRESET_DAYS.map((days) => (
-          <Button key={days} variant="outline" size="sm" onClick={() => applyPreset(days)}>
-            {t("metrics.filters.lastDays", { count: days })}
-          </Button>
-        ))}
-      </div>
-    </div>
-  )
+  function handleExport() {
+    if (!data) return
+
+    const { washerRanking, topServices, topExtras } = data
+
+    exportSectionsToCsv(`alkiman-carwash-${from}-${to}`, [
+      {
+        title: t("metrics.sections.volume"),
+        headers: [t("metrics.stats.washed"), t("metrics.stats.cancellationRate"), t("metrics.stats.averageServiceTime")],
+        rows: [[data.volume.washed, `${data.volume.cancellationRatePercent}%`, minutesLabel(data.volume.averageServiceMinutes)]],
+      },
+      {
+        title: t("metrics.sections.revenue"),
+        headers: [t("metrics.stats.totalRevenue"), t("metrics.stats.averageTicket"), t("metrics.stats.tipsTotal")],
+        rows: [[
+          currencyFormatter.format(data.revenue.totalRevenue),
+          currencyFormatter.format(data.revenue.averageTicket),
+          currencyFormatter.format(data.revenue.tipsTotal),
+        ]],
+      },
+      {
+        title: t("metrics.sections.washerRanking"),
+        headers: [
+          t("metrics.table.washer"),
+          t("metrics.table.washed"),
+          t("metrics.table.averageTime"),
+          t("metrics.table.revenue"),
+          t("metrics.table.tips"),
+        ],
+        rows: washerRanking.map((w) => [
+          w.washerName,
+          w.washed,
+          minutesLabel(w.averageServiceMinutes),
+          currencyFormatter.format(w.revenue),
+          currencyFormatter.format(w.tipsTotal),
+        ]),
+      },
+      {
+        title: t("metrics.charts.topServices.title"),
+        headers: [t("metrics.table.extra"), t("metrics.table.timesSold"), t("metrics.table.revenue")],
+        rows: topServices.map((s) => [s.serviceName, s.count, currencyFormatter.format(s.revenue)]),
+      },
+      {
+        title: t("metrics.sections.topExtras"),
+        headers: [t("metrics.table.extra"), t("metrics.table.timesSold"), t("metrics.table.revenue")],
+        rows: topExtras.map((e) => [e.extraName, e.count, currencyFormatter.format(e.revenue)]),
+      },
+    ])
+  }
 
   const header = (
     <div className="space-y-4">
@@ -183,7 +136,17 @@ export function CarwashMetricsPage() {
         <h1 className="text-2xl font-semibold tracking-tight">{t("metrics.title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("metrics.subtitle")}</p>
       </div>
-      {rangeFilter}
+      <MetricsDateFilter
+        from={from}
+        to={to}
+        onFromChange={setFrom}
+        onToChange={setTo}
+        fromLabel={t("metrics.filters.from")}
+        toLabel={t("metrics.filters.to")}
+        presetLabel={(count) => t("metrics.filters.lastDays", { count })}
+        onExport={data ? handleExport : undefined}
+        exportLabel={t("metrics.filters.exportCsv")}
+      />
     </div>
   )
 
@@ -206,8 +169,8 @@ export function CarwashMetricsPage() {
       <div className="space-y-6">
         {header}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <Skeleton key={index} className="h-24 w-full" />
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full" />
           ))}
         </div>
         <Skeleton className="h-80 w-full" />
@@ -215,9 +178,7 @@ export function CarwashMetricsPage() {
     )
   }
 
-  const { volume, revenue, dailyVolume, topServices, topExtras, hourlyDistribution, washerRanking } =
-    data
-
+  const { volume, revenue, dailyVolume, topServices, topExtras, hourlyDistribution, washerRanking } = data
   const hasActivity = volume.washed > 0
 
   return (
@@ -226,7 +187,7 @@ export function CarwashMetricsPage() {
 
       {/* Volumen */}
       <div className="space-y-3">
-        <SectionTitle>{t("metrics.sections.volume")}</SectionTitle>
+        <MetricsSection>{t("metrics.sections.volume")}</MetricsSection>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard label={t("metrics.stats.washed")} value={String(volume.washed)} icon={Car} />
           <StatCard
@@ -250,7 +211,7 @@ export function CarwashMetricsPage() {
 
       {/* Facturación */}
       <div className="space-y-3">
-        <SectionTitle>{t("metrics.sections.revenue")}</SectionTitle>
+        <MetricsSection>{t("metrics.sections.revenue")}</MetricsSection>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
             label={t("metrics.stats.totalRevenue")}
@@ -291,8 +252,7 @@ export function CarwashMetricsPage() {
               <LineChart data={dailyVolume.map((d) => ({ ...d, label: dayLabel(d.date) }))}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                 <XAxis dataKey="label" tick={{ fontSize: 12 }} minTickGap={16} />
-                {/* Dos ejes: cantidad y dinero no comparten escala. Con uno solo, una
-                    barra de 12 lavados desaparece al lado de 18.000 pesos. */}
+                {/* Dos ejes: cantidad y dinero no comparten escala. */}
                 <YAxis yAxisId="left" tick={{ fontSize: 12 }} width={40} allowDecimals={false} />
                 <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} width={70} />
                 <Tooltip
@@ -400,7 +360,7 @@ export function CarwashMetricsPage() {
 
       {/* Ranking de lavadores */}
       <div className="space-y-3">
-        <SectionTitle>{t("metrics.sections.washerRanking")}</SectionTitle>
+        <MetricsSection>{t("metrics.sections.washerRanking")}</MetricsSection>
         <div className="rounded-lg border border-border/60">
           <Table>
             <TableHeader>
@@ -425,8 +385,7 @@ export function CarwashMetricsPage() {
                   <TableCell className="font-medium">
                     <span className="inline-flex items-center gap-2">
                       {washer.washerName}
-                      {/* Un lavador dado de baja sigue en el ranking: hizo el trabajo.
-                          El badge evita que alguien lo busque en la lista de activos. */}
+                      {/* Un lavador dado de baja sigue en el ranking: hizo el trabajo. */}
                       {!washer.isActive && (
                         <Badge variant="secondary">{t("metrics.table.inactive")}</Badge>
                       )}
@@ -451,7 +410,7 @@ export function CarwashMetricsPage() {
 
       {/* Extras más vendidos */}
       <div className="space-y-3">
-        <SectionTitle>{t("metrics.sections.topExtras")}</SectionTitle>
+        <MetricsSection>{t("metrics.sections.topExtras")}</MetricsSection>
         <div className="rounded-lg border border-border/60">
           <Table>
             <TableHeader>

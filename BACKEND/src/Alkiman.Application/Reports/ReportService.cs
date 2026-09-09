@@ -6,7 +6,7 @@ namespace Alkiman.Application.Reports;
 public class ReportService : IReportService
 {
     private const int TopRankingSize = 5;
-    private const int RevenueByMonthWindowMonths = 6;
+    private const int DefaultRevenueByMonthWindowMonths = 6;
 
     private readonly IReportRepository _repository;
     private readonly ICurrentLandlordService _currentLandlord;
@@ -17,24 +17,36 @@ public class ReportService : IReportService
         _currentLandlord = currentLandlord;
     }
 
-    public async Task<ReportSummaryResponse> GetSummaryAsync(CancellationToken cancellationToken = default)
+    public async Task<ReportSummaryResponse> GetSummaryAsync(DateOnly? from = null, DateOnly? to = null, CancellationToken cancellationToken = default)
     {
         var landlordId = await _currentLandlord.GetCurrentLandlordIdAsync(cancellationToken);
 
-        var financial = await _repository.GetFinancialTotalsAsync(landlordId, cancellationToken);
+        // Convert DateOnly to DateTime bounds for PaymentDate filtering.
+        DateTime? fromUtc = from.HasValue ? from.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc) : null;
+        DateTime? toUtc   = to.HasValue   ? to.Value.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc)   : null;
+
+        // Snapshot data (current state — not date-filtered).
         var rentals = await _repository.GetRentalsTotalsAsync(landlordId, cancellationToken);
-        var assets = await _repository.GetAssetsTotalsAsync(landlordId, cancellationToken);
-        var revenueByCategory = await _repository.GetRevenueByCategoryAsync(landlordId, cancellationToken);
-
-        var now = DateTime.UtcNow;
-        var fromDate = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc)
-            .AddMonths(-(RevenueByMonthWindowMonths - 1));
-        var revenueByMonthRaw = await _repository.GetRevenueByMonthAsync(landlordId, fromDate, cancellationToken);
-        var revenueByMonth = FillMonthGaps(revenueByMonthRaw, fromDate, RevenueByMonthWindowMonths);
-
+        var assets  = await _repository.GetAssetsTotalsAsync(landlordId, cancellationToken);
         var overdueRaw = await _repository.GetOverdueRentalsAsync(landlordId, cancellationToken);
-        var topAssets = await _repository.GetTopAssetsAsync(landlordId, TopRankingSize, cancellationToken);
-        var topCustomers = await _repository.GetTopCustomersAsync(landlordId, TopRankingSize, cancellationToken);
+
+        // Time-based data (filtered by payment date range when provided).
+        var financial         = await _repository.GetFinancialTotalsAsync(landlordId, fromUtc, toUtc, cancellationToken);
+        var revenueByCategory = await _repository.GetRevenueByCategoryAsync(landlordId, fromUtc, toUtc, cancellationToken);
+        var topAssets         = await _repository.GetTopAssetsAsync(landlordId, TopRankingSize, fromUtc, toUtc, cancellationToken);
+        var topCustomers      = await _repository.GetTopCustomersAsync(landlordId, TopRankingSize, fromUtc, toUtc, cancellationToken);
+
+        // Monthly chart: use from/to when provided, otherwise fall back to the last N months.
+        var now = DateTime.UtcNow;
+        var monthFrom = fromUtc ?? new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc)
+            .AddMonths(-(DefaultRevenueByMonthWindowMonths - 1));
+        var revenueByMonthRaw = await _repository.GetRevenueByMonthAsync(landlordId, monthFrom, toUtc, cancellationToken);
+
+        int windowMonths = from.HasValue && to.HasValue
+            ? Math.Max(1, (to.Value.Year - from.Value.Year) * 12 + to.Value.Month - from.Value.Month + 1)
+            : DefaultRevenueByMonthWindowMonths;
+
+        var revenueByMonth = FillMonthGaps(revenueByMonthRaw, monthFrom, windowMonths);
 
         var financialDto = new FinancialSummaryDto(
             financial.TotalIncome,
@@ -79,7 +91,7 @@ public class ReportService : IReportService
         );
     }
 
-    /// <summary>Completa con ceros los meses del rango que no tuvieron ningún movimiento, para que el gráfico no tenga huecos.</summary>
+    /// <summary>Completa con ceros los meses del rango que no tuvieron movimiento, para que el gráfico no tenga huecos.</summary>
     private static List<MonthlyFinancialDto> FillMonthGaps(
         IReadOnlyList<MonthlyFinancialDto> existing, DateTime fromDate, int windowMonths)
     {

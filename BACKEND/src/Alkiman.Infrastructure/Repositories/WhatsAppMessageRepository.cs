@@ -18,7 +18,7 @@ public class WhatsAppMessageRepository : IWhatsAppMessageRepository
     {
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(ct);
         const string sql = """
-            INSERT INTO dbo.WhatsAppMessages
+            INSERT INTO dbo.COM_WhatsAppMessages
                 (LandlordId, ToPhone, TemplateName, Status, ErrorMessage, SentAt, CreatedAt)
             VALUES
                 (@LandlordId, @ToPhone, @TemplateName, @Status, @ErrorMessage, @SentAt, @CreatedAt)
@@ -31,7 +31,7 @@ public class WhatsAppMessageRepository : IWhatsAppMessageRepository
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(ct);
         const string sql = """
             SELECT COUNT(*)
-            FROM dbo.WhatsAppMessages
+            FROM dbo.COM_WhatsAppMessages
             WHERE LandlordId = @LandlordId
               AND Status = 'Sent'
               AND YEAR(CreatedAt) = @Year

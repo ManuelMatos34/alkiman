@@ -40,11 +40,22 @@ public class StripeGateway : IStripeGateway
         return new StripePaymentIntentResult(intent.Id, intent.ClientSecret);
     }
 
-    public async Task<StripePaymentIntentStatus> GetPaymentIntentAsync(string paymentIntentId, CancellationToken cancellationToken = default)
+    public async Task<StripePaymentIntentStatus?> GetPaymentIntentAsync(string paymentIntentId, CancellationToken cancellationToken = default)
     {
         var client = new StripeClient(_secretKey);
         var service = new PaymentIntentService(client);
-        var intent = await service.GetAsync(paymentIntentId, cancellationToken: cancellationToken);
-        return new StripePaymentIntentStatus(intent.Id, intent.Status, intent.Amount, intent.Currency);
+        try
+        {
+            var intent = await service.GetAsync(paymentIntentId, cancellationToken: cancellationToken);
+            return new StripePaymentIntentStatus(intent.Id, intent.Status, intent.Amount, intent.Currency);
+        }
+        catch (StripeException ex) when (ex.StripeError?.Code == "resource_missing")
+        {
+            // El id no existe en Stripe: se lo inventó quien llamó. Se filtra sólo
+            // este código y no StripeException entera a propósito — una key mala o
+            // un corte de red también llegan como StripeException, y tragarlos haría
+            // que un problema del servidor se vea como un pago rechazado.
+            return null;
+        }
     }
 }

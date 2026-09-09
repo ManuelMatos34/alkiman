@@ -126,6 +126,7 @@ export interface CarwashWasher {
   id: string
   fullName: string
   phone: string | null
+  email: string | null
   isActive: boolean
   /** false si ya tiene turnos: hay que desactivarlo en vez de eliminarlo, para no perder el historial. */
   canDelete: boolean
@@ -134,11 +135,13 @@ export interface CarwashWasher {
 export interface CreateCarwashWasherRequest {
   fullName: string
   phone?: string | null
+  email?: string | null
 }
 
 export interface UpdateCarwashWasherRequest {
   fullName: string
   phone?: string | null
+  email?: string | null
   isActive: boolean
 }
 
@@ -166,10 +169,16 @@ export interface CarwashTicket {
   source: CarwashTicketSource
   arrivalDeadline: string | null
   notes: string | null
-  /** Propina confirmada al entregar. `null` mientras el ticket no esté entregado o si no hubo. */
+  /** Propina del turno. `null` mientras el ticket no esté entregado o si no hubo. */
   tipAmount: number | null
   tipWasherId: string | null
   tipWasherName: string | null
+  /**
+   * `true` si la propina ya se cobró por la pasarela al reservar (turnos del
+   * portal). El tablero lo usa para NO volver a preguntarla al entregar: si lo
+   * hiciera, la misma plata quedaría contada dos veces.
+   */
+  tipPrepaid: boolean
   createdAt: string
 }
 
@@ -185,12 +194,6 @@ export interface RegisterCarwashTicketRequest {
   vehicleModel?: string | null
   vehicleYear?: number | null
   vehicleColor?: string | null
-}
-
-export interface AdvanceCarwashTicketStatusRequest {
-  status: CarwashTicketStatus
-  /** Sólo se mira al pasar a `Delivered`. Es lo que el mostrador confirma haber recibido, no un cargo. */
-  tipAmount?: number | null
 }
 
 // ---- Métricas del módulo ----
@@ -261,8 +264,4 @@ export interface CarwashMetrics {
   topExtras: CarwashExtraUsage[]
   hourlyDistribution: CarwashHourlyPoint[]
   washerRanking: CarwashWasherRanking[]
-}
-
-export interface AssignWasherRequest {
-  washerId: string | null
 }

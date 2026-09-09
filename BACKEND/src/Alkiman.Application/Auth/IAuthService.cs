@@ -4,7 +4,27 @@ public interface IAuthService
 {
     Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
 
-    Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Valida email y contraseña. Si el usuario NO tiene segundo factor, devuelve la
+    /// sesión ya emitida. Si lo tiene, no emite ningún token: manda un código de 6
+    /// dígitos al correo y devuelve un token de desafío para
+    /// <see cref="VerifyTwoFactorAsync"/>.
+    /// </summary>
+    Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Segundo paso del login con doble factor: canjea el token de desafío más el código
+    /// del correo por la sesión. Falla si el código es incorrecto, si venció o si se
+    /// agotaron los intentos (en cuyo caso el desafío se descarta y hay que loguearse
+    /// otra vez desde cero).
+    /// </summary>
+    Task<AuthResponse> VerifyTwoFactorAsync(VerifyTwoFactorRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reenvía un código nuevo para un desafío en curso, reiniciando el vencimiento y el
+    /// contador de intentos. El código anterior deja de servir.
+    /// </summary>
+    Task ResendTwoFactorAsync(ResendTwoFactorRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reemite el JWT del usuario con su rol y permisos actuales, sin pedir credenciales.

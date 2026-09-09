@@ -45,7 +45,8 @@
       "password": "••••••••",
       "role": "Selecciona un rol"
     },
-    "generatedPasswordNote": "Le enviaremos por email una contraseña temporal que sólo verá esa persona, y se la pediremos cambiar en su primer inicio de sesión."
+    "generatedPasswordNote": "Le enviaremos por email una contraseña temporal que sólo verá esa persona, y se la pediremos cambiar en su primer inicio de sesión.",
+    "ownerNote": "El propietario de la cuenta no puede cambiar de rol ni desactivarse."
   },
   "validation": {
     "fullNameRequired": "El nombre es obligatorio",

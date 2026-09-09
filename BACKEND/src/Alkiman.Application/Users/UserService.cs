@@ -181,11 +181,15 @@ public class UserService : IUserService
         try
         {
             const string subject = "Tu acceso a Alkiman";
-            var body =
-                $"Hola {user.FullName}, se creó tu usuario en Alkiman.\n\n" +
-                $"Email: {user.Email}\n" +
-                $"Contraseña temporal: {generatedPassword}\n\n" +
-                "Al iniciar sesión por primera vez te vamos a pedir que la cambies por una propia.";
+            var body = EmailTemplate.Build(
+                title: "Bienvenido a Alkiman",
+                greeting: $"Hola {user.FullName},",
+                paragraphs:
+                [
+                    "Se creó tu cuenta en Alkiman. Aquí están tus credenciales de acceso:",
+                    $"<strong>Email:</strong> {user.Email}<br><strong>Contraseña temporal:</strong> {generatedPassword}",
+                    "La primera vez que inicies sesión te pediremos que elijas una contraseña propia."
+                ]);
             await _emailSender.SendAsync(user.Email, user.FullName, subject, body, cancellationToken);
             return true;
         }

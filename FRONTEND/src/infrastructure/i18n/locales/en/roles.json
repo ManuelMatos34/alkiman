@@ -37,7 +37,10 @@
       "name": "E.g: Receptionist",
       "description": "Optional"
     },
-    "systemNote": "This is a system role; its name and permissions cannot be modified."
+    "systemNote": "This is a system role; its name and permissions cannot be modified.",
+    "platformGroup": "Platform",
+    "permissionsCounter": "{{selected}} of {{total}} selected",
+    "selectAllGroup": "Select every permission in {{module}}"
   },
   "validation": {
     "nameRequired": "Name is required",

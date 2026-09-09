@@ -85,4 +85,19 @@ public class CarwashPortalLinkRepository : ICarwashPortalLinkRepository
             """;
         await connection.ExecuteAsync(sql, link);
     }
+
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        const string sql = "DELETE FROM dbo.CWS_PortalLinks WHERE Id = @Id";
+        await connection.ExecuteAsync(sql, new { Id = id });
+    }
+
+    public Task<bool> HasTicketsAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        // CWS_Tickets no almacena la FK del portal link que originó el turno (solo Source + AccessToken),
+        // por lo que no es posible saber qué tickets provienen de un link específico.
+        // Los tickets existentes quedan intactos al borrar el link; solo desaparece la URL de entrada.
+        return Task.FromResult(false);
+    }
 }

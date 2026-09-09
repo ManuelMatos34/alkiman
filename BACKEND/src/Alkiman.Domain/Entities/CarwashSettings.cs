@@ -48,12 +48,20 @@ public static class CarwashOperationMode
 /// <summary>
 /// Política de propinas del negocio (<see cref="CarwashSettings.TipMode"/>).
 ///
-/// Ninguno de los tres modos COBRA: el módulo no procesa pagos, el servicio se
-/// paga en efectivo en el mostrador. Lo único que cambia entre modos es qué se
-/// pregunta al entregar el vehículo. Un cargo obligatorio agregado a todos los
-/// tickets sería un aumento de precio con otro nombre, y anotar una propina que
-/// nadie entregó ensucia justo el dato que el ranking de lavadores existe para
-/// producir.
+/// El modo decide QUÉ se pregunta; dónde y cuándo depende del origen del turno:
+///
+///   - Presencial: no se cobra nada. El servicio se paga en efectivo en el
+///     mostrador y la propina sólo se REGISTRA al entregar el vehículo, porque
+///     sin rail de pago el software no puede hacer cumplir un cobro. Anotar una
+///     propina que nadie entregó ensuciaría justo el dato que el ranking de
+///     lavadores existe para producir.
+///   - Portal: el cliente sí atraviesa una pasarela (Stripe) antes de tomar el
+///     turno, así que ahí la propina que elige se cobra de verdad, junto con el
+///     servicio, y el turno queda marcado con <c>TipPrepaid</c> para que el
+///     tablero no la vuelva a pedir al entregar.
+///
+/// Lo que ningún modo hace es imponer un cargo: un monto obligatorio agregado a
+/// todos los tickets sería un aumento de precio con otro nombre.
 /// </summary>
 public static class CarwashTipMode
 {

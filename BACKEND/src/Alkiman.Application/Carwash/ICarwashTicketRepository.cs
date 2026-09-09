@@ -22,4 +22,7 @@ public interface ICarwashTicketRepository
 
     /// <summary>Si el extra ya se usó en algún ticket, no se puede eliminar (violaría la FK de CWS_TicketExtras) — hay que desactivarlo.</summary>
     Task<bool> HasTicketsWithExtraAsync(int extraId, CancellationToken cancellationToken = default);
+
+    /// <summary>Suma de propinas del lavador en el día actual (UTC). Usado para la notificación al lavador.</summary>
+    Task<decimal> GetTodayTipsByWasherAsync(Guid washerId, CancellationToken cancellationToken = default);
 }

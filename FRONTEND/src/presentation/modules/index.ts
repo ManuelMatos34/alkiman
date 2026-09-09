@@ -1,5 +1,6 @@
 import { alquileresModule } from "@/presentation/modules/alquileres"
 import { carwashModule } from "@/presentation/modules/carwash"
+import { barbershopModule } from "@/presentation/modules/barbershop"
 import type { ModuleDefinition } from "@/presentation/modules/types"
 
 /**
@@ -15,6 +16,6 @@ import type { ModuleDefinition } from "@/presentation/modules/types"
  * El `code` tiene que coincidir con `CFG_Modules.Code`: es lo que compara `ModuleRoute`
  * contra el catálogo del backend y lo que usa `ModuleSelectorPage` para linkear.
  */
-export const APP_MODULES: ModuleDefinition[] = [alquileresModule, carwashModule]
+export const APP_MODULES: ModuleDefinition[] = [alquileresModule, carwashModule, barbershopModule]
 
 export type { ModuleDefinition } from "@/presentation/modules/types"

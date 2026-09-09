@@ -13,6 +13,13 @@ public class CarwashTicket : IAuditable
     public Guid Id { get; set; }
     public Guid LandlordId { get; set; }
     public Guid CustomerId { get; set; }
+    /// <summary>
+    /// Nombre del cliente congelado al dar de alta el ticket, igual que
+    /// <see cref="ServicePrice"/> snapshottea el precio. Así el nombre
+    /// que aparece en el tablero no cambia si el registro CRM_Customers
+    /// se edita después.
+    /// </summary>
+    public string? CustomerName { get; set; }
     public int ServiceId { get; set; }
     /// <summary>Lavador asignado (<see cref="CarwashWasher"/>), no un usuario del sistema: quien lava no necesita cuenta.</summary>
     public Guid? AssignedToWasherId { get; set; }
@@ -42,11 +49,37 @@ public class CarwashTicket : IAuditable
     public string? Notes { get; set; }
 
     /// <summary>
-    /// Propina que el mostrador confirmó haber recibido al entregar el vehículo.
-    /// NULL = no se registró ninguna. Carwash no procesa pagos, así que esto no
-    /// cobra nada: deja constancia de plata que cambió de manos en efectivo.
+    /// Propina del turno. NULL = ninguna.
+    ///
+    /// Tiene dos orígenes posibles y <see cref="TipPrepaid"/> los distingue: o la
+    /// confirmó el mostrador en efectivo al entregar (turnos presenciales), o el
+    /// cliente la eligió en el portal y ya se cobró con el servicio (turnos de
+    /// portal). El monto vive en la misma columna porque para el ranking de
+    /// lavadores es la misma plata; lo que cambia es quién la recibió y cuándo.
     /// </summary>
     public decimal? TipAmount { get; set; }
+
+    /// <summary>
+    /// true si <see cref="TipAmount"/> ya entró por el gateway al reservar.
+    ///
+    /// Existe para que el tablero NO vuelva a pedir la propina al entregar el
+    /// vehículo: si lo hiciera, la misma propina quedaría contada dos veces, una
+    /// cobrada y otra "recibida en mano" que nunca ocurrió.
+    /// </summary>
+    public bool TipPrepaid { get; set; }
+
+    /// <summary>Proveedor del cobro online ("Stripe"). NULL en los turnos presenciales, que se pagan en efectivo.</summary>
+    public string? PaymentProvider { get; set; }
+
+    /// <summary>Id del PaymentIntent, para conciliar o reembolsar contra el proveedor.</summary>
+    public string? PaymentReference { get; set; }
+
+    /// <summary>
+    /// Lo que realmente se le cobró a la tarjeta: servicio + extras + propina.
+    /// Aparte del total del ticket, que NO incluye propina — mezclarlos rompería
+    /// la facturación y el ranking a la vez.
+    /// </summary>
+    public decimal? PaidAmount { get; set; }
 
     /// <summary>
     /// A quién se le atribuyó la propina, congelado al entregar. Separado de

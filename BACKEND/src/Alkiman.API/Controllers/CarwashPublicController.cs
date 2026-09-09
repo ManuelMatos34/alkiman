@@ -37,4 +37,15 @@ public class CarwashPublicController : ControllerBase
     [HttpGet("ticket/{token:guid}")]
     public async Task<ActionResult<PublicTicketStatusResponse>> GetTicketStatus(Guid token, CancellationToken cancellationToken)
         => Ok(await _service.GetTicketByTokenAsync(token, cancellationToken));
+
+    /// <summary>Clave publicable de Stripe. Null si el negocio no cobra en línea: la pasarela omite el paso de pago.</summary>
+    [HttpGet("{slug}/payment/config")]
+    public async Task<ActionResult<CarwashPublicPaymentConfigResponse>> GetPaymentConfig(string slug, CancellationToken cancellationToken)
+        => Ok(await _service.GetPublicPaymentConfigAsync(slug, cancellationToken));
+
+    /// <summary>Inicia el cobro del turno (servicio + extras + propina). El monto lo recalcula el servidor.</summary>
+    [HttpPost("{slug}/payment/stripe/intent")]
+    public async Task<ActionResult<CarwashStripeIntentResponse>> CreateStripeIntent(
+        string slug, CarwashPaymentIntentRequest request, CancellationToken cancellationToken)
+        => Ok(await _service.CreatePublicStripeIntentAsync(slug, request, cancellationToken));
 }

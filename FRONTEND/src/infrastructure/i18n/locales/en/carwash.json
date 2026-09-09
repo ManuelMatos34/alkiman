@@ -190,7 +190,8 @@
         "name": "Name",
         "namePlaceholder": "E.g: Basic wash",
         "price": "Price",
-        "estimatedMinutes": "Estimated duration (min)",
+        "estimatedMinutes": "Estimated duration",
+        "durationMinutes": "{{minutes}} min",
         "description": "Description",
         "descriptionPlaceholder": "Service details (optional)",
         "active": "Service active"
@@ -235,7 +236,9 @@
         "name": "Name",
         "namePlaceholder": "E.g: Waxing",
         "price": "Price",
-        "estimatedMinutes": "Extra duration (min)",
+        "estimatedMinutes": "Extra duration",
+        "durationNone": "No extra time",
+        "durationMinutes": "{{minutes}} min",
         "description": "Description",
         "descriptionPlaceholder": "Add-on details (optional)",
         "active": "Add-on active"
@@ -421,6 +424,63 @@
     "delete": {
       "title": "Delete washer",
       "description": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+    }
+  },
+  "kiosk": {
+    "stepCounter": "Step {{current}} of {{total}}",
+    "next": "Continue",
+    "back": "Back",
+    "steps": {
+      "customer": {
+        "title": "What's your name?",
+        "subtitle": "We'll use this to let you know when your vehicle is ready."
+      },
+      "vehicle": {
+        "title": "Which vehicle is it?",
+        "subtitle": "Only the plate is required; the rest helps us identify it."
+      },
+      "service": {
+        "title": "Choose your wash",
+        "subtitle": "Tap the service you want."
+      },
+      "extras": {
+        "title": "Want to add anything?",
+        "subtitle": "Optional. Tap as many as you like, or none."
+      },
+      "tip": {
+        "title": "Would you like to leave a tip?",
+        "subtitle": "It goes in full to whoever washes your vehicle."
+      },
+      "payment": {
+        "title": "Payment",
+        "subtitle": "Pay by card to confirm your spot."
+      },
+      "confirm": {
+        "title": "Review your ticket",
+        "subtitle": "If everything looks right, take it and we'll give you your number."
+      }
+    },
+    "tip": {
+      "none": "No tip",
+      "customLabel": "Other amount",
+      "hintCharged": "Charged together with the service and handed over in full to the washer.",
+      "hintCounter": "Recorded when your vehicle is handed back; you leave it in cash at the counter."
+    },
+    "summary": {
+      "toPay": "Total to pay",
+      "paid": "Paid",
+      "payAtCounter": "To pay at the counter",
+      "tip": "Tip",
+      "tipPaid": "Included in the payment"
+    },
+    "payment": {
+      "sandboxBanner": "Test payment: no real charge is processed.",
+      "testCardHint": "You can use test card {{cardNumber}} with any future date and CVC.",
+      "confirmButton": "Pay and continue",
+      "confirming": "Processing...",
+      "confirmed": "Payment confirmed.",
+      "genericError": "The payment could not be processed. Please try again.",
+      "unavailable": "Online payment is unavailable. You can still take your spot and pay at the counter."
     }
   },
   "join": {

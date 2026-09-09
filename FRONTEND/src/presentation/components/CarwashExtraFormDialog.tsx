@@ -24,8 +24,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useCreateExtra } from "@/application/carwash/useCreateExtra"
 import { useUpdateExtra } from "@/application/carwash/useUpdateExtra"
+import { buildDurationOptions } from "@/lib/carwashDuration"
 import type { CarwashExtraItem } from "@/domain/types/carwash"
 
 function buildExtraFormSchema(t: TFunction) {
@@ -72,6 +80,13 @@ export function CarwashExtraFormDialog({
   const updateExtra = useUpdateExtra()
 
   const extraFormSchema = useMemo(() => buildExtraFormSchema(t), [t])
+
+  // Un agregado puede no sumar tiempo a la cola, así que acá el 0 sí se ofrece.
+  const savedMinutes = extra?.estimatedMinutes
+  const durationOptions = useMemo(
+    () => buildDurationOptions(savedMinutes, { allowZero: true }),
+    [savedMinutes]
+  )
 
   const form = useForm<ExtraFormValues>({
     resolver: zodResolver(extraFormSchema),
@@ -175,9 +190,22 @@ export function CarwashExtraFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("extras.dialog.fields.estimatedMinutes")}</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="1" min="0" {...field} />
-                    </FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {durationOptions.map((minutes) => (
+                          <SelectItem key={minutes} value={String(minutes)}>
+                            {minutes === 0
+                              ? t("extras.dialog.fields.durationNone")
+                              : t("extras.dialog.fields.durationMinutes", { minutes })}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

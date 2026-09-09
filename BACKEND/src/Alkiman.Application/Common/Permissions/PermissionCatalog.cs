@@ -57,11 +57,48 @@ public static class PermissionCatalog
         new(PermissionCodes.RentalRequestsView, "Pedidos de Renta", "Ver pedidos de prórroga y cancelación de rentas", ModuleCodes.Alquileres),
         new(PermissionCodes.RentalRequestsManage, "Pedidos de Renta", "Aprobar o rechazar pedidos de prórroga y cancelación", ModuleCodes.Alquileres),
 
-        // --- Carwash ---
-        new(PermissionCodes.CarwashView, "Carwash", "Ver la cola y el catálogo de servicios de Carwash", ModuleCodes.Carwash),
-        new(PermissionCodes.CarwashManage, "Carwash", "Registrar vehículos y administrar servicios/extras/links de Carwash", ModuleCodes.Carwash),
-        new(PermissionCodes.CarwashWork, "Carwash", "Avanzar el estado de los vehículos en la cola de Carwash", ModuleCodes.Carwash),
-        new(PermissionCodes.CarwashReports, "Carwash", "Ver métricas, facturación y ranking de lavadores de Carwash", ModuleCodes.Carwash),
+        // --- Carwash: Tablero ---
+        new(PermissionCodes.CarwashBoardView,   "Carwash · Tablero", "Ver el tablero y la cola de vehículos", ModuleCodes.Carwash),
+        new(PermissionCodes.CarwashBoardWork,   "Carwash · Tablero", "Avanzar y retroceder el estado de los vehículos", ModuleCodes.Carwash),
+        new(PermissionCodes.CarwashBoardManage, "Carwash · Tablero", "Registrar vehículos, asignar lavadores y cancelar turnos", ModuleCodes.Carwash),
+
+        // --- Carwash: Caja ---
+        new(PermissionCodes.CarwashCaja, "Carwash · Caja", "Procesar entregas y cobrar propinas en la caja", ModuleCodes.Carwash),
+
+        // --- Carwash: Catálogo ---
+        new(PermissionCodes.CarwashCatalogView,   "Carwash · Catálogo", "Ver servicios y agregados del catálogo", ModuleCodes.Carwash),
+        new(PermissionCodes.CarwashCatalogManage, "Carwash · Catálogo", "Crear, editar y eliminar servicios y agregados", ModuleCodes.Carwash),
+
+        // --- Carwash: Lavadores ---
+        new(PermissionCodes.CarwashWashersView,   "Carwash · Lavadores", "Ver el directorio de lavadores", ModuleCodes.Carwash),
+        new(PermissionCodes.CarwashWashersManage, "Carwash · Lavadores", "Agregar y editar lavadores, configurar propinas", ModuleCodes.Carwash),
+
+        // --- Carwash: Portal ---
+        new(PermissionCodes.CarwashPortalView,   "Carwash · Portal", "Ver los links de portal público", ModuleCodes.Carwash),
+        new(PermissionCodes.CarwashPortalManage, "Carwash · Portal", "Crear, activar y eliminar links de portal", ModuleCodes.Carwash),
+
+        // --- Carwash: Reportes ---
+        new(PermissionCodes.CarwashReports, "Carwash · Reportes", "Ver métricas, facturación y ranking de lavadores", ModuleCodes.Carwash),
+
+        // --- Barbería: Tablero ---
+        new(PermissionCodes.BarbershopBoardView,   "Barbería · Tablero", "Ver el tablero de citas", ModuleCodes.Barbershop),
+        new(PermissionCodes.BarbershopBoardWork,   "Barbería · Tablero", "Avanzar el estado de las citas", ModuleCodes.Barbershop),
+        new(PermissionCodes.BarbershopBoardManage, "Barbería · Tablero", "Crear citas y cancelarlas desde el sistema", ModuleCodes.Barbershop),
+
+        // --- Barbería: Catálogo ---
+        new(PermissionCodes.BarbershopCatalogView,   "Barbería · Catálogo", "Ver el catálogo de servicios", ModuleCodes.Barbershop),
+        new(PermissionCodes.BarbershopCatalogManage, "Barbería · Catálogo", "Crear, editar y eliminar servicios", ModuleCodes.Barbershop),
+
+        // --- Barbería: Estilistas ---
+        new(PermissionCodes.BarbershopStylistsView,   "Barbería · Estilistas", "Ver el directorio de estilistas", ModuleCodes.Barbershop),
+        new(PermissionCodes.BarbershopStylistsManage, "Barbería · Estilistas", "Agregar y editar estilistas", ModuleCodes.Barbershop),
+
+        // --- Barbería: Portal ---
+        new(PermissionCodes.BarbershopPortalView,   "Barbería · Portal", "Ver los links de portal público", ModuleCodes.Barbershop),
+        new(PermissionCodes.BarbershopPortalManage, "Barbería · Portal", "Crear, activar y eliminar links de portal", ModuleCodes.Barbershop),
+
+        // --- Barbería: Reportes ---
+        new(PermissionCodes.BarbershopReports, "Barbería · Reportes", "Ver métricas y reportes de la barbería", ModuleCodes.Barbershop),
     };
 
     public static readonly IReadOnlyList<string> AllCodes = All.Select(p => p.Code).ToList();

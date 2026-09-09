@@ -36,6 +36,7 @@ function buildWasherFormSchema(t: TFunction) {
       .min(1, t("washers.validation.nameRequired"))
       .max(150, t("washers.validation.nameMax")),
     phone: z.string().trim().max(30, t("washers.validation.phoneMax")).optional(),
+    email: z.string().trim().email(t("washers.validation.emailInvalid")).optional().or(z.literal("")),
     isActive: z.boolean(),
   })
 }
@@ -51,9 +52,11 @@ interface CarwashWasherFormDialogProps {
 /**
  * Alta/edición de un lavador.
  *
- * Sólo pide nombre, teléfono y estado: la ficha del lavador es personal del
+ * Sólo pide nombre, teléfono, email y estado: la ficha del lavador es personal del
  * módulo, no una identidad del sistema, y no se vincula con ninguna cuenta.
  * Quien además deba iniciar sesión se crea aparte, en Usuarios del sistema.
+ * El email es opcional pero, si se carga, el lavador recibe una notificación
+ * cada vez que le asignan una propina.
  */
 export function CarwashWasherFormDialog({
   open,
@@ -72,6 +75,7 @@ export function CarwashWasherFormDialog({
     defaultValues: {
       fullName: "",
       phone: "",
+      email: "",
       isActive: true,
     },
   })
@@ -81,6 +85,7 @@ export function CarwashWasherFormDialog({
       form.reset({
         fullName: washer?.fullName ?? "",
         phone: washer?.phone ?? "",
+        email: washer?.email ?? "",
         isActive: washer?.isActive ?? true,
       })
     }
@@ -90,6 +95,7 @@ export function CarwashWasherFormDialog({
     const common = {
       fullName: values.fullName,
       phone: values.phone?.length ? values.phone : null,
+      email: values.email?.length ? values.email : null,
     }
 
     if (washer) {
@@ -154,6 +160,25 @@ export function CarwashWasherFormDialog({
                   <FormControl>
                     <Input placeholder={t("washers.dialog.fields.phonePlaceholder")} {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("washers.dialog.fields.email")}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder={t("washers.dialog.fields.emailPlaceholder")}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>{t("washers.dialog.fields.emailHint")}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

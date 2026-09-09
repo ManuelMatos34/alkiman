@@ -30,11 +30,17 @@
   "appearance": {
     "accentLabels": {
       "blue": "Blue",
+      "sky": "Sky",
+      "cyan": "Cyan",
+      "teal": "Teal",
       "green": "Green",
-      "violet": "Violet",
       "orange": "Orange",
+      "red": "Red",
+      "rose": "Rose",
       "pink": "Pink",
-      "red": "Red"
+      "fuchsia": "Fuchsia",
+      "violet": "Violet",
+      "slate": "Slate"
     },
     "validation": {
       "appNameRequired": "Application name is required"

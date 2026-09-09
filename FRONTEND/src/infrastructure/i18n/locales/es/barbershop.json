@@ -1,0 +1,272 @@
+{
+  "nav": {
+    "board": "Tablero",
+    "services": "Servicios",
+    "stylists": "Estilistas",
+    "portalLinks": "Portal",
+    "metrics": "Métricas",
+    "changeModule": "Cambiar módulo"
+  },
+  "board": {
+    "title": "Tablero de citas",
+    "newAppointment": "Nueva cita",
+    "columns": {
+      "scheduled": "Pendiente",
+      "confirmed": "Confirmada",
+      "inprogress": "En curso",
+      "completed": "Completada"
+    },
+    "card": {
+      "noService": "Sin servicio",
+      "noStylist": "Sin estilista",
+      "noPhone": "Sin teléfono",
+      "paid": "Cobrado"
+    },
+    "actions": {
+      "confirm": "Confirmar",
+      "start": "Iniciar",
+      "complete": "Completar",
+      "cancel": "Cancelar",
+      "markPaid": "Cobrar"
+    },
+    "cancelDialog": {
+      "title": "Cancelar cita",
+      "description": "¿Seguro que quieres cancelar la cita de \"{{name}}\"?"
+    },
+    "completeDialog": {
+      "title": "Completar cita",
+      "description": "¿Deseas marcar el servicio de \"{{name}}\" como cobrado?",
+      "markPaid": "Marcar como cobrado",
+      "confirm": "Completar"
+    },
+    "viewCalendar": "Ver en el calendario",
+    "viewBoard": "Ver tablero",
+    "calendarEmpty": "Sin citas en este rango",
+    "empty": "No hay citas para este día",
+    "calendar": {
+      "today": "Hoy",
+      "month": "Mes",
+      "week": "Semana",
+      "day": "Día",
+      "clickHint": "Haz clic en una cita para avanzar su estado."
+    }
+  },
+  "services": {
+    "title": "Servicios",
+    "subtitle": "Catálogo de servicios ofrecidos",
+    "newButton": "Nuevo servicio",
+    "table": {
+      "headers": {
+        "name": "Nombre",
+        "description": "Descripción",
+        "price": "Precio",
+        "duration": "Duración",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "empty": "No hay servicios. Crea el primero.",
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo",
+      "minutesSuffix": "min"
+    }
+  },
+  "stylists": {
+    "title": "Estilistas",
+    "subtitle": "Directorio de estilistas del negocio",
+    "newButton": "Nuevo estilista",
+    "table": {
+      "headers": {
+        "name": "Nombre",
+        "phone": "Teléfono",
+        "email": "Email",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "empty": "No hay estilistas. Agrega el primero.",
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo",
+      "noPhone": "—",
+      "noEmail": "—"
+    }
+  },
+  "portalLinks": {
+    "title": "Links de portal",
+    "subtitle": "Links públicos para que los clientes agenden su cita",
+    "newButton": "Nuevo link",
+    "table": {
+      "headers": {
+        "title": "Título",
+        "stylist": "Estilista",
+        "slug": "URL",
+        "status": "Estado",
+        "actions": "Acciones"
+      },
+      "empty": "No hay links de portal. Crea el primero.",
+      "noStylist": "Todos los estilistas",
+      "statusActive": "Activo",
+      "statusInactive": "Inactivo"
+    },
+    "deleteDialog": {
+      "title": "Eliminar link",
+      "description": "¿Seguro que quieres eliminar el link \"{{title}}\"?"
+    }
+  },
+  "metrics": {
+    "title": "Métricas",
+    "subtitle": "Resumen de actividad de la barbería",
+    "presets": {
+      "last7": "7 días",
+      "last30": "30 días",
+      "last90": "90 días"
+    },
+    "stats": {
+      "total": "Total citas",
+      "completed": "Completadas",
+      "cancelled": "Canceladas",
+      "revenue": "Ingresos"
+    },
+    "charts": {
+      "daily": "Actividad diaria",
+      "services": "Servicios más usados",
+      "stylists": "Ranking de estilistas"
+    },
+    "table": {
+      "stylistName": "Estilista",
+      "count": "Citas",
+      "revenue": "Ingresos"
+    }
+  },
+  "formDialog": {
+    "service": {
+      "titleNew": "Nuevo servicio",
+      "titleEdit": "Editar servicio",
+      "fields": {
+        "name": "Nombre",
+        "description": "Descripción",
+        "price": "Precio",
+        "duration": "Duración (minutos)"
+      },
+      "placeholders": {
+        "name": "Ej: Corte de cabello",
+        "description": "Descripción opcional",
+        "price": "0.00",
+        "duration": "30"
+      }
+    },
+    "stylist": {
+      "titleNew": "Nuevo estilista",
+      "titleEdit": "Editar estilista",
+      "fields": {
+        "fullName": "Nombre completo",
+        "phone": "Teléfono",
+        "email": "Email",
+        "active": "Activo"
+      },
+      "placeholders": {
+        "fullName": "Ej: María García",
+        "phone": "+1 555 0000",
+        "email": "estilista@negocio.com"
+      }
+    },
+    "portalLink": {
+      "titleNew": "Nuevo link de portal",
+      "titleEdit": "Editar link",
+      "fields": {
+        "title": "Título",
+        "slug": "URL (slug)",
+        "stylist": "Estilista (opcional)"
+      },
+      "placeholders": {
+        "title": "Ej: Reserva tu cita",
+        "slug": "mi-barberia",
+        "stylistNone": "Todos los estilistas"
+      },
+      "slugHint": "Solo letras minúsculas, números y guiones"
+    },
+    "appointment": {
+      "titleNew": "Nueva cita",
+      "titleEdit": "Editar cita",
+      "fields": {
+        "clientName": "Nombre del cliente",
+        "clientPhone": "Teléfono",
+        "clientEmail": "Email",
+        "service": "Servicio",
+        "stylist": "Estilista",
+        "scheduledAt": "Fecha y hora",
+        "notes": "Notas"
+      },
+      "placeholders": {
+        "clientName": "Ej: Juan Pérez",
+        "clientPhone": "+1 555 0000",
+        "clientEmail": "cliente@email.com",
+        "serviceNone": "Sin servicio",
+        "stylistNone": "Sin estilista asignado",
+        "notes": "Notas opcionales..."
+      }
+    }
+  },
+  "toast": {
+    "createSuccess": "Creado correctamente",
+    "createError": "No se pudo crear. Inténtalo de nuevo.",
+    "updateSuccess": "Actualizado correctamente",
+    "updateError": "No se pudo actualizar. Inténtalo de nuevo.",
+    "deleteSuccess": "Eliminado correctamente",
+    "deleteError": "No se pudo eliminar. Inténtalo de nuevo.",
+    "cancelSuccess": "Cita cancelada",
+    "cancelError": "No se pudo cancelar la cita."
+  },
+  "timeSlots": {
+    "selectTime": "Selecciona un horario",
+    "noSlots": "No hay horarios disponibles para esta fecha.",
+    "loading": "Cargando horarios..."
+  },
+  "validation": {
+    "nameRequired": "El nombre es obligatorio",
+    "nameMax": "Máximo 150 caracteres",
+    "priceMin": "El precio no puede ser negativo",
+    "durationMin": "La duración mínima es 5 minutos",
+    "slugRequired": "El slug es obligatorio",
+    "slugInvalid": "Solo letras minúsculas, números y guiones",
+    "slugMax": "Máximo 100 caracteres",
+    "clientNameRequired": "El nombre del cliente es obligatorio",
+    "scheduledAtRequired": "La fecha y hora son obligatorias"
+  },
+  "public": {
+    "portal": {
+      "title": "Agenda tu cita",
+      "noServices": "No hay servicios disponibles en este momento.",
+      "inactive": "Este link no está disponible en este momento.",
+      "form": {
+        "service": "Servicio",
+        "stylist": "Estilista",
+        "clientName": "Tu nombre",
+        "clientPhone": "Teléfono",
+        "clientEmail": "Email (para confirmación)",
+        "scheduledAt": "Fecha y hora",
+        "notes": "Notas adicionales",
+        "submit": "Agendar cita",
+        "submitting": "Agendando..."
+      },
+      "success": {
+        "title": "¡Cita agendada!",
+        "description": "Tu cita fue registrada para el {{date}} a las {{time}}.",
+        "trackLink": "Ver estado de tu cita"
+      }
+    },
+    "status": {
+      "title": "Estado de tu cita",
+      "client": "Cliente",
+      "stylist": "Estilista",
+      "service": "Servicio",
+      "scheduledAt": "Fecha y hora",
+      "status": "Estado",
+      "statuses": {
+        "Scheduled": "Pendiente",
+        "Confirmed": "Confirmada",
+        "InProgress": "En curso",
+        "Completed": "Completada",
+        "Cancelled": "Cancelada"
+      }
+    }
+  }
+}

@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
-import { Plus, ArrowRight, X, PhoneCall, Check, Timer, Loader2, Sparkles } from "lucide-react"
+import { Plus, ArrowRight, ArrowLeft, X, PhoneCall, Check, Timer, Loader2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
   SelectContent,
@@ -13,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { CarwashRegisterTicketDialog } from "@/presentation/components/CarwashRegisterTicketDialog"
-import { CarwashTipDialog } from "@/presentation/components/CarwashTipDialog"
 import { useCarwashQueue } from "@/application/carwash/useCarwashQueue"
 import { useCarwashSettings } from "@/application/carwash/useCarwashSettings"
 import { useCarwashWashers } from "@/application/carwash/useCarwashWashers"
@@ -23,15 +21,29 @@ import { useCancelTicket } from "@/application/carwash/useCancelTicket"
 import { useCallArrival } from "@/application/carwash/useCallArrival"
 import { useConfirmArrival } from "@/application/carwash/useConfirmArrival"
 import { useExpireTicket } from "@/application/carwash/useExpireTicket"
+import { useGoBackTicketStatus } from "@/application/carwash/useGoBackTicketStatus"
 import { useAuth } from "@/infrastructure/auth/AuthContext"
 import { getIntlLocale } from "@/infrastructure/i18n/localeMap"
 import { PermissionCodes } from "@/domain/types/permission"
 import type { CarwashTicket, CarwashTicketStatus } from "@/domain/types/carwash"
+import { cn } from "@/lib/utils"
 
-/** Columnas del tablero (Delivered/Cancelled/Expired quedan fuera: ya no requieren acción). */
-const BOARD_COLUMNS: CarwashTicketStatus[] = ["Waiting", "InProgress", "Drying", "Waxing", "Ready"]
+/** Secciones del tablero en orden de flujo. Ready sale del tablero: va a Caja. */
+const BOARD_COLUMNS: CarwashTicketStatus[] = ["Waiting", "InProgress", "Drying", "Waxing"]
 
-/** Valor centinela del combo de lavador: Select de Radix no admite un item con value="". */
+/** Color del indicador por estado. */
+const STATUS_COLOR: Record<CarwashTicketStatus, string> = {
+  Waiting:       "bg-amber-400",
+  InProgress:    "bg-blue-500",
+  Drying:        "bg-cyan-500",
+  Waxing:        "bg-violet-500",
+  Ready:         "bg-emerald-500",
+  ArrivalPending:"bg-primary",
+  Delivered:     "bg-muted-foreground",
+  Cancelled:     "bg-muted-foreground",
+  Expired:       "bg-muted-foreground",
+}
+
 const UNASSIGNED = "__unassigned__"
 
 function formatCountdown(deadline: string, now: number) {
@@ -43,74 +55,57 @@ function formatCountdown(deadline: string, now: number) {
   return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
 }
 
-/**
- * Encerado es un paso OPCIONAL. Desde Secado siempre se ofrecen las dos salidas (encerar o cerrar):
- * los extras solo deciden cuál va como botón principal, porque el catálogo no distingue un extra de
- * encerado de uno que no lo es y adivinarlo dejaría al encargado sin la otra opción.
- */
 function nextStatusFor(ticket: CarwashTicket): CarwashTicketStatus | null {
   switch (ticket.status) {
-    case "Waiting":
-      return "InProgress"
-    case "InProgress":
-      return "Drying"
-    case "Drying":
-      return ticket.extras.length > 0 ? "Waxing" : "Ready"
-    case "Waxing":
-      return "Ready"
-    case "Ready":
-      return "Delivered"
-    default:
-      return null
+    case "Waiting":    return "InProgress"
+    case "InProgress": return "Drying"
+    case "Drying":     return ticket.extras.length > 0 ? "Waxing" : "Ready"
+    case "Waxing":     return "Ready"
+    case "Ready":      return "Delivered"
+    default:           return null
   }
 }
 
-/** La salida secundaria de Secado: la que no quedó como botón principal. */
 function alternateStatusFor(ticket: CarwashTicket): CarwashTicketStatus | null {
   if (ticket.status !== "Drying") return null
   return ticket.extras.length > 0 ? "Ready" : "Waxing"
 }
 
-/** Resumen legible del vehículo: "Toyota Corolla 2020 · Gris", omitiendo lo que no se cargó. */
 function vehicleSummary(ticket: CarwashTicket) {
   const model = [ticket.vehicleBrand, ticket.vehicleModel, ticket.vehicleYear]
-    .filter(Boolean)
-    .join(" ")
+    .filter(Boolean).join(" ")
   return [model, ticket.vehicleColor].filter(Boolean).join(" · ")
 }
 
-/** Tablero de la cola de Carwash: kanban por estado + sección de turnos llamados (portal). */
+// ─────────────────────────────────────────────────────────────────────────────
+// Componente principal
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function CarwashBoardPage() {
   const { t, i18n } = useTranslation("carwash")
   const { hasPermission } = useAuth()
-  const canManage = hasPermission(PermissionCodes.CarwashManage)
-  const canWork = hasPermission(PermissionCodes.CarwashWork)
+  const canManage = hasPermission(PermissionCodes.CarwashBoardManage)
+  const canWork   = hasPermission(PermissionCodes.CarwashBoardWork)
 
   const { data: tickets, isLoading } = useCarwashQueue()
-  const { data: settings } = useCarwashSettings()
-  const isSoloMode = settings?.operationMode === "Solitario"
-  // En modo Solitario no hay a quién asignar: el ticket se auto-asigna al iniciar el lavado.
-  const { data: washers } = useCarwashWashers(canManage && settings?.operationMode === "Empresa")
+  const { data: settings }           = useCarwashSettings()
+  const isSoloMode                   = settings?.operationMode === "Solitario"
+  const { data: washers }            = useCarwashWashers(canManage && settings?.operationMode === "Empresa")
 
-  const advanceStatus = useAdvanceTicketStatus()
-  const assignWasher = useAssignWasher()
-  const cancelTicket = useCancelTicket()
-  const callArrival = useCallArrival()
+  const advanceStatus  = useAdvanceTicketStatus()
+  const goBack         = useGoBackTicketStatus()
+  const assignWasher   = useAssignWasher()
+  const cancelTicket   = useCancelTicket()
+  const callArrival    = useCallArrival()
   const confirmArrival = useConfirmArrival()
-  const expireTicket = useExpireTicket()
+  const expireTicket   = useExpireTicket()
 
   const [registerOpen, setRegisterOpen] = useState(false)
-  const [tipTarget, setTipTarget] = useState<CarwashTicket | null>(null)
-  const [now, setNow] = useState(() => Date.now())
-
-  // Default `Optional` y no `Disabled`: si por lo que sea la config no cargó, es preferible
-  // preguntar de más que entregar el vehículo perdiendo la propina en silencio.
-  const tipMode = settings?.tipMode ?? "Optional"
+  const [now, setNow]                   = useState(() => Date.now())
 
   const currencyFormatter = useMemo(
-    () =>
-      new Intl.NumberFormat(getIntlLocale(i18n.language), { style: "currency", currency: "DOP" }),
-    [i18n.language]
+    () => new Intl.NumberFormat(getIntlLocale(i18n.language), { style: "currency", currency: "DOP" }),
+    [i18n.language],
   )
 
   useEffect(() => {
@@ -118,51 +113,33 @@ export function CarwashBoardPage() {
     return () => clearInterval(interval)
   }, [])
 
-  const arrivalPendingTickets = tickets?.filter((ticket) => ticket.status === "ArrivalPending") ?? []
-  const showWasherPicker = !isSoloMode && canManage
+  const arrivalPendingTickets = tickets?.filter((t) => t.status === "ArrivalPending") ?? []
+  const showWasherPicker      = !isSoloMode && canManage
 
-  /**
-   * Entregar es el único paso que puede abrir un diálogo antes de mutar: es el momento
-   * (y el único) en que el cliente tiene la plata en la mano. El resto de las transiciones
-   * son mecánicas y se disparan directo, sin interponer un click de más al lavador.
-   */
-  function runAdvance(ticket: CarwashTicket, status: CarwashTicketStatus) {
-    if (status === "Delivered" && tipMode !== "Disabled") {
-      setTipTarget(ticket)
-      return
-    }
-    advanceStatus.mutate(
-      { id: ticket.id, status },
-      { onError: () => toast.error(t("board.toast.advanceError")) }
-    )
-  }
+  // ── Handlers ────────────────────────────────────────────────────────────
 
   function handleAdvance(ticket: CarwashTicket) {
     const next = nextStatusFor(ticket)
-    if (!next) return
-    runAdvance(ticket, next)
+    // Ready -> Delivered ya no se maneja acá: lo hace la Cajera desde /caja
+    if (!next || next === "Delivered") return
+    advanceStatus.mutate(
+      { id: ticket.id, status: next },
+      { onError: () => toast.error(t("board.toast.advanceError")) },
+    )
   }
 
   function handleAdvanceTo(ticket: CarwashTicket, status: CarwashTicketStatus) {
-    runAdvance(ticket, status)
+    if (status === "Delivered") return
+    advanceStatus.mutate(
+      { id: ticket.id, status },
+      { onError: () => toast.error(t("board.toast.advanceError")) },
+    )
   }
 
-  function handleConfirmTip(tipAmount: number | null) {
-    if (!tipTarget) return
-    advanceStatus.mutate(
-      { id: tipTarget.id, status: "Delivered", tipAmount },
-      {
-        onSuccess: () => {
-          setTipTarget(null)
-          if (tipAmount !== null) {
-            toast.success(
-              t("tips.toast.recorded", { amount: currencyFormatter.format(tipAmount) })
-            )
-          }
-        },
-        onError: () => toast.error(t("board.toast.advanceError")),
-      }
-    )
+  function handleGoBack(ticket: CarwashTicket) {
+    goBack.mutate(ticket.id, {
+      onError: () => toast.error(t("board.toast.advanceError")),
+    })
   }
 
   function handleAssign(ticket: CarwashTicket, value: string) {
@@ -170,41 +147,44 @@ export function CarwashBoardPage() {
       { id: ticket.id, washerId: value === UNASSIGNED ? null : value },
       {
         onSuccess: () => toast.success(t("board.toast.assignSuccess")),
-        onError: () => toast.error(t("board.toast.assignError")),
-      }
+        onError:   () => toast.error(t("board.toast.assignError")),
+      },
     )
   }
 
   function handleCallArrival(ticket: CarwashTicket) {
     callArrival.mutate(ticket.id, {
       onSuccess: () => toast.success(t("board.toast.callArrivalSuccess")),
-      onError: () => toast.error(t("board.toast.callArrivalError")),
+      onError:   () => toast.error(t("board.toast.callArrivalError")),
     })
   }
 
   function handleCancel(ticket: CarwashTicket) {
     cancelTicket.mutate(ticket.id, {
       onSuccess: () => toast.success(t("board.toast.cancelSuccess")),
-      onError: () => toast.error(t("board.toast.cancelError")),
+      onError:   () => toast.error(t("board.toast.cancelError")),
     })
   }
 
   function handleConfirmArrival(ticket: CarwashTicket) {
     confirmArrival.mutate(ticket.id, {
       onSuccess: () => toast.success(t("board.toast.confirmArrivalSuccess")),
-      onError: () => toast.error(t("board.toast.confirmArrivalError")),
+      onError:   () => toast.error(t("board.toast.confirmArrivalError")),
     })
   }
 
   function handleExpire(ticket: CarwashTicket) {
     expireTicket.mutate(ticket.id, {
       onSuccess: () => toast.success(t("board.toast.expireSuccess")),
-      onError: () => toast.error(t("board.toast.expireError")),
+      onError:   () => toast.error(t("board.toast.expireError")),
     })
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div className="space-y-6">
+      {/* Encabezado de página */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{t("board.title")}</h1>
@@ -226,211 +206,262 @@ export function CarwashBoardPage() {
         </div>
       )}
 
+      {/* Turnos del portal esperando llegada */}
       {!isLoading && arrivalPendingTickets.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight">{t("board.arrivalPending.title")}</h2>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {arrivalPendingTickets.map((ticket) => (
-              <Card key={ticket.id} className="border-primary/40">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-base">{ticket.vehiclePlate}</CardTitle>
-                    <Badge variant="secondary">
-                      {t("board.queueNumber", { number: ticket.queueNumber })}
-                    </Badge>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className={cn("h-2 w-2 rounded-full", STATUS_COLOR.ArrivalPending)} />
+            <h2 className="text-sm font-semibold tracking-tight">
+              {t("board.arrivalPending.title")}
+            </h2>
+            <Badge variant="outline" className="text-xs">{arrivalPendingTickets.length}</Badge>
+          </div>
+
+          <div className="overflow-hidden rounded-lg border">
+            {arrivalPendingTickets.map((ticket, i) => (
+              <div
+                key={ticket.id}
+                className={cn(
+                  "flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-sm",
+                  i !== arrivalPendingTickets.length - 1 && "border-b",
+                )}
+              >
+                {/* Número + placa */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    {ticket.queueNumber}
+                  </span>
+                  <span className="font-mono font-semibold tracking-wide">{ticket.vehiclePlate}</span>
+                </div>
+
+                {/* Cliente */}
+                <span className="font-medium">{ticket.customerName}</span>
+
+                {/* Servicio */}
+                <span className="text-muted-foreground">{ticket.serviceName}</span>
+
+                {/* Countdown */}
+                {ticket.arrivalDeadline && (
+                  <div className="flex items-center gap-1 font-mono text-sm font-semibold text-primary">
+                    <Timer className="h-3.5 w-3.5" />
+                    {formatCountdown(ticket.arrivalDeadline, now)}
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <div>
-                    <p className="font-medium">{ticket.customerName}</p>
-                    <p className="text-muted-foreground">{ticket.serviceName}</p>
+                )}
+
+                {/* Acciones */}
+                {canManage && (
+                  <div className="ml-auto flex gap-2">
+                    <Button
+                      size="sm"
+                      disabled={confirmArrival.isPending}
+                      onClick={() => handleConfirmArrival(ticket)}
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                      {t("board.actions.confirmArrival")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={expireTicket.isPending}
+                      onClick={() => handleExpire(ticket)}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                      {t("board.actions.markExpired")}
+                    </Button>
                   </div>
-                  {ticket.arrivalDeadline && (
-                    <div className="flex items-center gap-1.5 font-mono text-base font-semibold">
-                      <Timer className="h-4 w-4 text-muted-foreground" />
-                      {formatCountdown(ticket.arrivalDeadline, now)}
-                    </div>
-                  )}
-                  {canManage && (
-                    <div className="flex gap-2 pt-1">
-                      <Button
-                        size="sm"
-                        className="flex-1"
-                        disabled={confirmArrival.isPending}
-                        onClick={() => handleConfirmArrival(ticket)}
-                      >
-                        <Check className="h-4 w-4" />
-                        {t("board.actions.confirmArrival")}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        disabled={expireTicket.isPending}
-                        onClick={() => handleExpire(ticket)}
-                      >
-                        <X className="h-4 w-4" />
-                        {t("board.actions.markExpired")}
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                )}
+              </div>
             ))}
           </div>
         </div>
       )}
 
+      {/* Secciones por estado */}
       {!isLoading && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="space-y-3">
           {BOARD_COLUMNS.map((column) => {
-            const columnTickets = tickets?.filter((ticket) => ticket.status === column) ?? []
+            const columnTickets = tickets?.filter((t) => t.status === column) ?? []
+
             return (
-              <div key={column} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-semibold tracking-tight text-muted-foreground">
+              <div key={column} className="overflow-hidden rounded-lg border">
+                {/* Cabecera de sección */}
+                <div className="flex items-center gap-2.5 border-b bg-muted/40 px-4 py-2.5">
+                  <div className={cn("h-2 w-2 rounded-full shrink-0", STATUS_COLOR[column])} />
+                  <span className="text-sm font-semibold">
                     {t(`board.columns.${column}`)}
-                  </h2>
-                  <Badge variant="outline">{columnTickets.length}</Badge>
+                  </span>
+                  <Badge variant="outline" className="text-xs">{columnTickets.length}</Badge>
                 </div>
 
-                <div className="space-y-3">
-                  {columnTickets.length === 0 && (
-                    <p className="rounded-lg border border-dashed border-border/60 p-4 text-center text-xs text-muted-foreground">
-                      {t("board.columnEmpty")}
-                    </p>
-                  )}
+                {/* Estado vacío */}
+                {columnTickets.length === 0 && (
+                  <p className="px-4 py-4 text-center text-xs text-muted-foreground">
+                    {t("board.columnEmpty")}
+                  </p>
+                )}
 
-                  {columnTickets.map((ticket) => {
-                    const next = nextStatusFor(ticket)
-                    const alternate = alternateStatusFor(ticket)
-                    const summary = vehicleSummary(ticket)
-                    return (
-                      <Card key={ticket.id}>
-                        <CardHeader className="pb-2">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-base">{ticket.vehiclePlate}</CardTitle>
-                            <Badge variant="secondary">
-                              {t("board.queueNumber", { number: ticket.queueNumber })}
-                            </Badge>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="space-y-3 text-sm">
-                          <div>
-                            <p className="font-medium">{ticket.customerName}</p>
-                            {summary && <p className="text-muted-foreground">{summary}</p>}
-                            <p className="text-muted-foreground">{ticket.serviceName}</p>
-                          </div>
+                {/* Filas de tickets */}
+                {columnTickets.map((ticket, i) => {
+                  const next      = nextStatusFor(ticket)
+                  const alternate = alternateStatusFor(ticket)
+                  const summary   = vehicleSummary(ticket)
+                  const needsWasher = column === "Waiting" && showWasherPicker && !ticket.assignedToWasherId
 
-                          {ticket.extras.length > 0 && (
-                            <div className="flex flex-wrap gap-1">
-                              {ticket.extras.map((extra) => (
-                                <Badge
-                                  key={extra.extraId}
-                                  variant="outline"
-                                  className="gap-1 font-normal"
-                                >
-                                  <Sparkles className="h-3 w-3" />
-                                  {extra.name}
-                                </Badge>
-                              ))}
-                            </div>
+                  return (
+                    <div
+                      key={ticket.id}
+                      className={cn(
+                        "px-4 py-3 text-sm transition-colors hover:bg-muted/20",
+                        i !== columnTickets.length - 1 && "border-b",
+                      )}
+                    >
+                      {/* ── Fila principal ── */}
+                      <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
+                        {/* Número de turno */}
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-bold">
+                          {ticket.queueNumber}
+                        </span>
+
+                        {/* Placa */}
+                        <span className="shrink-0 font-mono text-sm font-semibold tracking-wide">
+                          {ticket.vehiclePlate}
+                        </span>
+
+                        {/* Cliente + vehículo */}
+                        <div className="min-w-0 flex-1">
+                          <span className="font-medium">{ticket.customerName}</span>
+                          {summary && (
+                            <span className="ml-2 hidden text-xs text-muted-foreground sm:inline">{summary}</span>
                           )}
+                        </div>
 
-                          <p className="font-semibold">{currencyFormatter.format(ticket.total)}</p>
+                        {/* Precio */}
+                        <span className="shrink-0 font-semibold">
+                          {currencyFormatter.format(ticket.total)}
+                        </span>
 
-                          {showWasherPicker && (
-                            <Select
-                              value={ticket.assignedToWasherId ?? UNASSIGNED}
-                              onValueChange={(value) => handleAssign(ticket, value)}
-                              disabled={assignWasher.isPending}
+                        {/* Acciones */}
+                        <div className="flex shrink-0 items-center gap-1">
+                          {canManage && column === "Waiting" && ticket.source === "Portal" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={callArrival.isPending}
+                              onClick={() => handleCallArrival(ticket)}
+                              className="px-2 sm:px-3"
                             >
-                              <SelectTrigger size="sm" className="w-full">
-                                <SelectValue placeholder={t("board.washer.placeholder")} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value={UNASSIGNED}>
-                                  {t("board.washer.unassigned")}
-                                </SelectItem>
-                                {/*
-                                  Sólo lavadores activos, más el ya asignado aunque
-                                  esté dado de baja: si no estuviera en la lista, el
-                                  Select no encontraría su value y la tarjeta se
-                                  mostraría como "sin asignar".
-                                */}
-                                {washers
-                                  ?.filter(
-                                    (washer) =>
-                                      washer.isActive || washer.id === ticket.assignedToWasherId
-                                  )
-                                  .map((washer) => (
-                                    <SelectItem key={washer.id} value={washer.id}>
-                                      {washer.fullName}
-                                      {!washer.isActive && ` (${t("washers.table.statusInactive")})`}
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
+                              <PhoneCall className="h-3.5 w-3.5" />
+                              <span className="hidden sm:inline">{t("board.actions.callArrival")}</span>
+                            </Button>
                           )}
 
-                          {isSoloMode && ticket.assignedToName && (
-                            <p className="text-xs text-muted-foreground">
-                              {t("board.washer.assignedTo", { name: ticket.assignedToName })}
-                            </p>
+                          {canWork && alternate && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={advanceStatus.isPending}
+                              onClick={() => handleAdvanceTo(ticket, alternate)}
+                            >
+                              {t(`board.actions.advanceTo.${alternate}`)}
+                            </Button>
                           )}
 
-                          <div className="flex flex-wrap gap-2 pt-1">
-                            {canManage && column === "Waiting" && ticket.source === "Portal" && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={callArrival.isPending}
-                                onClick={() => handleCallArrival(ticket)}
-                              >
-                                <PhoneCall className="h-4 w-4" />
-                                {t("board.actions.callArrival")}
-                              </Button>
-                            )}
+                          {/* Retroceder estado */}
+                          {canWork && column !== "Waiting" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              disabled={goBack.isPending}
+                              onClick={() => handleGoBack(ticket)}
+                              title={t("board.actions.goBack")}
+                              className="px-2"
+                            >
+                              <ArrowLeft className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
 
-                            {canWork && next && (
-                              <Button
-                                size="sm"
-                                disabled={advanceStatus.isPending}
-                                onClick={() => handleAdvance(ticket)}
-                              >
-                                <ArrowRight className="h-4 w-4" />
+                          {canWork && next && (
+                            <Button
+                              size="sm"
+                              disabled={advanceStatus.isPending || needsWasher}
+                              title={needsWasher ? t("board.washer.requiredToAdvance") : undefined}
+                              onClick={() => handleAdvance(ticket)}
+                            >
+                              <ArrowRight className="h-3.5 w-3.5" />
+                              <span className="hidden sm:inline">
                                 {t(`board.actions.advanceTo.${next}`)}
-                              </Button>
-                            )}
+                              </span>
+                            </Button>
+                          )}
 
-                            {canWork && alternate && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={advanceStatus.isPending}
-                                onClick={() => handleAdvanceTo(ticket, alternate)}
-                              >
-                                {t(`board.actions.advanceTo.${alternate}`)}
-                              </Button>
-                            )}
+                          {canManage && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              disabled={cancelTicket.isPending}
+                              onClick={() => handleCancel(ticket)}
+                              className="px-2"
+                            >
+                              <X className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
 
-                            {canManage && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                disabled={cancelTicket.isPending}
-                                onClick={() => handleCancel(ticket)}
-                              >
-                                <X className="h-4 w-4 text-destructive" />
-                                {t("board.actions.cancel")}
-                              </Button>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
-                </div>
+                      {/* ── Fila secundaria: servicio + extras + lavador ── */}
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2 pl-9">
+                        {/* Servicio + extras */}
+                        <span className="text-xs text-muted-foreground">{ticket.serviceName}</span>
+                        {ticket.extras.map((extra) => (
+                          <Badge key={extra.extraId} variant="outline" className="gap-1 px-1.5 py-0 text-xs font-normal">
+                            <Sparkles className="h-2.5 w-2.5" />
+                            {extra.name}
+                          </Badge>
+                        ))}
+
+                        {/* Lavador: editable en Waiting */}
+                        {showWasherPicker && column === "Waiting" && (
+                          <Select
+                            value={ticket.assignedToWasherId ?? UNASSIGNED}
+                            onValueChange={(value) => handleAssign(ticket, value)}
+                            disabled={assignWasher.isPending}
+                          >
+                            <SelectTrigger size="sm" className="h-7 w-40 text-xs">
+                              <SelectValue placeholder={t("board.washer.placeholder")} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={UNASSIGNED}>
+                                {t("board.washer.unassigned")}
+                              </SelectItem>
+                              {washers
+                                ?.filter((w) => w.isActive || w.id === ticket.assignedToWasherId)
+                                .map((washer) => (
+                                  <SelectItem key={washer.id} value={washer.id}>
+                                    {washer.fullName}
+                                    {!washer.isActive && ` (${t("washers.table.statusInactive")})`}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+
+                        {/* Lavador asignado — lectura en otros estados */}
+                        {showWasherPicker && column !== "Waiting" && ticket.assignedToName && (
+                          <span className="text-xs text-muted-foreground">
+                            👤 {ticket.assignedToName}
+                          </span>
+                        )}
+
+                        {/* Lavador (modo Solitario) */}
+                        {isSoloMode && ticket.assignedToName && (
+                          <span className="text-xs text-muted-foreground">
+                            👤 {ticket.assignedToName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )
           })}
@@ -438,16 +469,6 @@ export function CarwashBoardPage() {
       )}
 
       <CarwashRegisterTicketDialog open={registerOpen} onOpenChange={setRegisterOpen} />
-
-      <CarwashTipDialog
-        open={!!tipTarget}
-        onOpenChange={(open) => !open && setTipTarget(null)}
-        ticket={tipTarget}
-        tipMode={tipMode}
-        suggestedPercent={settings?.tipSuggestedPercent ?? 10}
-        isPending={advanceStatus.isPending}
-        onConfirm={handleConfirmTip}
-      />
     </div>
   )
 }

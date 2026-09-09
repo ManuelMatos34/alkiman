@@ -11,4 +11,7 @@ public interface ICarwashPortalLinkRepository
     Task<bool> SlugExistsAsync(string slug, CancellationToken cancellationToken = default);
     Task<Guid> CreateAsync(CarwashPortalLink link, CancellationToken cancellationToken = default);
     Task UpdateAsync(CarwashPortalLink link, CancellationToken cancellationToken = default);
+    Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+    /// <summary>true si algún ticket fue originado por este link (Source=Portal y AccessToken asociado). Impide borrar links que tienen historial.</summary>
+    Task<bool> HasTicketsAsync(Guid id, CancellationToken cancellationToken = default);
 }

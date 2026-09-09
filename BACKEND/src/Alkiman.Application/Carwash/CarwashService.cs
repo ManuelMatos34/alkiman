@@ -2,12 +2,11 @@ using System.Text;
 using Alkiman.Application.AuditLogs;
 using Alkiman.Application.Common.Exceptions;
 using Alkiman.Application.Common.Interfaces;
-using Alkiman.Application.Common.Modules;
-using Alkiman.Application.Common.Roles;
 using Alkiman.Application.Customers;
 using Alkiman.Application.Emails;
 using Alkiman.Application.Landlords;
-using Alkiman.Application.Modules;
+using Alkiman.Application.Payments.Gateways;
+using Alkiman.Application.Portal;
 using Alkiman.Application.Users;
 using Alkiman.Domain.Entities;
 using Alkiman.Domain.Enums;
@@ -56,10 +55,10 @@ public class CarwashService : ICarwashService
     private readonly ICustomerRepository _customerRepository;
     private readonly ILandlordRepository _landlordRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IModuleProvisioner _moduleProvisioner;
     private readonly ICurrentLandlordService _currentLandlord;
     private readonly IAuditLogService _auditLog;
     private readonly IEmailSender _emailSender;
+    private readonly IStripeGateway _stripeGateway;
 
     public CarwashService(
         ICarwashServiceRepository serviceRepository,
@@ -71,10 +70,10 @@ public class CarwashService : ICarwashService
         ICustomerRepository customerRepository,
         ILandlordRepository landlordRepository,
         IUserRepository userRepository,
-        IModuleProvisioner moduleProvisioner,
         ICurrentLandlordService currentLandlord,
         IAuditLogService auditLog,
-        IEmailSender emailSender)
+        IEmailSender emailSender,
+        IStripeGateway stripeGateway)
     {
         _serviceRepository = serviceRepository;
         _extraRepository = extraRepository;
@@ -85,10 +84,10 @@ public class CarwashService : ICarwashService
         _customerRepository = customerRepository;
         _landlordRepository = landlordRepository;
         _userRepository = userRepository;
-        _moduleProvisioner = moduleProvisioner;
         _currentLandlord = currentLandlord;
         _auditLog = auditLog;
         _emailSender = emailSender;
+        _stripeGateway = stripeGateway;
     }
 
     // ============================================================
@@ -137,17 +136,13 @@ public class CarwashService : ICarwashService
 
         await _settingsRepository.UpsertAsync(settings, cancellationToken);
 
-        // En modo Empresa hace falta a quién asignarle los lavados: se siembra el
-        // rol de sistema "Lavador" para que el negocio pueda dar de alta usuarios
-        // sin tener que armar el rol y elegir permisos a mano. La definición del rol
-        // vive en ModuleProvisioningCatalog; acá solo se decide CUÁNDO crearlo,
-        // porque es el módulo el que sabe que en modo Solitario no hace falta.
-        if (request.OperationMode == CarwashOperationMode.Empresa)
-        {
-            await _moduleProvisioner.EnsureSystemRoleAsync(
-                landlordId, ModuleCodes.Carwash, SystemRoleNames.Washer, _currentLandlord.UserId, cancellationToken);
-        }
-        else
+        // En modo Empresa no se siembra nada. Antes se creaba acá el rol de sistema
+        // "Lavador"; se quitó porque le aparecía al negocio en el mantenimiento de
+        // roles sin haberlo pedido y, por ser IsSystem, tampoco lo podía borrar. Quien
+        // quiera un usuario que trabaje la cola arma el rol a mano con carwash.view y
+        // carwash.work. Ojo: quien lava NO necesita cuenta —es un CarwashWasher, una
+        // ficha del módulo—, así que el modo Empresa funciona igual sin ningún rol.
+        if (request.OperationMode != CarwashOperationMode.Empresa)
         {
             // En modo Solitario el que lava es el propio dueño, así que se le deja
             // cargada su ficha: sin ella el auto-asignado de AdvanceStatusAsync no
@@ -416,6 +411,15 @@ public class CarwashService : ICarwashService
         return ToPortalLinkResponse(link);
     }
 
+    public async Task DeletePortalLinkAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        var link = await GetOwnedPortalLinkOrThrowAsync(id, cancellationToken);
+        if (await _portalLinkRepository.HasTicketsAsync(link.Id, cancellationToken))
+            throw new AppValidationException("No se puede eliminar este link porque ya tiene turnos asociados. Desactívalo en su lugar.");
+        await _portalLinkRepository.DeleteAsync(link.Id, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Delete, "CWS_PortalLinks", link.Id.ToString(), link, null, cancellationToken);
+    }
+
     private async Task<CarwashPortalLink> GetOwnedPortalLinkOrThrowAsync(Guid id, CancellationToken cancellationToken)
     {
         var landlordId = await _currentLandlord.GetCurrentLandlordIdAsync(cancellationToken);
@@ -536,6 +540,7 @@ public class CarwashService : ICarwashService
             LandlordId = landlordId,
             FullName = fullName,
             Phone = Normalize(request.Phone),
+            Email = Normalize(request.Email),
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             CreatedBy = _currentLandlord.UserId
@@ -553,6 +558,7 @@ public class CarwashService : ICarwashService
 
         washer.FullName = fullName;
         washer.Phone = Normalize(request.Phone);
+        washer.Email = Normalize(request.Email);
         washer.IsActive = request.IsActive;
         washer.UpdatedAt = DateTime.UtcNow;
         washer.UpdatedBy = _currentLandlord.UserId;
@@ -639,7 +645,7 @@ public class CarwashService : ICarwashService
         var canDelete = !await _washerRepository.HasTicketsAsync(washer.Id, cancellationToken);
 
         return new CarwashWasherResponse(
-            washer.Id, washer.FullName, washer.Phone, washer.IsActive, canDelete);
+            washer.Id, washer.FullName, washer.Phone, washer.Email, washer.IsActive, canDelete);
     }
 
     /// <summary>
@@ -691,7 +697,7 @@ public class CarwashService : ICarwashService
             throw new ForbiddenException("El servicio no pertenece al negocio autenticado.");
 
         var now = DateTime.UtcNow;
-        var customer = await FindOrCreateCustomerAsync(
+        var customer = await CreateTicketCustomerAsync(
             landlordId, request.CustomerName, request.CustomerPhone, request.CustomerEmail, _currentLandlord.UserId, now, cancellationToken);
         var queueNumber = await _ticketRepository.GetNextQueueNumberAsync(landlordId, cancellationToken);
 
@@ -700,6 +706,7 @@ public class CarwashService : ICarwashService
             Id = Guid.NewGuid(),
             LandlordId = landlordId,
             CustomerId = customer.Id,
+            CustomerName = request.CustomerName.Trim(),
             ServiceId = service.Id,
             QueueNumber = queueNumber,
             VehiclePlate = NormalizePlate(request.VehiclePlate),
@@ -740,17 +747,20 @@ public class CarwashService : ICarwashService
         {
             case CarwashTicketStatus.InProgress:
                 ticket.StartedAt = now;
-                // En modo Solitario no hay a quién asignarle el trabajo: el ticket
-                // queda a nombre del único lavador del negocio, para que el historial
-                // y las métricas por persona funcionen igual que en modo Empresa sin
-                // pedirle al usuario un paso extra.
-                //
-                // La ficha se crea al elegir el modo (ver SaveSettingsAsync).
-                if (ticket.AssignedToWasherId is null && await IsSoloModeAsync(ticket.LandlordId, cancellationToken))
+                if (ticket.AssignedToWasherId is null)
                 {
-                    var soloWasher = await GetSoloWasherAsync(ticket.LandlordId, cancellationToken);
-                    if (soloWasher is not null)
-                        ticket.AssignedToWasherId = soloWasher.Id;
+                    // En modo Solitario el único lavador activo se auto-asigna.
+                    if (await IsSoloModeAsync(ticket.LandlordId, cancellationToken))
+                    {
+                        var soloWasher = await GetSoloWasherAsync(ticket.LandlordId, cancellationToken);
+                        if (soloWasher is not null)
+                            ticket.AssignedToWasherId = soloWasher.Id;
+                    }
+                    else
+                    {
+                        // Modo Empresa: el encargado debe asignar un lavador antes de iniciar.
+                        throw new AppValidationException("Debes asignar un lavador antes de iniciar el lavado.");
+                    }
                 }
                 break;
             case CarwashTicketStatus.Ready:
@@ -768,6 +778,50 @@ public class CarwashService : ICarwashService
         await _auditLog.LogAsync(AuditActionType.Update, "CWS_Tickets", ticket.Id.ToString(), null, ticket, cancellationToken);
 
         await TryNotifyCustomerAsync(ticket, cancellationToken);
+
+        if (ticket.Status == CarwashTicketStatus.Delivered)
+        {
+            await TrySendInvoiceAsync(ticket, cancellationToken);
+            await TrySendWasherTipNotificationAsync(ticket, cancellationToken);
+        }
+
+        return await ToTicketResponseAsync(ticket, cancellationToken);
+    }
+
+    /// <summary>Retrocede el estado al paso anterior. Útil cuando el encargado avanzó por error.</summary>
+    public async Task<CarwashTicketResponse> GoBackStatusAsync(Guid ticketId, CancellationToken cancellationToken = default)
+    {
+        var ticket = await GetOwnedTicketOrThrowAsync(ticketId, cancellationToken);
+
+        var previousStatus = ticket.Status switch
+        {
+            CarwashTicketStatus.InProgress => CarwashTicketStatus.Waiting,
+            CarwashTicketStatus.Drying     => CarwashTicketStatus.InProgress,
+            CarwashTicketStatus.Waxing     => CarwashTicketStatus.Drying,
+            CarwashTicketStatus.Ready      => CarwashTicketStatus.Drying,
+            _ => throw new AppValidationException($"No se puede retroceder desde el estado '{ticket.Status}'.")
+        };
+
+        var now = DateTime.UtcNow;
+        ticket.Status = previousStatus;
+
+        // Limpiar timestamps del estado que se deshace
+        switch (previousStatus)
+        {
+            case CarwashTicketStatus.Waiting:
+                ticket.StartedAt = null;
+                break;
+            case CarwashTicketStatus.InProgress:
+            case CarwashTicketStatus.Drying:
+                ticket.ReadyAt = null;
+                break;
+        }
+
+        ticket.UpdatedAt = now;
+        ticket.UpdatedBy = _currentLandlord.UserId;
+
+        await _ticketRepository.UpdateAsync(ticket, cancellationToken);
+        await _auditLog.LogAsync(AuditActionType.Update, "CWS_Tickets", ticket.Id.ToString(), null, ticket, cancellationToken);
 
         return await ToTicketResponseAsync(ticket, cancellationToken);
     }
@@ -866,9 +920,22 @@ public class CarwashService : ICarwashService
     /// Sin propina (null o 0) las dos columnas quedan en null. Un 0 explícito y un
     /// null significan lo mismo para el negocio, y guardar sólo una de las dos
     /// formas evita que el ranking tenga que decidir cuál es cuál.
+    ///
+    /// Los turnos del portal son la excepción: su propina ya se cobró por la
+    /// pasarela al reservar y el monto no se toca acá. El tablero ni siquiera
+    /// pregunta en esos casos, así que <paramref name="tipAmount"/> llegaría en
+    /// null y borraría plata realmente cobrada. Lo único que sí falta congelar es
+    /// a quién se le atribuye, porque al reservar todavía no había lavador.
     /// </summary>
     private static void ApplyTip(CarwashTicket ticket, decimal? tipAmount)
     {
+        if (ticket.TipPrepaid)
+        {
+            if (ticket.TipAmount is > 0m)
+                ticket.TipWasherId = ticket.AssignedToWasherId;
+            return;
+        }
+
         if (tipAmount is null or <= 0m)
         {
             if (tipAmount < 0m)
@@ -914,7 +981,16 @@ public class CarwashService : ICarwashService
     private async Task<CarwashTicketResponse> ToTicketResponseAsync(
         CarwashTicket ticket, IReadOnlyList<CarwashTicketExtra> extras, CancellationToken cancellationToken)
     {
-        var customer = await _customerRepository.GetByIdAsync(ticket.CustomerId, cancellationToken);
+        // CustomerName es el snapshot guardado al registrar el ticket.
+        // Se cae al lookup en CRM_Customers solo para tickets históricos que
+        // migraron antes de que existiera la columna (valor NULL).
+        var customerName = ticket.CustomerName;
+        if (string.IsNullOrWhiteSpace(customerName))
+        {
+            var customer = await _customerRepository.GetByIdAsync(ticket.CustomerId, cancellationToken);
+            customerName = customer?.FullName;
+        }
+
         var service = await _serviceRepository.GetByIdAsync(ticket.ServiceId, cancellationToken);
 
         string? assignedToName = null;
@@ -934,14 +1010,14 @@ public class CarwashService : ICarwashService
         return new CarwashTicketResponse(
             ticket.Id, ticket.QueueNumber, ticket.VehiclePlate,
             ticket.VehicleBrand, ticket.VehicleModel, ticket.VehicleYear, ticket.VehicleColor,
-            ticket.CustomerId, customer?.FullName ?? "—", customer?.Phone,
+            ticket.CustomerId, customerName ?? "—", null,
             ticket.ServiceId, service?.Name ?? "—", ticket.ServicePrice,
             ToExtraResponses(extras), CalculateTotal(ticket.ServicePrice, extras),
             ticket.AssignedToWasherId, assignedToName,
             ticket.Status, ticket.Source,
             ticket.ArrivalDeadline, ticket.ArrivedAt, ticket.StartedAt, ticket.ReadyAt, ticket.DeliveredAt, ticket.CancelledAt,
             ticket.Notes,
-            ticket.TipAmount, ticket.TipWasherId, tipWasherName,
+            ticket.TipAmount, ticket.TipWasherId, tipWasherName, ticket.TipPrepaid,
             ticket.CreatedAt);
     }
 
@@ -963,6 +1039,7 @@ public class CarwashService : ICarwashService
         var activeServices = services.Where(s => s.IsActive).Select(ToServiceResponse).ToList();
         var extras = await _extraRepository.GetAllByLandlordAsync(link.LandlordId, cancellationToken);
         var activeExtras = extras.Where(e => e.IsActive).Select(ToExtraResponse).ToList();
+        var settings = await _settingsRepository.GetByLandlordAsync(link.LandlordId, cancellationToken);
 
         return new PublicCarwashLinkResponse(
             link.Title,
@@ -971,7 +1048,10 @@ public class CarwashService : ICarwashService
             landlord?.ThemeMode ?? "light",
             landlord?.AccentColor ?? "blue",
             activeServices,
-            activeExtras);
+            activeExtras,
+            settings?.TipMode ?? CarwashTipMode.Optional,
+            settings?.TipSuggestedPercent ?? DefaultTipSuggestedPercent,
+            _stripeGateway.IsConfigured);
     }
 
     public async Task<PublicTicketStatusResponse> JoinQueueBySlugAsync(string slug, PublicJoinQueueRequest request, CancellationToken cancellationToken = default)
@@ -989,7 +1069,7 @@ public class CarwashService : ICarwashService
             throw new AppValidationException("El servicio seleccionado no está disponible.");
 
         var now = DateTime.UtcNow;
-        var customer = await FindOrCreateCustomerAsync(
+        var customer = await CreateTicketCustomerAsync(
             link.LandlordId, request.CustomerName, request.CustomerPhone, request.CustomerEmail, PortalCreatedBy, now, cancellationToken);
         var queueNumber = await _ticketRepository.GetNextQueueNumberAsync(link.LandlordId, cancellationToken);
 
@@ -998,6 +1078,7 @@ public class CarwashService : ICarwashService
             Id = Guid.NewGuid(),
             LandlordId = link.LandlordId,
             CustomerId = customer.Id,
+            CustomerName = request.CustomerName.Trim(),
             ServiceId = service.Id,
             QueueNumber = queueNumber,
             VehiclePlate = NormalizePlate(request.VehiclePlate),
@@ -1018,11 +1099,122 @@ public class CarwashService : ICarwashService
 
         var extras = await BuildTicketExtrasAsync(link.LandlordId, ticket.Id, request.ExtraIds, cancellationToken);
 
+        await ApplyPortalPaymentAsync(ticket, service.Price, extras, request, cancellationToken);
+
         await _ticketRepository.CreateAsync(ticket, cancellationToken);
         await _ticketRepository.AddExtrasAsync(extras, cancellationToken);
 
         var landlord = await _landlordRepository.GetByIdAsync(link.LandlordId, cancellationToken);
         return ToPublicStatus(ticket, service.Name, extras, landlord);
+    }
+
+    /// <summary>
+    /// Sella en el turno lo que el cliente pagó online, pero sólo después de
+    /// confirmarlo contra Stripe.
+    ///
+    /// Todo lo que llega en el request viene de un endpoint público: el monto, la
+    /// propina y la referencia son afirmaciones del navegador, no hechos. Por eso
+    /// el total se recalcula acá con los precios del catálogo y se contrasta
+    /// contra lo que el gateway dice que realmente entró. Sin ese contraste,
+    /// alguien podría reservar un lavado completo pagando un peso.
+    ///
+    /// Si no viene provider, el turno es de los que se pagan en el mostrador y
+    /// las columnas de pago quedan intactas: eso es lo que pasa cuando el negocio
+    /// todavía no tiene Stripe configurado.
+    /// </summary>
+    private async Task ApplyPortalPaymentAsync(
+        CarwashTicket ticket,
+        decimal servicePrice,
+        IReadOnlyList<CarwashTicketExtra> extras,
+        PublicJoinQueueRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.PaymentProvider))
+        {
+            // Sin pasarela no hay propina que valga: aceptar un TipAmount suelto
+            // acá anotaría plata que nadie entregó, justo lo que el ranking de
+            // lavadores no debe contener. La propina en efectivo se registra al
+            // entregar el vehículo, como siempre.
+            return;
+        }
+
+        if (request.TipAmount < 0m)
+            throw new AppValidationException("La propina no puede ser negativa.");
+
+        var tip = request.TipAmount is > 0m
+            ? decimal.Round(request.TipAmount.Value, 2, MidpointRounding.AwayFromZero)
+            : (decimal?)null;
+
+        var charged = CalculateTotal(servicePrice, extras) + (tip ?? 0m);
+
+        if (string.IsNullOrWhiteSpace(request.PaymentReference))
+            throw new AppValidationException("El pago no pudo verificarse. Intenta nuevamente.");
+
+        if (!string.Equals(request.PaymentProvider, "Stripe", StringComparison.Ordinal))
+            throw new AppValidationException("Proveedor de pago no soportado.");
+
+        var intent = await _stripeGateway.GetPaymentIntentAsync(request.PaymentReference, cancellationToken);
+        var expectedAmountInCents = PortalPaymentService.ToGatewayAmountInCents(charged);
+        if (intent is null
+            || !string.Equals(intent.Status, "succeeded", StringComparison.OrdinalIgnoreCase)
+            || intent.AmountInCents != expectedAmountInCents)
+            throw new AppValidationException("El pago no pudo verificarse. Intenta nuevamente.");
+
+        ticket.TipAmount = tip;
+        // TipPrepaid se marca aunque la propina sea null: lo que la bandera
+        // significa es "por esta vía ya se preguntó y se cobró", y un cliente que
+        // eligió no dejar propina tampoco debe volver a ser consultado en la caja.
+        ticket.TipPrepaid = true;
+        ticket.PaymentProvider = request.PaymentProvider;
+        ticket.PaymentReference = request.PaymentReference;
+        ticket.PaidAmount = charged;
+
+        // TipWasherId queda en null a propósito: al reservar todavía no hay
+        // lavador asignado. Se congela al entregar, que es cuando ya se sabe
+        // quién hizo el trabajo.
+    }
+
+    public Task<CarwashPublicPaymentConfigResponse> GetPublicPaymentConfigAsync(string slug, CancellationToken cancellationToken = default)
+        // Igual que en el Portal de Rentas: no se valida el link acá porque la
+        // pasarela tiene que poder cargar aunque todavía no existan credenciales.
+        => Task.FromResult(new CarwashPublicPaymentConfigResponse(
+            _stripeGateway.IsConfigured ? _stripeGateway.PublishableKey : null,
+            PortalPaymentService.SandboxCurrency));
+
+    public async Task<CarwashStripeIntentResponse> CreatePublicStripeIntentAsync(
+        string slug, CarwashPaymentIntentRequest request, CancellationToken cancellationToken = default)
+    {
+        if (!_stripeGateway.IsConfigured)
+            throw new AppValidationException("El pago en línea no está disponible. Contacta al negocio.");
+
+        var link = await GetActiveLinkOrThrowAsync(slug, cancellationToken);
+
+        var service = await _serviceRepository.GetByIdAsync(request.ServiceId, cancellationToken)
+            ?? throw new NotFoundException(nameof(CarwashServiceItem), request.ServiceId);
+        if (service.LandlordId != link.LandlordId || !service.IsActive)
+            throw new AppValidationException("El servicio seleccionado no está disponible.");
+
+        if (request.TipAmount < 0m)
+            throw new AppValidationException("La propina no puede ser negativa.");
+
+        // El TicketId todavía no existe (el turno se crea recién al confirmar el
+        // pago), así que se usa uno descartable sólo para reusar la validación de
+        // extras contra el catálogo del negocio.
+        var extras = await BuildTicketExtrasAsync(link.LandlordId, Guid.Empty, request.ExtraIds, cancellationToken);
+
+        var tip = request.TipAmount is > 0m
+            ? decimal.Round(request.TipAmount.Value, 2, MidpointRounding.AwayFromZero)
+            : 0m;
+        var amount = CalculateTotal(service.Price, extras) + tip;
+
+        if (amount <= 0m)
+            throw new AppValidationException("El monto a pagar debe ser mayor que cero.");
+
+        var result = await _stripeGateway.CreatePaymentIntentAsync(
+            PortalPaymentService.ToGatewayAmountInCents(amount), "usd", cancellationToken);
+
+        return new CarwashStripeIntentResponse(
+            result.PaymentIntentId, result.ClientSecret, amount, PortalPaymentService.SandboxCurrency);
     }
 
     public async Task<PublicTicketStatusResponse> GetTicketByTokenAsync(Guid accessToken, CancellationToken cancellationToken = default)
@@ -1112,36 +1304,16 @@ public class CarwashService : ICarwashService
     /// PortalService.FindOrCreateCustomerAsync (ahí matchea por Email porque el portal de
     /// rentas lo exige; acá el dato más confiable que siempre se pide es el teléfono).
     /// </summary>
-    private async Task<Customer> FindOrCreateCustomerAsync(
+    private async Task<Customer> CreateTicketCustomerAsync(
         Guid landlordId, string customerName, string? phone, string? email, string createdBy, DateTime now, CancellationToken cancellationToken)
     {
-        var normalizedPhone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim();
-        var normalizedEmail = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
-
-        var existingCustomers = await _customerRepository.GetAllByLandlordAsync(landlordId, cancellationToken);
-
-        Customer? existing = null;
-        if (normalizedPhone is not null)
-        {
-            existing = existingCustomers.FirstOrDefault(c =>
-                !string.IsNullOrWhiteSpace(c.Phone) && string.Equals(c.Phone.Trim(), normalizedPhone, StringComparison.OrdinalIgnoreCase));
-        }
-        if (existing is null && normalizedEmail is not null)
-        {
-            existing = existingCustomers.FirstOrDefault(c =>
-                !string.IsNullOrWhiteSpace(c.Email) && string.Equals(c.Email.Trim(), normalizedEmail, StringComparison.OrdinalIgnoreCase));
-        }
-
-        if (existing is not null)
-            return existing;
-
         var customer = new Customer
         {
             Id = Guid.NewGuid(),
             LandlordId = landlordId,
             FullName = customerName.Trim(),
-            Phone = normalizedPhone,
-            Email = normalizedEmail,
+            Phone = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim(),
+            Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim(),
             CreatedAt = now,
             CreatedBy = createdBy
         };
@@ -1159,15 +1331,258 @@ public class CarwashService : ICarwashService
                 return;
 
             var subject = $"Tu vehículo {ticket.VehiclePlate} — {StatusLabel(ticket.Status)}";
-            var body = $"Hola {customer.FullName}, el estado de tu vehículo ({ticket.VehiclePlate}) cambió a: {StatusLabel(ticket.Status)}.";
-            if (ticket.Status == CarwashTicketStatus.ArrivalPending && ticket.ArrivalDeadline.HasValue)
-                body += $" Tenés hasta las {ticket.ArrivalDeadline:HH:mm} para llegar.";
+
+            var deadlineNote = ticket.Status == CarwashTicketStatus.ArrivalPending && ticket.ArrivalDeadline.HasValue
+                ? $"Tienes hasta las <strong>{ticket.ArrivalDeadline:HH:mm}</strong> para llegar."
+                : string.Empty;
+
+            var body = EmailTemplate.Build(
+                title: "Actualización de estado",
+                greeting: $"Hola {customer.FullName},",
+                paragraphs: string.IsNullOrEmpty(deadlineNote)
+                    ? [$"El estado de tu vehículo <strong>{ticket.VehiclePlate}</strong> cambió a: <strong>{StatusLabel(ticket.Status)}</strong>."]
+                    : [$"El estado de tu vehículo <strong>{ticket.VehiclePlate}</strong> cambió a: <strong>{StatusLabel(ticket.Status)}</strong>.", deadlineNote]);
 
             await _emailSender.SendAsync(customer.Email, customer.FullName, subject, body, cancellationToken);
         }
         catch
         {
             // Best effort: un fallo de notificación nunca debe bloquear el cambio de estado del ticket.
+        }
+    }
+
+    /// <summary>
+    /// Notifica al lavador cuando recibe una propina. Best-effort: nunca lanza.
+    /// Solo envía si el lavador tiene email registrado y la propina es > 0.
+    /// </summary>
+    private async Task TrySendWasherTipNotificationAsync(CarwashTicket ticket, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (ticket.TipWasherId is null || (ticket.TipAmount ?? 0) <= 0)
+                return;
+
+            var washer = await _washerRepository.GetByIdAsync(ticket.TipWasherId.Value, cancellationToken);
+            if (washer is null || string.IsNullOrWhiteSpace(washer.Email))
+                return;
+
+            var landlord = await _landlordRepository.GetByIdAsync(ticket.LandlordId, cancellationToken);
+            var businessName = landlord?.BusinessName ?? "Alkiman";
+
+            var tip = ticket.TipAmount!.Value;
+            var todayTotal = await _ticketRepository.GetTodayTipsByWasherAsync(washer.Id, cancellationToken);
+
+            var html = $"""
+                <!DOCTYPE html>
+                <html lang="es">
+                <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+                <body style="margin:0;padding:0;background:#f3f4f6;font-family:system-ui,-apple-system,sans-serif;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px;">
+                    <tr><td align="center">
+                      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+
+                        <tr>
+                          <td style="background:#059669;padding:28px 32px;text-align:center;">
+                            <p style="margin:0;font-size:28px;">💸</p>
+                            <p style="margin:8px 0 0;font-size:20px;font-weight:700;color:#ffffff;">¡Recibiste una propina!</p>
+                            <p style="margin:4px 0 0;font-size:13px;color:#d1fae5;">{businessName}</p>
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <td style="padding:28px 32px;">
+                            <p style="margin:0 0 20px;font-size:15px;color:#374151;">
+                              Hola <strong>{washer.FullName.Split(' ')[0]}</strong>, el cliente del turno <strong>#{ticket.QueueNumber}</strong>
+                              ({ticket.VehiclePlate}) te dejó una propina:
+                            </p>
+
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:20px;margin-bottom:20px;">
+                              <tr>
+                                <td style="font-size:13px;color:#065f46;">Propina este turno</td>
+                                <td style="font-size:24px;font-weight:700;color:#059669;text-align:right;">{tip:C}</td>
+                              </tr>
+                              <tr>
+                                <td colspan="2" style="padding-top:12px;border-top:1px solid #bbf7d0;"></td>
+                              </tr>
+                              <tr>
+                                <td style="padding-top:8px;font-size:13px;color:#065f46;">Total hoy</td>
+                                <td style="padding-top:8px;font-size:16px;font-weight:600;color:#059669;text-align:right;">{todayTotal:C}</td>
+                              </tr>
+                            </table>
+
+                            <p style="margin:0;font-size:13px;color:#6b7280;text-align:center;">
+                              ¡Sigue así, {washer.FullName.Split(' ')[0]}! 🚗✨
+                            </p>
+                          </td>
+                        </tr>
+
+                        <tr>
+                          <td style="background:#f9fafb;padding:16px 32px;text-align:center;border-top:1px solid #e5e7eb;">
+                            <p style="margin:0;font-size:12px;color:#9ca3af;">Notificación automática de {businessName}</p>
+                          </td>
+                        </tr>
+
+                      </table>
+                    </td></tr>
+                  </table>
+                </body>
+                </html>
+                """;
+
+            var subject = $"💸 ¡Propina de {tip:C}! — {businessName}";
+            await _emailSender.SendAsync(washer.Email, washer.FullName, subject, html, cancellationToken);
+        }
+        catch
+        {
+            // Best effort: si falla la notificación, el ticket ya está entregado.
+        }
+    }
+
+    /// <summary>
+    /// Envía la factura/recibo del lavado al cliente cuando el ticket pasa a Delivered.
+    /// Best-effort: nunca lanza. Solo envía si el cliente tiene email registrado.
+    /// </summary>
+    private async Task TrySendInvoiceAsync(CarwashTicket ticket, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var customer = await _customerRepository.GetByIdAsync(ticket.CustomerId, cancellationToken);
+            if (customer is null || string.IsNullOrWhiteSpace(customer.Email))
+                return;
+
+            var landlord = await _landlordRepository.GetByIdAsync(ticket.LandlordId, cancellationToken);
+            var service  = await _serviceRepository.GetByIdAsync(ticket.ServiceId, cancellationToken);
+            var extras   = await _ticketRepository.GetExtrasByTicketIdsAsync([ticket.Id], cancellationToken);
+
+            var businessName = landlord?.BusinessName ?? "Alkiman";
+            var serviceName  = service?.Name ?? "Servicio";
+            var deliveredAt  = (ticket.DeliveredAt ?? DateTime.UtcNow).ToLocalTime();
+
+            // ── Cálculo de totales ────────────────────────────────────────────────
+            var extrasTotal = extras.Sum(e => e.Price);
+            var subtotal    = ticket.ServicePrice + extrasTotal;
+            var tip         = ticket.TipAmount ?? 0m;
+            var total       = subtotal + tip;
+
+            // ── Filas de extras ───────────────────────────────────────────────────
+            var extraRows = string.Concat(extras.Select(e =>
+                $"""
+                <tr>
+                  <td style="padding:6px 0;color:#374151;">{e.Name}</td>
+                  <td style="padding:6px 0;text-align:right;color:#374151;">{e.Price:C}</td>
+                </tr>
+                """));
+
+            var tipRow = tip > 0
+                ? $"""
+                  <tr>
+                    <td style="padding:6px 0;color:#374151;">Propina</td>
+                    <td style="padding:6px 0;text-align:right;color:#374151;">{tip:C}</td>
+                  </tr>
+                  """
+                : string.Empty;
+
+            // ── Datos del vehículo (solo los que se cargaron) ─────────────────────
+            var vehicleDetails = new[]
+            {
+                ticket.VehicleBrand, ticket.VehicleModel,
+                ticket.VehicleYear?.ToString(), ticket.VehicleColor
+            };
+            var vehicleLine = string.Join(" · ", vehicleDetails.Where(v => !string.IsNullOrWhiteSpace(v)));
+
+            // ── HTML del recibo ───────────────────────────────────────────────────
+            var html = $"""
+                <!DOCTYPE html>
+                <html lang="es">
+                <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+                <body style="margin:0;padding:0;background:#f3f4f6;font-family:system-ui,-apple-system,sans-serif;">
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px;">
+                    <tr><td align="center">
+                      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);">
+
+                        <!-- Cabecera -->
+                        <tr>
+                          <td style="background:#7c3aed;padding:28px 32px;text-align:center;">
+                            <p style="margin:0;font-size:22px;font-weight:700;color:#ffffff;">{businessName}</p>
+                            <p style="margin:6px 0 0;font-size:13px;color:#ede9fe;">Recibo de servicio de lavado</p>
+                          </td>
+                        </tr>
+
+                        <!-- Cuerpo -->
+                        <tr>
+                          <td style="padding:28px 32px;">
+
+                            <!-- Meta -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+                              <tr>
+                                <td style="font-size:13px;color:#6b7280;">Turno <strong style="color:#111827;">#{ticket.QueueNumber}</strong></td>
+                                <td style="font-size:13px;color:#6b7280;text-align:right;">{deliveredAt:dd/MM/yyyy HH:mm}</td>
+                              </tr>
+                            </table>
+
+                            <!-- Cliente y vehículo -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;padding:16px;margin-bottom:24px;">
+                              <tr>
+                                <td style="font-size:13px;color:#6b7280;padding-bottom:4px;">Cliente</td>
+                              </tr>
+                              <tr>
+                                <td style="font-size:15px;font-weight:600;color:#111827;">{customer.FullName}</td>
+                              </tr>
+                              <tr>
+                                <td style="padding-top:12px;font-size:13px;color:#6b7280;padding-bottom:4px;">Vehículo</td>
+                              </tr>
+                              <tr>
+                                <td style="font-size:15px;font-weight:600;color:#111827;letter-spacing:.05em;">{ticket.VehiclePlate}</td>
+                              </tr>
+                              {(string.IsNullOrWhiteSpace(vehicleLine) ? "" : $"""
+                              <tr>
+                                <td style="font-size:13px;color:#6b7280;padding-top:2px;">{vehicleLine}</td>
+                              </tr>
+                              """)}
+                            </table>
+
+                            <!-- Detalle de servicios -->
+                            <p style="margin:0 0 8px;font-size:13px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Detalle</p>
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #e5e7eb;">
+                              <tr>
+                                <td style="padding:6px 0;color:#374151;">{serviceName}</td>
+                                <td style="padding:6px 0;text-align:right;color:#374151;">{ticket.ServicePrice:C}</td>
+                              </tr>
+                              {extraRows}
+                              {tipRow}
+                              <tr>
+                                <td colspan="2" style="padding-top:8px;border-top:2px solid #e5e7eb;"></td>
+                              </tr>
+                              <tr>
+                                <td style="padding:4px 0;font-size:16px;font-weight:700;color:#111827;">Total</td>
+                                <td style="padding:4px 0;text-align:right;font-size:16px;font-weight:700;color:#7c3aed;">{total:C}</td>
+                              </tr>
+                            </table>
+
+                          </td>
+                        </tr>
+
+                        <!-- Pie -->
+                        <tr>
+                          <td style="background:#f9fafb;padding:20px 32px;text-align:center;border-top:1px solid #e5e7eb;">
+                            <p style="margin:0;font-size:13px;color:#6b7280;">¡Gracias por tu preferencia, {customer.FullName.Split(' ')[0]}!</p>
+                            <p style="margin:4px 0 0;font-size:12px;color:#9ca3af;">Este recibo fue generado automáticamente por {businessName}.</p>
+                          </td>
+                        </tr>
+
+                      </table>
+                    </td></tr>
+                  </table>
+                </body>
+                </html>
+                """;
+
+            var subject = $"Recibo de lavado — {ticket.VehiclePlate} · {businessName}";
+            await _emailSender.SendAsync(customer.Email, customer.FullName, subject, html, cancellationToken);
+        }
+        catch
+        {
+            // Best effort: si el envío de la factura falla, el ticket ya está entregado.
         }
     }
 

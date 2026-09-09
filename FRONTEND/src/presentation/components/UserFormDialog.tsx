@@ -202,9 +202,9 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("formDialog.fields.role")}</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
+                  <Select value={field.value} onValueChange={field.onChange} disabled={isEditing && user?.isOwner}>
                     <FormControl>
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger className="w-full" disabled={isEditing && user?.isOwner}>
                         <SelectValue placeholder={t("formDialog.placeholders.role")} />
                       </SelectTrigger>
                     </FormControl>
@@ -220,6 +220,10 @@ export function UserFormDialog({ open, onOpenChange, user }: UserFormDialogProps
                 </FormItem>
               )}
             />
+
+            {isEditing && user?.isOwner && (
+              <p className="text-sm text-muted-foreground">{t("formDialog.ownerNote")}</p>
+            )}
 
             {isEditing && !user?.isOwner && (
               <FormField

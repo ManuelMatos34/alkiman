@@ -33,9 +33,10 @@ import {
 import { useCarwashServices } from "@/application/carwash/useCarwashServices"
 import { useCarwashExtras } from "@/application/carwash/useCarwashExtras"
 import { useRegisterTicket } from "@/application/carwash/useRegisterTicket"
+import { useVehicleMakes } from "@/application/vehicles/useVehicleMakes"
+import { useVehicleModels } from "@/application/vehicles/useVehicleModels"
+import { VEHICLE_YEARS, VEHICLE_COLORS } from "@/domain/constants/vehicleOptions"
 import { getIntlLocale } from "@/infrastructure/i18n/localeMap"
-
-const CURRENT_YEAR = new Date().getFullYear()
 
 function buildRegisterTicketFormSchema(t: TFunction) {
   return z.object({
@@ -59,21 +60,10 @@ function buildRegisterTicketFormSchema(t: TFunction) {
       .trim()
       .min(1, t("board.registerDialog.validation.vehiclePlateRequired"))
       .max(20, t("board.registerDialog.validation.vehiclePlateMax")),
-    vehicleBrand: z.string().trim().max(60, t("vehicle.validation.brandMax")).optional(),
-    vehicleModel: z.string().trim().max(60, t("vehicle.validation.modelMax")).optional(),
-    vehicleYear: z
-      .union([
-        z.literal(""),
-        z
-          .string()
-          .regex(/^\d{4}$/, t("vehicle.validation.yearInvalid"))
-          .refine(
-            (value) => Number(value) >= 1900 && Number(value) <= CURRENT_YEAR + 1,
-            t("vehicle.validation.yearRange", { min: 1900, max: CURRENT_YEAR + 1 })
-          ),
-      ])
-      .optional(),
-    vehicleColor: z.string().trim().max(40, t("vehicle.validation.colorMax")).optional(),
+    vehicleBrand: z.string().optional(),
+    vehicleModel: z.string().optional(),
+    vehicleYear: z.string().optional(),
+    vehicleColor: z.string().optional(),
   })
 }
 
@@ -108,6 +98,7 @@ export function CarwashRegisterTicketDialog({
   const activeServices = services?.filter((service) => service.isActive) ?? []
   const activeExtras = extras?.filter((extra) => extra.isActive) ?? []
   const registerTicket = useRegisterTicket()
+  const { data: makes } = useVehicleMakes()
 
   const registerTicketFormSchema = useMemo(() => buildRegisterTicketFormSchema(t), [t])
 
@@ -125,6 +116,9 @@ export function CarwashRegisterTicketDialog({
   useEffect(() => {
     if (open) form.reset(EMPTY_FORM)
   }, [open, form])
+
+  const selectedMakeId = form.watch("vehicleBrand") ? Number(form.watch("vehicleBrand")) : null
+  const { data: models } = useVehicleModels(selectedMakeId)
 
   // Precio en vivo, para que el Encargado le pueda decir el total al cliente antes de confirmar.
   const selectedServiceId = form.watch("serviceId")
@@ -146,8 +140,8 @@ export function CarwashRegisterTicketDialog({
         serviceId: Number(values.serviceId),
         extraIds: values.extraIds,
         vehiclePlate: values.vehiclePlate,
-        vehicleBrand: values.vehicleBrand?.length ? values.vehicleBrand : null,
-        vehicleModel: values.vehicleModel?.length ? values.vehicleModel : null,
+        vehicleBrand: makes?.find((m) => String(m.id) === values.vehicleBrand)?.name ?? null,
+        vehicleModel: models?.find((m) => String(m.id) === values.vehicleModel)?.name ?? null,
         vehicleYear: values.vehicleYear?.length ? Number(values.vehicleYear) : null,
         vehicleColor: values.vehicleColor?.length ? values.vehicleColor : null,
       },
@@ -257,9 +251,26 @@ export function CarwashRegisterTicketDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("vehicle.fields.brand")}</FormLabel>
-                      <FormControl>
-                        <Input placeholder={t("vehicle.placeholders.brand")} {...field} />
-                      </FormControl>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value)
+                          form.setValue("vehicleModel", "")
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder={t("vehicle.placeholders.brand")} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent >
+                          {(makes ?? []).map((make) => (
+                            <SelectItem key={make.id} value={String(make.id)}>
+                              {make.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -271,9 +282,24 @@ export function CarwashRegisterTicketDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("vehicle.fields.model")}</FormLabel>
-                      <FormControl>
-                        <Input placeholder={t("vehicle.placeholders.model")} {...field} />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={!selectedMakeId}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder={t("vehicle.placeholders.model")} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent >
+                          {(models ?? []).map((model) => (
+                            <SelectItem key={model.id} value={String(model.id)}>
+                              {model.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -285,13 +311,20 @@ export function CarwashRegisterTicketDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("vehicle.fields.year")}</FormLabel>
-                      <FormControl>
-                        <Input
-                          inputMode="numeric"
-                          placeholder={t("vehicle.placeholders.year")}
-                          {...field}
-                        />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder={t("vehicle.placeholders.year")} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent >
+                          {VEHICLE_YEARS.map((year) => (
+                            <SelectItem key={year} value={year}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -303,9 +336,20 @@ export function CarwashRegisterTicketDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("vehicle.fields.color")}</FormLabel>
-                      <FormControl>
-                        <Input placeholder={t("vehicle.placeholders.color")} {...field} />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder={t("vehicle.placeholders.color")} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent >
+                          {VEHICLE_COLORS.map((color) => (
+                            <SelectItem key={color} value={color}>
+                              {color}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

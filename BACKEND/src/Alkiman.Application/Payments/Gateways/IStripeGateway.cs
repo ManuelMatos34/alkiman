@@ -19,8 +19,15 @@ public interface IStripeGateway
     /// </summary>
     Task<StripePaymentIntentResult> CreatePaymentIntentAsync(long amountInCents, string currency, CancellationToken cancellationToken = default);
 
-    /// <summary>Consulta el estado actual de un PaymentIntent ya creado, para verificarlo server-side antes de confirmar la renta.</summary>
-    Task<StripePaymentIntentStatus> GetPaymentIntentAsync(string paymentIntentId, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Consulta el estado actual de un PaymentIntent ya creado, para verificarlo server-side antes
+    /// de confirmar la renta o el turno.
+    ///
+    /// Devuelve null si Stripe no conoce ese id. Es un caso esperable, no una falla: la referencia
+    /// llega por un endpoint público y cualquiera puede inventarse una. Un error de red o de
+    /// credenciales sí propaga la excepción, porque eso sí es un problema del servidor.
+    /// </summary>
+    Task<StripePaymentIntentStatus?> GetPaymentIntentAsync(string paymentIntentId, CancellationToken cancellationToken = default);
 }
 
 /// <summary>Resultado de crear un PaymentIntent: lo que el frontend necesita para confirmar el pago con Stripe.js/Elements.</summary>

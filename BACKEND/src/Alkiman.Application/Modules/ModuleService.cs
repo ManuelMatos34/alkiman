@@ -49,6 +49,6 @@ public class ModuleService : IModuleService
             return;
 
         await _repository.EnableModuleAsync(landlordId, moduleCode, _currentLandlord.UserId, cancellationToken);
-        await _provisioner.ProvisionAsync(landlordId, moduleCode, _currentLandlord.UserId, cancellationToken);
+        await _provisioner.ProvisionAsync(landlordId, moduleCode, cancellationToken);
     }
 }

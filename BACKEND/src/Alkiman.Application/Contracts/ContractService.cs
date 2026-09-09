@@ -258,8 +258,16 @@ public class ContractService : IContractService
         var rentalLink = $"{baseUrl}/mi-renta/{rentalAccessToken}";
 
         const string subject = "Tu contrato de alquiler";
-        var body = $"Hola {customer.FullName}, adjuntamos el contrato de tu alquiler de \"{asset.Name}\". Gracias por confiar en nosotros."
-            + $"\n\nPuedes ver el detalle de tu renta, pedir una prórroga o cancelarla desde este link: {rentalLink}";
+        var body = EmailTemplate.Build(
+            title: "Tu contrato de alquiler",
+            greeting: $"Hola {customer.FullName},",
+            paragraphs:
+            [
+                $"Adjuntamos el contrato de tu alquiler de <strong>\"{asset.Name}\"</strong>. Gracias por confiar en nosotros.",
+                "Desde el portal puedes ver el detalle de tu renta, solicitar una prórroga o cancelarla cuando lo necesites."
+            ],
+            ctaLabel: "Ver mi renta",
+            ctaUrl: rentalLink);
 
         var result = await _emailSender.SendWithAttachmentsAsync(
             customer.Email!,

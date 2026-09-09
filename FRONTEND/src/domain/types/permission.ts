@@ -56,12 +56,59 @@ export const PermissionCodes = {
   RentalRequestsView: "rentalrequests.view",
   RentalRequestsManage: "rentalrequests.manage",
 
-  CarwashView: "carwash.view",
-  CarwashManage: "carwash.manage",
-  /** Avanzar vehículos en la cola. Lo tiene el rol Lavador, que NO puede administrar el catálogo. */
-  CarwashWork: "carwash.work",
-  /** Métricas, facturación y ranking de lavadores. Separado de CarwashView: ver la cola del día es operativo, ver cuánto factura el negocio no. */
+  // Carwash: Tablero
+  /** Ver el tablero y la cola de vehículos. */
+  CarwashBoardView: "carwash.board.view",
+  /** Avanzar y retroceder el estado de los vehículos. */
+  CarwashBoardWork: "carwash.board.work",
+  /** Registrar vehículos, asignar lavadores y cancelar turnos. */
+  CarwashBoardManage: "carwash.board.manage",
+
+  // Carwash: Caja
+  /** Procesar entregas y cobrar propinas. */
+  CarwashCaja: "carwash.caja",
+
+  // Carwash: Catálogo
+  /** Ver servicios y agregados. */
+  CarwashCatalogView: "carwash.catalog.view",
+  /** Crear, editar y eliminar servicios y agregados. */
+  CarwashCatalogManage: "carwash.catalog.manage",
+
+  // Carwash: Lavadores
+  /** Ver el directorio de lavadores. */
+  CarwashWashersView: "carwash.washers.view",
+  /** Agregar y editar lavadores, configurar propinas. */
+  CarwashWashersManage: "carwash.washers.manage",
+
+  // Carwash: Portal
+  /** Ver los links de portal público. */
+  CarwashPortalView: "carwash.portal.view",
+  /** Crear, activar y eliminar links de portal. */
+  CarwashPortalManage: "carwash.portal.manage",
+
+  // Carwash: Reportes
+  /** Ver métricas, facturación y ranking de lavadores. */
   CarwashReports: "carwash.reports",
+
+  // Barbería: Tablero
+  BarbershopBoardView:   "barbershop.board.view",
+  BarbershopBoardWork:   "barbershop.board.work",
+  BarbershopBoardManage: "barbershop.board.manage",
+
+  // Barbería: Catálogo
+  BarbershopCatalogView:   "barbershop.catalog.view",
+  BarbershopCatalogManage: "barbershop.catalog.manage",
+
+  // Barbería: Estilistas
+  BarbershopStylistsView:   "barbershop.stylists.view",
+  BarbershopStylistsManage: "barbershop.stylists.manage",
+
+  // Barbería: Portal
+  BarbershopPortalView:   "barbershop.portal.view",
+  BarbershopPortalManage: "barbershop.portal.manage",
+
+  // Barbería: Reportes
+  BarbershopReports: "barbershop.reports",
 } as const
 
 export type PermissionCode = (typeof PermissionCodes)[keyof typeof PermissionCodes]

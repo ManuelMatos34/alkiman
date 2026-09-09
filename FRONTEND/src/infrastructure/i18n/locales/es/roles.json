@@ -37,7 +37,10 @@
       "name": "Ej: Recepcionista",
       "description": "Opcional"
     },
-    "systemNote": "Este es un rol del sistema; su nombre y permisos no se pueden modificar."
+    "systemNote": "Este es un rol del sistema; su nombre y permisos no se pueden modificar.",
+    "platformGroup": "Plataforma",
+    "permissionsCounter": "{{selected}} de {{total}} seleccionados",
+    "selectAllGroup": "Seleccionar todos los permisos de {{module}}"
   },
   "validation": {
     "nameRequired": "El nombre es obligatorio",

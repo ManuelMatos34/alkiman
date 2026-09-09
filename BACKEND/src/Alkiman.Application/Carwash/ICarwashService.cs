@@ -24,6 +24,7 @@ public interface ICarwashService
     Task<IReadOnlyList<CarwashPortalLinkResponse>> GetPortalLinksAsync(CancellationToken cancellationToken = default);
     Task<CarwashPortalLinkResponse> CreatePortalLinkAsync(CreateCarwashPortalLinkRequest request, CancellationToken cancellationToken = default);
     Task<CarwashPortalLinkResponse> SetPortalLinkActiveAsync(Guid id, bool isActive, CancellationToken cancellationToken = default);
+    Task DeletePortalLinkAsync(Guid id, CancellationToken cancellationToken = default);
 
     // Directorio de lavadores (entidad propia del módulo, ver CarwashWasher)
     /// <summary>Todo el plantel, activos e inactivos: la pantalla de administración los muestra a todos.</summary>
@@ -39,6 +40,7 @@ public interface ICarwashService
     /// <summary>Asigna (o desasigna, pasando WasherId null) el lavador de un ticket. Solo tiene sentido en modo Empresa.</summary>
     Task<CarwashTicketResponse> AssignWasherAsync(Guid ticketId, AssignWasherRequest request, CancellationToken cancellationToken = default);
     Task<CarwashTicketResponse> AdvanceStatusAsync(Guid ticketId, AdvanceStatusRequest request, CancellationToken cancellationToken = default);
+    Task<CarwashTicketResponse> GoBackStatusAsync(Guid ticketId, CancellationToken cancellationToken = default);
     Task<CarwashTicketResponse> CancelTicketAsync(Guid ticketId, CancellationToken cancellationToken = default);
     Task<CarwashTicketResponse> MarkExpiredAsync(Guid ticketId, CancellationToken cancellationToken = default);
     /// <summary>"Llama" un turno de portal: Waiting -> ArrivalPending con ArrivalDeadline = ahora + deadlineMinutes (default 15).</summary>
@@ -50,4 +52,9 @@ public interface ICarwashService
     Task<PublicCarwashLinkResponse> GetPublicLinkAsync(string slug, CancellationToken cancellationToken = default);
     Task<PublicTicketStatusResponse> JoinQueueBySlugAsync(string slug, PublicJoinQueueRequest request, CancellationToken cancellationToken = default);
     Task<PublicTicketStatusResponse> GetTicketByTokenAsync(Guid accessToken, CancellationToken cancellationToken = default);
+
+    /// <summary>Clave publicable de Stripe para montar el formulario de tarjeta. Null si el negocio no tiene pago en línea: la pasarela entonces se salta ese paso.</summary>
+    Task<CarwashPublicPaymentConfigResponse> GetPublicPaymentConfigAsync(string slug, CancellationToken cancellationToken = default);
+    /// <summary>Inicia el cobro del turno. El monto lo calcula el servidor con los precios del catálogo, nunca el caller.</summary>
+    Task<CarwashStripeIntentResponse> CreatePublicStripeIntentAsync(string slug, CarwashPaymentIntentRequest request, CancellationToken cancellationToken = default);
 }

@@ -72,6 +72,14 @@ public class CustomerRepository : ICustomerRepository
         await connection.ExecuteAsync(sql, customer);
     }
 
+    public async Task UpdateNameAsync(Guid id, string fullName, CancellationToken cancellationToken = default)
+    {
+        using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        await connection.ExecuteAsync(
+            "UPDATE dbo.CRM_Customers SET FullName = @FullName WHERE Id = @Id",
+            new { Id = id, FullName = fullName });
+    }
+
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);

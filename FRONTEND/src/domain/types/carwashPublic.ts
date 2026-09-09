@@ -32,9 +32,26 @@ export interface CarwashPublicLink {
   linkTitle: string
   services: CarwashPublicService[]
   extras: CarwashPublicExtra[]
+  /** Política de propinas del negocio: decide si el paso de propina existe y con qué monto arranca. */
+  tipMode: CarwashTipMode
+  tipSuggestedPercent: number
+  /**
+   * false si el negocio no tiene Stripe configurado. La pasarela entonces omite
+   * el paso de pago y el turno se paga en el mostrador, como uno presencial.
+   */
+  paymentEnabled: boolean
 }
 
-/** Auto-registro del cliente en la cola desde el link público. */
+/** Ver `CarwashTipMode` en el backend. */
+export type CarwashTipMode = "Disabled" | "Optional" | "Suggested"
+
+/**
+ * Auto-registro del cliente en la cola desde el link público.
+ *
+ * Los tres últimos campos sólo viajan cuando el turno se pagó online. El
+ * servidor no los toma por buenos: recalcula el total y lo contrasta contra lo
+ * que Stripe dice que realmente se cobró.
+ */
 export interface JoinCarwashQueueRequest {
   customerName: string
   customerPhone?: string | null
@@ -46,6 +63,31 @@ export interface JoinCarwashQueueRequest {
   vehicleModel?: string | null
   vehicleYear?: number | null
   vehicleColor?: string | null
+  tipAmount?: number | null
+  paymentProvider?: string | null
+  paymentReference?: string | null
+}
+
+/** Config de pago del link público (espeja la del Portal de Rentas). */
+export interface CarwashPublicPaymentConfig {
+  /** null si el negocio no cobra en línea. */
+  stripePublishableKey: string | null
+  currency: string
+}
+
+/** Pedido de PaymentIntent: nunca lleva el total, ese lo calcula el servidor. */
+export interface CarwashPaymentIntentRequest {
+  serviceId: number
+  extraIds?: number[] | null
+  tipAmount?: number | null
+}
+
+/** `amount` es el total autoritativo del servidor: es lo que se va a cobrar. */
+export interface CarwashStripeIntent {
+  paymentIntentId: string
+  clientSecret: string
+  amount: number
+  currency: string
 }
 
 /**

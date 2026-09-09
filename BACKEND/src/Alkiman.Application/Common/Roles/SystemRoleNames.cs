@@ -5,15 +5,14 @@ namespace Alkiman.Application.Common.Roles;
 /// con OrdinalIgnoreCase porque el nombre es la única forma de identificarlos: la
 /// tabla no tiene una columna de "tipo de rol".
 ///
-/// IsSystem por sí solo NO alcanza para distinguirlos —Administrador y Lavador son
-/// los dos IsSystem— y confundirlos fue justamente lo que hizo que los scripts 16 y
-/// 17 repartieran permisos de Carwash a roles que no debían tenerlos.
+/// Hoy queda uno solo. El rol "Lavador" que sembraba Carwash se quitó (ver el
+/// script 25): sembrar roles automáticamente le llenaba el mantenimiento de roles
+/// al negocio con uno que no había pedido y que además no podía borrar por ser
+/// IsSystem. Quien necesite un usuario que trabaje la cola se arma el rol a mano
+/// con los permisos carwash.view y carwash.work.
 /// </summary>
 public static class SystemRoleNames
 {
     /// <summary>Dueño del negocio: recibe todos los permisos de los módulos habilitados.</summary>
     public const string Owner = "Administrador";
-
-    /// <summary>Rol operativo de Carwash: ve la cola y avanza vehículos, no administra el catálogo.</summary>
-    public const string Washer = "Lavador";
 }

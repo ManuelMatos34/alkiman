@@ -34,7 +34,8 @@ const resources = {
   en: toNamespaceResources(enModules),
 }
 
-export const LANGUAGE_STORAGE_KEY = "alkiman.language"
+/** Sólo lo consume el detector de acá abajo; el resto de la app cambia idioma con `i18n.changeLanguage`. */
+const LANGUAGE_STORAGE_KEY = "alkiman.language"
 
 void i18n
   .use(LanguageDetector)

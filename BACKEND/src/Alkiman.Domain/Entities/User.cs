@@ -34,6 +34,32 @@ public class User : IAuditable
     /// <summary>Vencimiento del <see cref="ResetToken"/> vigente.</summary>
     public DateTime? ResetTokenExpiresAt { get; set; }
 
+    /// <summary>
+    /// Identificador opaco del desafío de segundo factor en curso, o null si no hay
+    /// ninguno. Se lo entrega el login al frontend cuando la contraseña fue correcta
+    /// pero falta el código, y el frontend lo devuelve al verificar. Evita tener que
+    /// volver a mandar la contraseña en el segundo paso.
+    ///
+    /// Sólo puede haber uno vivo por usuario: pedir un código nuevo pisa el anterior.
+    /// </summary>
+    public string? TwoFactorChallengeToken { get; set; }
+
+    /// <summary>
+    /// Hash PBKDF2 del código de 6 dígitos enviado por correo. El código en claro no
+    /// se guarda nunca; sólo viaja en el correo.
+    /// </summary>
+    public string? TwoFactorCodeHash { get; set; }
+
+    /// <summary>Vencimiento del código actual. Vencido equivale a inexistente.</summary>
+    public DateTime? TwoFactorCodeExpiresAt { get; set; }
+
+    /// <summary>
+    /// Intentos fallidos contra el desafío actual. Al llegar al tope el desafío se
+    /// descarta y hay que empezar el login de nuevo: seis dígitos sin límite de
+    /// intentos son un millón de combinaciones que un script agota rápido.
+    /// </summary>
+    public int TwoFactorAttempts { get; set; }
+
     public DateTime CreatedAt { get; set; }
     public string CreatedBy { get; set; } = default!;
     public DateTime? UpdatedAt { get; set; }

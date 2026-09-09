@@ -19,6 +19,8 @@ import { PortalCheckoutPage } from "@/presentation/pages/PortalCheckoutPage"
 import { MyRentalPage } from "@/presentation/pages/MyRentalPage"
 import { CarwashPortalJoinPage } from "@/presentation/pages/CarwashPortalJoinPage"
 import { CarwashTicketStatusPage } from "@/presentation/pages/CarwashTicketStatusPage"
+import { BarbershopPortalPage } from "@/presentation/pages/BarbershopPortalPage"
+import { BarbershopAppointmentStatusPage } from "@/presentation/pages/BarbershopAppointmentStatusPage"
 import { NotFoundPage } from "@/presentation/pages/NotFoundPage"
 import { PermissionCodes } from "@/domain/types/permission"
 
@@ -40,6 +42,8 @@ function App() {
       <Route path="/mi-renta/:token" element={<MyRentalPage />} />
       <Route path="/lavado/:slug" element={<CarwashPortalJoinPage />} />
       <Route path="/lavado/turno/:token" element={<CarwashTicketStatusPage />} />
+      <Route path="/barberia/:slug" element={<BarbershopPortalPage />} />
+      <Route path="/barberia/cita/:token" element={<BarbershopAppointmentStatusPage />} />
 
       <Route element={<ProtectedRoute />}>
         <Route path="/cambiar-password" element={<ForcedChangePasswordPage />} />

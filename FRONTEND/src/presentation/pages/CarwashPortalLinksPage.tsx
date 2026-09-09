@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
-import { Plus, Copy, ExternalLink, CheckCircle2, XCircle } from "lucide-react"
+import { Plus, Copy, ExternalLink, CheckCircle2, XCircle, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -13,11 +13,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { CarwashPortalLinkFormDialog } from "@/presentation/components/CarwashPortalLinkFormDialog"
 import { TablePagination } from "@/presentation/components/TablePagination"
 import { usePagination } from "@/presentation/hooks/usePagination"
 import { useCarwashPortalLinks } from "@/application/carwash/useCarwashPortalLinks"
 import { useSetPortalLinkActive } from "@/application/carwash/useSetPortalLinkActive"
+import { useDeletePortalLink } from "@/application/carwash/useDeletePortalLink"
 import type { CarwashPortalLink } from "@/domain/types/carwash"
 
 function portalUrl(slug: string) {
@@ -34,7 +45,25 @@ export function CarwashPortalLinksPage() {
     10
   )
 
+  const deletePortalLink = useDeletePortalLink()
+
   const [formOpen, setFormOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<CarwashPortalLink | null>(null)
+
+  function handleConfirmDelete() {
+    if (!deleteTarget) return
+    deletePortalLink.mutate(deleteTarget.id, {
+      onSuccess: () => {
+        toast.success(t("portalLinks.toast.deleteSuccess"))
+        setDeleteTarget(null)
+      },
+      onError: (err: unknown) => {
+        const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+        toast.error(msg ?? t("portalLinks.toast.deleteError"))
+        setDeleteTarget(null)
+      },
+    })
+  }
 
   async function handleCopy(link: CarwashPortalLink) {
     try {
@@ -141,8 +170,16 @@ export function CarwashPortalLinksPage() {
                       {link.isActive ? (
                         <XCircle className="h-4 w-4 text-destructive" />
                       ) : (
-                        <CheckCircle2 className="h-4 w-4 text-primary" />
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                       )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      title={t("portalLinks.actions.delete")}
+                      onClick={() => setDeleteTarget(link)}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   </div>
                 </TableCell>
@@ -160,6 +197,27 @@ export function CarwashPortalLinksPage() {
       </div>
 
       <CarwashPortalLinkFormDialog open={formOpen} onOpenChange={setFormOpen} />
+
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("portalLinks.deleteDialog.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("portalLinks.deleteDialog.description", { title: deleteTarget?.title })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common:cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={handleConfirmDelete}
+              disabled={deletePortalLink.isPending}
+            >
+              {t("portalLinks.deleteDialog.confirm")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

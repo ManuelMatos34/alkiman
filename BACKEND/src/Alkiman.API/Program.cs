@@ -6,7 +6,6 @@ using Alkiman.API.Authentication;
 using Alkiman.API.Services;
 using Alkiman.Application;
 using Alkiman.Application.Common.Interfaces;
-using Alkiman.Application.Common.Modules;
 using Alkiman.Application.Common.Permissions;
 using Alkiman.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -52,10 +51,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         // entrando hasta que caduque su token. Acá se confirma contra la base.
         options.Events = ActiveUserJwtEvents.Create();
     });
-
-// Falla el arranque si un módulo declara un rol con un permiso que no existe o que es
-// de otro módulo. Mejor no levantar que descubrirlo el día que alguien compre el módulo.
-ModuleProvisioningCatalog.Validate();
 
 // Falla el arranque si un endpoint exige un permiso de módulo pero se olvidaron de
 // ponerle [RequireModule]: quedaría abierto a negocios que no compraron el módulo.
@@ -132,7 +127,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 
 app.UseCors(FrontendCorsPolicy);
 

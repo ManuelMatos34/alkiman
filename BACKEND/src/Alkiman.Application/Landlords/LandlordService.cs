@@ -7,7 +7,19 @@ namespace Alkiman.Application.Landlords;
 public class LandlordService : ILandlordService
 {
     private static readonly string[] ValidThemeModes = ["light", "dark"];
-    private static readonly string[] ValidAccentColors = ["blue", "green", "violet", "orange", "pink", "red"];
+
+    /// <summary>
+    /// Colores de acento aceptados. Es el espejo de ACCENT_COLORS en
+    /// FRONTEND/src/domain/types/landlord.ts, donde está documentada la lista
+    /// completa de lugares a tocar para sumar uno.
+    ///
+    /// Está duplicado a propósito: el back no le cree al cliente. La columna
+    /// CFG_Landlords.AccentColor es un NVARCHAR(20) sin CHECK, así que esta lista
+    /// es lo único que impide que por API entre un valor que después ningún CSS
+    /// resuelve, y el negocio quede con el tema por defecto y sin explicación.
+    /// </summary>
+    private static readonly string[] ValidAccentColors =
+        ["blue", "sky", "cyan", "teal", "green", "orange", "red", "rose", "pink", "fuchsia", "violet", "slate"];
 
     private readonly ILandlordRepository _repository;
     private readonly ICurrentLandlordService _currentLandlord;

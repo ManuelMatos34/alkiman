@@ -24,8 +24,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { useCreateService } from "@/application/carwash/useCreateService"
 import { useUpdateService } from "@/application/carwash/useUpdateService"
+import { buildDurationOptions } from "@/lib/carwashDuration"
 import type { CarwashServiceItem } from "@/domain/types/carwash"
 
 function buildServiceFormSchema(t: TFunction) {
@@ -71,6 +79,14 @@ export function CarwashServiceFormDialog({
   const updateService = useUpdateService()
 
   const serviceFormSchema = useMemo(() => buildServiceFormSchema(t), [t])
+
+  // Sin 0: el servicio base define la estimación del turno, y uno de 0 minutos
+  // dejaría la cola del portal sin tiempo de espera que mostrar.
+  const savedMinutes = service?.estimatedMinutes
+  const durationOptions = useMemo(
+    () => buildDurationOptions(savedMinutes, { allowZero: false }),
+    [savedMinutes]
+  )
 
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceFormSchema),
@@ -174,9 +190,20 @@ export function CarwashServiceFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("services.dialog.fields.estimatedMinutes")}</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="1" min="1" {...field} />
-                    </FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {durationOptions.map((minutes) => (
+                          <SelectItem key={minutes} value={String(minutes)}>
+                            {t("services.dialog.fields.durationMinutes", { minutes })}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

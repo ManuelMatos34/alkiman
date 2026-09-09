@@ -36,6 +36,4 @@ public class CurrentUserService : ICurrentUserService
 
     public IReadOnlyList<string> Permissions =>
         User.FindAll("permission").Select(c => c.Value).ToList();
-
-    public bool HasPermission(string code) => Permissions.Contains(code);
 }

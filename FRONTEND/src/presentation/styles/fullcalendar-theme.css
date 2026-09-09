@@ -1,0 +1,199 @@
+/* ============================================================
+ * FullCalendar — tema integrado con el design system de Alkiman
+ * Mapea las variables --fc-* a las variables CSS del sistema.
+ * ============================================================ */
+
+.fc {
+  /* Variables de FullCalendar → design system */
+  --fc-page-bg-color:            var(--card);
+  --fc-border-color:             var(--border);
+  --fc-neutral-bg-color:         var(--muted);
+  --fc-neutral-text-color:       var(--muted-foreground);
+  --fc-today-bg-color:           color-mix(in srgb, var(--primary) 8%, transparent);
+  --fc-now-indicator-color:      var(--primary);
+  --fc-highlight-color:          color-mix(in srgb, var(--primary) 15%, transparent);
+  --fc-non-business-color:       color-mix(in srgb, var(--muted) 60%, transparent);
+  --fc-bg-event-opacity:         0.3;
+
+  /* Eventos */
+  --fc-event-bg-color:           var(--primary);
+  --fc-event-border-color:       var(--primary);
+  --fc-event-text-color:         var(--primary-foreground);
+
+  /* Botones */
+  --fc-button-text-color:        var(--foreground);
+  --fc-button-bg-color:          var(--card);
+  --fc-button-border-color:      var(--border);
+  --fc-button-hover-bg-color:    var(--secondary);
+  --fc-button-hover-border-color: var(--border);
+  --fc-button-active-bg-color:   var(--primary);
+  --fc-button-active-border-color: var(--primary);
+
+  font-family: var(--font-sans, Roboto, ui-sans-serif, system-ui, sans-serif);
+  font-size: 0.875rem;
+  color: var(--foreground);
+}
+
+/* ── Botones de la toolbar ─────────────────────────────── */
+.fc .fc-button {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.5;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid var(--border);
+  background-color: var(--card);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+
+.fc .fc-button:hover:not(:disabled) {
+  background-color: var(--secondary);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.fc .fc-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.fc .fc-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Botón activo / vista seleccionada */
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+/* Grupo de botones (prev/next/today) */
+.fc .fc-button-group .fc-button {
+  border-radius: 0;
+}
+.fc .fc-button-group .fc-button:first-child {
+  border-top-left-radius: calc(var(--radius) - 2px);
+  border-bottom-left-radius: calc(var(--radius) - 2px);
+}
+.fc .fc-button-group .fc-button:last-child {
+  border-top-right-radius: calc(var(--radius) - 2px);
+  border-bottom-right-radius: calc(var(--radius) - 2px);
+}
+
+/* ── Toolbar / cabecera ────────────────────────────────── */
+.fc .fc-toolbar {
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* ── Cabecera de columnas (días de la semana) ──────────── */
+.fc .fc-col-header-cell {
+  background-color: var(--muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted-foreground);
+  padding: 0.375rem 0;
+  border-color: var(--border);
+}
+
+.fc .fc-col-header-cell a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ── Celdas de la cuadrícula ───────────────────────────── */
+.fc .fc-timegrid-slot,
+.fc .fc-daygrid-day {
+  border-color: var(--border);
+}
+
+.fc .fc-timegrid-slot-label {
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.fc .fc-daygrid-day-number,
+.fc .fc-daygrid-day-top a {
+  color: var(--foreground);
+  text-decoration: none;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.25rem 0.375rem;
+}
+
+/* Hoy */
+.fc .fc-day-today {
+  background-color: color-mix(in srgb, var(--primary) 6%, transparent) !important;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 9999px;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* ── Eventos ───────────────────────────────────────────── */
+.fc .fc-event {
+  border-radius: calc(var(--radius) - 4px);
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s, filter 0.15s;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+
+.fc .fc-event:hover {
+  filter: brightness(0.9);
+}
+
+.fc .fc-event .fc-event-main {
+  padding: 2px 4px;
+}
+
+/* ── Indicador "ahora" ─────────────────────────────────── */
+.fc .fc-timegrid-now-indicator-line {
+  border-color: var(--primary);
+  border-width: 2px;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  border-color: var(--primary);
+}
+
+/* ── Scrollbar de la grid ──────────────────────────────── */
+.fc .fc-scroller {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* ── Modo oscuro ───────────────────────────────────────── */
+.dark .fc .fc-button {
+  box-shadow: none;
+}
+
+.dark .fc .fc-col-header-cell {
+  background-color: var(--muted);
+}

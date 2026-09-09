@@ -15,7 +15,7 @@ public class CarwashWasherRepository : ICarwashWasherRepository
     }
 
     private const string SelectColumns = """
-        Id, LandlordId, FullName, Phone, IsActive, CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
+        Id, LandlordId, FullName, Phone, Email, IsActive, CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
         """;
 
     public async Task<IReadOnlyList<CarwashWasher>> GetAllByLandlordAsync(Guid landlordId, CancellationToken cancellationToken = default)
@@ -61,8 +61,8 @@ public class CarwashWasherRepository : ICarwashWasherRepository
     {
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         const string sql = """
-            INSERT INTO dbo.CWS_Washers (Id, LandlordId, FullName, Phone, IsActive, CreatedAt, CreatedBy)
-            VALUES (@Id, @LandlordId, @FullName, @Phone, @IsActive, @CreatedAt, @CreatedBy)
+            INSERT INTO dbo.CWS_Washers (Id, LandlordId, FullName, Phone, Email, IsActive, CreatedAt, CreatedBy)
+            VALUES (@Id, @LandlordId, @FullName, @Phone, @Email, @IsActive, @CreatedAt, @CreatedBy)
             """;
         await connection.ExecuteAsync(sql, washer);
     }
@@ -74,6 +74,7 @@ public class CarwashWasherRepository : ICarwashWasherRepository
             UPDATE dbo.CWS_Washers
             SET FullName = @FullName,
                 Phone = @Phone,
+                Email = @Email,
                 IsActive = @IsActive,
                 UpdatedAt = @UpdatedAt,
                 UpdatedBy = @UpdatedBy

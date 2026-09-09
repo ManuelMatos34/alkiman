@@ -18,10 +18,26 @@ public class AuthService : IAuthService
 {
     private const string OwnerRoleName = SystemRoleNames.Owner;
 
-    /// <summary>Módulos con los que arranca todo negocio nuevo.</summary>
-    private static readonly string[] InitialModules = [ModuleCodes.Alquileres];
+    /// <summary>
+    /// Módulos con los que arranca todo negocio nuevo. Tiene que ser un módulo
+    /// disponible en el catálogo: darle de alta uno con IsAvailable = 0 le dejaría
+    /// la fila de habilitación pero ninguna pantalla a la que entrar.
+    /// </summary>
+    private static readonly string[] InitialModules = [ModuleCodes.Carwash];
 
     private static readonly TimeSpan ResetTokenLifetime = TimeSpan.FromHours(1);
+
+    /// <summary>
+    /// Vigencia del código de doble factor. Corto a propósito: es el tiempo que una
+    /// casilla de correo comprometida sirve para entrar.
+    /// </summary>
+    private static readonly TimeSpan TwoFactorCodeLifetime = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// Intentos permitidos por desafío antes de descartarlo. Con 6 dígitos y 5 intentos,
+    /// la chance de acertar a ciegas es 1 en 200.000.
+    /// </summary>
+    private const int MaxTwoFactorAttempts = 5;
 
     private readonly ILandlordRepository _landlordRepository;
     private readonly IUserRepository _userRepository;
@@ -110,7 +126,7 @@ public class AuthService : IAuthService
         foreach (var moduleCode in InitialModules)
         {
             await _moduleRepository.EnableModuleAsync(landlordId, moduleCode, createdBy, cancellationToken);
-            await _moduleProvisioner.ProvisionAsync(landlordId, moduleCode, createdBy, cancellationToken);
+            await _moduleProvisioner.ProvisionAsync(landlordId, moduleCode, cancellationToken);
         }
 
         var user = new User
@@ -140,14 +156,139 @@ public class AuthService : IAuthService
             token, expiresAtUtc, user.Id, user.FullName, landlordId, landlord.BusinessName, user.Email, OwnerRoleName, true, permissionCodes, false);
     }
 
-    public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+    public async Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
         if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
             throw new AppValidationException("Email o contraseña incorrectos.");
 
+        if (!user.TwoFactorEnabled)
+            return new LoginResponse(false, null, await BuildSessionAsync(user, cancellationToken));
+
+        // El usuario desactivado se rechaza ANTES de mandar el código: no tiene sentido
+        // hacerle atravesar el segundo factor para negarle la sesión al final.
+        if (!user.IsActive)
+            throw new AppValidationException("El usuario está desactivado.");
+
+        var challengeToken = await StartTwoFactorChallengeAsync(user, cancellationToken);
+        return new LoginResponse(true, challengeToken, null);
+    }
+
+    public async Task<AuthResponse> VerifyTwoFactorAsync(VerifyTwoFactorRequest request, CancellationToken cancellationToken = default)
+    {
+        // Mensaje único para "token inexistente", "vencido" y "código equivocado": el
+        // que prueba tokens al azar no debe poder distinguir cuál de los tres pasó.
+        const string invalidMessage = "El código es incorrecto o venció. Inicia sesión nuevamente.";
+
+        if (string.IsNullOrWhiteSpace(request.ChallengeToken) || string.IsNullOrWhiteSpace(request.Code))
+            throw new AppValidationException(invalidMessage);
+
+        var user = await _userRepository.GetByTwoFactorChallengeTokenAsync(request.ChallengeToken, cancellationToken);
+        if (user is null || user.TwoFactorCodeHash is null || user.TwoFactorCodeExpiresAt is null)
+            throw new AppValidationException(invalidMessage);
+
+        if (user.TwoFactorCodeExpiresAt < DateTime.UtcNow)
+        {
+            await ClearTwoFactorChallengeAsync(user.Id, cancellationToken);
+            throw new AppValidationException(invalidMessage);
+        }
+
+        if (!_passwordHasher.Verify(request.Code.Trim(), user.TwoFactorCodeHash))
+        {
+            var attempts = user.TwoFactorAttempts + 1;
+            if (attempts >= MaxTwoFactorAttempts)
+            {
+                // Se quema el desafío entero, no sólo el intento: si no, el atacante
+                // pediría un código nuevo y seguiría probando de a cinco para siempre.
+                await ClearTwoFactorChallengeAsync(user.Id, cancellationToken);
+                throw new AppValidationException("Demasiados intentos fallidos. Inicia sesión nuevamente.");
+            }
+
+            await _userRepository.SetTwoFactorChallengeAsync(
+                user.Id, user.TwoFactorChallengeToken, user.TwoFactorCodeHash, user.TwoFactorCodeExpiresAt, attempts, cancellationToken);
+
+            // El último intento cae en singular ("te queda 1 intento"). Es una tontería
+            // gramatical, pero es el mensaje que el usuario lee justo antes de quedarse
+            // afuera, y ahí conviene que suene escrito por una persona.
+            var remaining = MaxTwoFactorAttempts - attempts;
+            throw new AppValidationException(remaining == 1
+                ? "El código es incorrecto. Te queda 1 intento."
+                : $"El código es incorrecto. Te quedan {remaining} intentos.");
+        }
+
+        // Un código es de un solo uso: se borra antes de emitir el token para que el
+        // mismo correo no sirva dos veces.
+        await ClearTwoFactorChallengeAsync(user.Id, cancellationToken);
         return await BuildSessionAsync(user, cancellationToken);
     }
+
+    public async Task ResendTwoFactorAsync(ResendTwoFactorRequest request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.ChallengeToken))
+            throw new AppValidationException("El desafío venció. Inicia sesión nuevamente.");
+
+        var user = await _userRepository.GetByTwoFactorChallengeTokenAsync(request.ChallengeToken, cancellationToken);
+        if (user is null)
+            throw new AppValidationException("El desafío venció. Inicia sesión nuevamente.");
+
+        // Reusa el mismo token de desafío: el frontend ya lo tiene y no habría cómo
+        // devolvérselo actualizado sin exponerlo en la respuesta del reenvío.
+        await StartTwoFactorChallengeAsync(user, cancellationToken, user.TwoFactorChallengeToken);
+    }
+
+    /// <summary>
+    /// Crea (o renueva) el desafío de segundo factor: genera un código de 6 dígitos, lo
+    /// guarda hasheado y lo manda por correo. Devuelve el token de desafío.
+    ///
+    /// Si el correo no sale, el desafío se descarta y la operación falla. La alternativa
+    /// —dejar pasar al usuario sin segundo factor cuando el correo está caído— convertiría
+    /// una falla de infraestructura en un bypass de seguridad.
+    /// </summary>
+    private async Task<string> StartTwoFactorChallengeAsync(User user, CancellationToken cancellationToken, string? reuseChallengeToken = null)
+    {
+        var code = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
+        var challengeToken = reuseChallengeToken ?? Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+        var expiresAtUtc = DateTime.UtcNow.Add(TwoFactorCodeLifetime);
+
+        await _userRepository.SetTwoFactorChallengeAsync(
+            user.Id, challengeToken, _passwordHasher.Hash(code), expiresAtUtc, 0, cancellationToken);
+
+        var minutes = (int)TwoFactorCodeLifetime.TotalMinutes;
+        var subject = $"{code} es tu código de acceso a Alkiman";
+        var body = EmailTemplate.Build(
+            title: "Verificación de identidad",
+            greeting: $"Hola {user.FullName},",
+            paragraphs:
+            [
+                $"Tu código de acceso vence en <strong>{minutes} minutos</strong> y solo puede usarse una vez.",
+                "Si no intentaste iniciar sesión, alguien conoce tu contraseña — cámbiala cuanto antes."
+            ],
+            highlightCode: code,
+            highlightLabel: "Código de acceso");
+
+        EmailSendResult result;
+        try
+        {
+            result = await _emailSender.SendAsync(user.Email, user.FullName, subject, body, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            await ClearTwoFactorChallengeAsync(user.Id, cancellationToken);
+            throw new AppValidationException($"No pudimos enviarte el código de verificación: {ex.Message}");
+        }
+
+        if (!result.Success)
+        {
+            await ClearTwoFactorChallengeAsync(user.Id, cancellationToken);
+            throw new AppValidationException(
+                $"No pudimos enviarte el código de verificación: {result.ErrorMessage ?? "el envío de correo no está configurado."}");
+        }
+
+        return challengeToken;
+    }
+
+    private Task ClearTwoFactorChallengeAsync(Guid userId, CancellationToken cancellationToken)
+        => _userRepository.SetTwoFactorChallengeAsync(userId, null, null, null, 0, cancellationToken);
 
     public async Task<AuthResponse> RefreshAsync(Guid userId, CancellationToken cancellationToken = default)
     {
@@ -220,10 +361,16 @@ public class AuthService : IAuthService
             var resetLink = $"{baseUrl}/restablecer-password?token={token}";
 
             const string subject = "Restablece tu contraseña de Alkiman";
-            var body =
-                $"Hola {user.FullName}, recibimos un pedido para restablecer tu contraseña.\n\n" +
-                $"Si fuiste tú, haz clic en este link (vence en 1 hora): {resetLink}\n\n" +
-                "Si no fuiste tú, puedes ignorar este correo.";
+            var body = EmailTemplate.Build(
+                title: "Restablecimiento de contraseña",
+                greeting: $"Hola {user.FullName},",
+                paragraphs:
+                [
+                    "Recibimos un pedido para restablecer tu contraseña. Si fuiste tú, usa el botón de abajo — el link vence en <strong>1 hora</strong>.",
+                    "Si no fuiste tú, puedes ignorar este correo. Tu contraseña no cambiará."
+                ],
+                ctaLabel: "Restablecer contraseña",
+                ctaUrl: resetLink);
 
             await _emailSender.SendAsync(user.Email, user.FullName, subject, body, cancellationToken);
         }

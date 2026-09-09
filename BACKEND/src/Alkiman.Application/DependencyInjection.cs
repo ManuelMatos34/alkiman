@@ -1,3 +1,4 @@
+using Alkiman.Application.Barbershop;
 using Alkiman.Application.AssetBlocks;
 using Alkiman.Application.AssetGroups;
 using Alkiman.Application.Assets;
@@ -64,6 +65,7 @@ public static class DependencyInjection
         services.AddScoped<IModuleProvisioner, ModuleProvisioner>();
         services.AddScoped<ICarwashService, CarwashService>();
         services.AddScoped<ICarwashMetricsService, CarwashMetricsService>();
+        services.AddScoped<IBarbershopService, BarbershopService>();
 
         return services;
     }

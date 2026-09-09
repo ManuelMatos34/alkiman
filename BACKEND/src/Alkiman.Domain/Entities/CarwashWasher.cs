@@ -26,6 +26,8 @@ public class CarwashWasher : IAuditable
     public Guid LandlordId { get; set; }
     public string FullName { get; set; } = default!;
     public string? Phone { get; set; }
+    /// <summary>Email opcional: si se carga, el lavador recibe un correo por cada propina que se le asigna.</summary>
+    public string? Email { get; set; }
 
     /// <summary>
     /// Baja lógica. Un lavador inactivo no se puede asignar a trabajo nuevo,

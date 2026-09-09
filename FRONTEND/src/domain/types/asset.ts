@@ -90,7 +90,3 @@ export interface UpdateAssetRequest {
   basePrice: number
   stock: number
 }
-
-export interface UpdateAssetStatusRequest {
-  status: AssetStatus
-}

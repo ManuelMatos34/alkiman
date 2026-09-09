@@ -76,13 +76,14 @@ public record CarwashWasherResponse(
     Guid Id,
     string FullName,
     string? Phone,
+    string? Email,
     bool IsActive,
     /// <summary>false si ya tiene tickets: el front ofrece desactivar en vez de eliminar, para no perder el historial.</summary>
     bool CanDelete);
 
-public record CreateWasherRequest(string FullName, string? Phone);
+public record CreateWasherRequest(string FullName, string? Phone, string? Email);
 
-public record UpdateWasherRequest(string FullName, string? Phone, bool IsActive);
+public record UpdateWasherRequest(string FullName, string? Phone, string? Email, bool IsActive);
 
 public record AssignWasherRequest(Guid? WasherId);
 
@@ -119,11 +120,15 @@ public record CarwashTicketResponse(
     DateTime? DeliveredAt,
     DateTime? CancelledAt,
     string? Notes,
-    // Propina confirmada al entregar y a quién se le atribuyó. Null mientras el
-    // ticket no esté entregado, o si el negocio no maneja propinas.
+    // Propina y a quién se le atribuyó. Null mientras el ticket no esté
+    // entregado, o si el negocio no maneja propinas.
     decimal? TipAmount,
     Guid? TipWasherId,
     string? TipWasherName,
+    // true si la propina ya se cobró por la pasarela al reservar (turnos del
+    // portal). El tablero lo usa para NO volver a preguntarla al entregar: si lo
+    // hiciera, la misma plata quedaría contada dos veces.
+    bool TipPrepaid,
     DateTime CreatedAt);
 
 /// <summary>Alta presencial de un vehículo por el Encargado: busca-o-crea al cliente por teléfono/email.</summary>
@@ -146,6 +151,12 @@ public record RegisterTicketRequest(
 /// </summary>
 public record AdvanceStatusRequest(string Status, decimal? TipAmount);
 
+/// <summary>Body del endpoint exclusivo de Caja para entregar un turno.</summary>
+public record DeliverTicketRequest(decimal? TipAmount);
+
+/// <summary>Body para activar/desactivar un portal link (evita problema con [FromBody] bool primitivo).</summary>
+public record SetPortalLinkActiveRequest(bool IsActive);
+
 // ============================================================
 // Público (sin login)
 // ============================================================
@@ -162,9 +173,26 @@ public record PublicCarwashLinkResponse(
     string ThemeMode,
     string AccentColor,
     IReadOnlyList<CarwashServiceResponse> Services,
-    IReadOnlyList<CarwashExtraResponse> Extras);
+    IReadOnlyList<CarwashExtraResponse> Extras,
+    // Política de propinas del negocio (ver CarwashTipMode). La pasarela usa
+    // esto para decidir si el paso de propina existe y con qué monto arranca.
+    string TipMode,
+    decimal TipSuggestedPercent,
+    // false si el negocio todavía no tiene Stripe configurado. La pasarela
+    // entonces se salta el paso de pago y el turno se paga en el mostrador,
+    // igual que uno presencial: sin esto el portal quedaría inutilizable para
+    // todo negocio que no haya cargado credenciales.
+    bool PaymentEnabled);
 
-/// <summary>Auto-registro público: sin LandlordId explícito, se resuelve por el Slug del link.</summary>
+/// <summary>
+/// Auto-registro público: sin LandlordId explícito, se resuelve por el Slug del link.
+///
+/// Los tres últimos campos sólo vienen cuando el turno se pagó online. El
+/// servidor NO confía en <see cref="TipAmount"/> como monto cobrado: recalcula
+/// el total por su cuenta y lo contrasta contra lo que el gateway dice que
+/// realmente entró, porque estos campos viajan por un endpoint público que
+/// cualquiera puede llamar a mano.
+/// </summary>
 public record PublicJoinQueueRequest(
     string CustomerName,
     string? CustomerPhone,
@@ -175,7 +203,40 @@ public record PublicJoinQueueRequest(
     string? VehicleBrand,
     string? VehicleModel,
     int? VehicleYear,
-    string? VehicleColor);
+    string? VehicleColor,
+    decimal? TipAmount,
+    string? PaymentProvider,
+    string? PaymentReference);
+
+/// <summary>
+/// Config de pago del link público. Espeja <c>PortalPaymentConfigResponse</c>:
+/// la clave publicable es pública por diseño y el front la necesita antes de
+/// poder montar el formulario de tarjeta.
+/// </summary>
+public record CarwashPublicPaymentConfigResponse(
+    string? StripePublishableKey,
+    string Currency);
+
+/// <summary>
+/// Pedido de PaymentIntent para un turno del portal. Va el servicio, los extras
+/// y la propina elegida — nunca el total: ese lo recalcula el servidor contra
+/// el catálogo, para que retocar el precio en el navegador no abarate el lavado.
+/// </summary>
+public record CarwashPaymentIntentRequest(
+    int ServiceId,
+    IReadOnlyList<int>? ExtraIds,
+    decimal? TipAmount);
+
+/// <summary>
+/// <see cref="Amount"/> es el total autoritativo calculado por el servidor
+/// (servicio + extras + propina). El front lo muestra en vez de su propia suma,
+/// así lo que se ve confirmado es exactamente lo que se va a cobrar.
+/// </summary>
+public record CarwashStripeIntentResponse(
+    string PaymentIntentId,
+    string ClientSecret,
+    decimal Amount,
+    string Currency);
 
 /// <summary>
 /// Estado del turno para la página pública (poll-friendly), resuelto por AccessToken.

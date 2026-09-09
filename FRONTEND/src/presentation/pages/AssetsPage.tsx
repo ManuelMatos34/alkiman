@@ -123,14 +123,15 @@ export function AssetsPage() {
       </div>
 
       <div className="rounded-lg border border-border/60">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>{t("table.headers.name")}</TableHead>
-              <TableHead>{t("table.headers.category")}</TableHead>
+              <TableHead className="hidden sm:table-cell">{t("table.headers.category")}</TableHead>
               <TableHead>{t("table.headers.status")}</TableHead>
-              <TableHead>{t("table.headers.basePrice")}</TableHead>
-              <TableHead>{t("table.headers.stock")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("table.headers.basePrice")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("table.headers.stock")}</TableHead>
               <TableHead className="w-[60px] text-right">
                 {t("table.headers.actions")}
               </TableHead>
@@ -159,8 +160,14 @@ export function AssetsPage() {
 
             {paginatedAssets.map((asset) => (
               <TableRow key={asset.id}>
-                <TableCell className="font-medium">{asset.name}</TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="font-medium">
+                  <div>{asset.name}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground md:hidden">
+                    {currencyFormatter.format(asset.basePrice)}
+                    {asset.stock != null && ` · ${t("table.headers.stock")}: ${asset.stock}`}
+                  </div>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell text-muted-foreground">
                   {categoryNameById.get(asset.categoryId) ?? t("table.noCategory")}
                 </TableCell>
                 <TableCell>
@@ -170,7 +177,7 @@ export function AssetsPage() {
                       handleStatusChange(asset, value as AssetStatus)
                     }
                   >
-                    <SelectTrigger size="sm" className="w-[150px]">
+                    <SelectTrigger size="sm" className="w-[130px]">
                       <SelectValue asChild>
                         <Badge variant={statusVariants[asset.status]}>
                           {statusLabels[asset.status]}
@@ -188,10 +195,10 @@ export function AssetsPage() {
                     </SelectContent>
                   </Select>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   {currencyFormatter.format(asset.basePrice)}
                 </TableCell>
-                <TableCell>{asset.stock}</TableCell>
+                <TableCell className="hidden md:table-cell">{asset.stock}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -218,6 +225,7 @@ export function AssetsPage() {
             ))}
           </TableBody>
         </Table>
+        </div>
         <TablePagination
           page={page}
           pageCount={pageCount}

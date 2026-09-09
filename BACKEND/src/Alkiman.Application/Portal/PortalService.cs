@@ -249,7 +249,8 @@ public class PortalService : IPortalService
             {
                 var intent = await _stripeGateway.GetPaymentIntentAsync(request.PaymentReference, cancellationToken);
                 var expectedAmountInCents = PortalPaymentService.ToGatewayAmountInCents(totalPrice);
-                if (!string.Equals(intent.Status, "succeeded", StringComparison.OrdinalIgnoreCase)
+                if (intent is null
+                    || !string.Equals(intent.Status, "succeeded", StringComparison.OrdinalIgnoreCase)
                     || intent.AmountInCents != expectedAmountInCents)
                     throw new AppValidationException("El pago no pudo verificarse. Intenta nuevamente.");
                 break;

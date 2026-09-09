@@ -6,9 +6,13 @@ import { AppearanceSettingsForm } from "@/presentation/components/AppearanceSett
 import { SignatureSettingsForm } from "@/presentation/components/SignatureSettingsForm"
 import { LanguageSettingsForm } from "@/presentation/components/LanguageSettingsForm"
 import { SecuritySettingsPanel } from "@/presentation/components/SecuritySettingsPanel"
+import { useAuth } from "@/infrastructure/auth/AuthContext"
+import { PermissionCodes } from "@/domain/types/permission"
 
 export function SettingsPage() {
   const { t } = useTranslation("settings")
+  const { hasPermission } = useAuth()
+  const canManageSettings = hasPermission(PermissionCodes.SettingsManage)
 
   return (
     <div className="space-y-6">
@@ -20,9 +24,15 @@ export function SettingsPage() {
       <Tabs defaultValue="cuenta">
         <TabsList>
           <TabsTrigger value="cuenta">{t("tabs.account")}</TabsTrigger>
-          <TabsTrigger value="perfil">{t("tabs.profile")}</TabsTrigger>
-          <TabsTrigger value="apariencia">{t("tabs.appearance")}</TabsTrigger>
-          <TabsTrigger value="firma">{t("tabs.signature")}</TabsTrigger>
+          {canManageSettings && (
+            <TabsTrigger value="perfil">{t("tabs.profile")}</TabsTrigger>
+          )}
+          {canManageSettings && (
+            <TabsTrigger value="apariencia">{t("tabs.appearance")}</TabsTrigger>
+          )}
+          {canManageSettings && (
+            <TabsTrigger value="firma">{t("tabs.signature")}</TabsTrigger>
+          )}
           <TabsTrigger value="idioma">{t("tabs.language")}</TabsTrigger>
           <TabsTrigger value="seguridad">{t("tabs.security")}</TabsTrigger>
         </TabsList>
@@ -31,17 +41,23 @@ export function SettingsPage() {
           <MyAccountSettingsForm />
         </TabsContent>
 
-        <TabsContent value="perfil">
-          <ProfileSettingsForm />
-        </TabsContent>
+        {canManageSettings && (
+          <TabsContent value="perfil">
+            <ProfileSettingsForm />
+          </TabsContent>
+        )}
 
-        <TabsContent value="apariencia">
-          <AppearanceSettingsForm />
-        </TabsContent>
+        {canManageSettings && (
+          <TabsContent value="apariencia">
+            <AppearanceSettingsForm />
+          </TabsContent>
+        )}
 
-        <TabsContent value="firma">
-          <SignatureSettingsForm />
-        </TabsContent>
+        {canManageSettings && (
+          <TabsContent value="firma">
+            <SignatureSettingsForm />
+          </TabsContent>
+        )}
 
         <TabsContent value="idioma">
           <LanguageSettingsForm />

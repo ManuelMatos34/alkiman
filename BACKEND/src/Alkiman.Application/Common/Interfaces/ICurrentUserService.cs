@@ -20,9 +20,14 @@ public interface ICurrentUserService
     /// <summary>Indica si el usuario autenticado es el dueño del negocio.</summary>
     bool IsOwner { get; }
 
-    /// <summary>Códigos de permiso otorgados por el rol del usuario autenticado.</summary>
+    /// <summary>
+    /// Códigos de permiso otorgados por el rol del usuario autenticado.
+    ///
+    /// Es para leer, no para decidir: el chequeo "¿tiene tal permiso?" no se hace acá
+    /// sino con [Authorize(Policy = ...)], porque cada permiso del catálogo tiene su
+    /// policy registrada en Program.cs contra el claim 'permission'. Un helper acá
+    /// invitaría a esconder la autorización adentro de un service, donde no se ve
+    /// leyendo el controller y donde ModuleGuardValidator no la puede auditar.
+    /// </summary>
     IReadOnlyList<string> Permissions { get; }
-
-    /// <summary>Indica si el usuario autenticado tiene el permiso indicado.</summary>
-    bool HasPermission(string code);
 }

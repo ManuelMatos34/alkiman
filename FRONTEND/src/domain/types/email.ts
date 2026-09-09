@@ -15,14 +15,6 @@ export interface EmailMessage {
   createdAt: string
 }
 
-export interface SendIndividualEmailRequest {
-  customerId?: string | null
-  recipientName: string
-  recipientEmail: string
-  subject: string
-  body: string
-}
-
 export interface SendMassEmailRequest {
   customerIds: string[]
   subject: string

@@ -1,6 +1,7 @@
 {
   "nav": {
     "board": "Tablero",
+    "caja": "Caja",
     "washers": "Lavadores",
     "metrics": "Métricas",
     "services": "Servicios",
@@ -146,7 +147,8 @@
         "name": "Nombre",
         "namePlaceholder": "Ej: Lavado básico",
         "price": "Precio",
-        "estimatedMinutes": "Duración estimada (min)",
+        "estimatedMinutes": "Duración estimada",
+        "durationMinutes": "{{minutes}} min",
         "description": "Descripción",
         "descriptionPlaceholder": "Detalles del servicio (opcional)",
         "active": "Servicio activo"
@@ -191,7 +193,9 @@
         "name": "Nombre",
         "namePlaceholder": "Ej: Encerado",
         "price": "Precio",
-        "estimatedMinutes": "Duración extra (min)",
+        "estimatedMinutes": "Duración extra",
+        "durationNone": "Sin tiempo adicional",
+        "durationMinutes": "{{minutes}} min",
         "description": "Descripción",
         "descriptionPlaceholder": "Detalles del agregado (opcional)",
         "active": "Agregado activo"
@@ -228,7 +232,13 @@
       "copy": "Copiar link",
       "open": "Abrir link",
       "activate": "Activar",
-      "deactivate": "Desactivar"
+      "deactivate": "Desactivar",
+      "delete": "Eliminar link"
+    },
+    "deleteDialog": {
+      "title": "¿Eliminar link del portal?",
+      "description": "Se eliminará «{{title}}» de forma permanente. Si ya tiene turnos asociados no se podrá borrar y deberás desactivarlo.",
+      "confirm": "Eliminar"
     },
     "toast": {
       "copySuccess": "Link copiado al portapapeles.",
@@ -237,7 +247,9 @@
       "deactivateSuccess": "Link desactivado correctamente.",
       "toggleError": "No se pudo actualizar el estado del link.",
       "createSuccess": "Link creado correctamente.",
-      "createError": "No se pudo crear el link."
+      "createError": "No se pudo crear el link.",
+      "deleteSuccess": "Link eliminado correctamente.",
+      "deleteError": "No se pudo eliminar el link."
     },
     "validation": {
       "titleRequired": "El título es obligatorio",
@@ -260,19 +272,21 @@
     "registerButton": "Registrar vehículo",
     "queueNumber": "Turno #{{number}}",
     "columnEmpty": "No hay vehículos en esta columna.",
+    "readyForCaja": "En caja",
     "arrivalPending": {
       "title": "Turnos llamados"
     },
     "washer": {
       "placeholder": "Lavador",
       "unassigned": "Sin asignar",
-      "assignedTo": "Atendido por {{name}}"
+      "assignedTo": "Atendido por {{name}}",
+      "requiredToAdvance": "Debes asignar un lavador antes de iniciar"
     },
     "columns": {
       "Waiting": "En espera",
       "InProgress": "En proceso",
       "Drying": "Secado",
-      "Waxing": "Encerado",
+      "Waxing": "Agregados",
       "Ready": "Listo"
     },
     "actions": {
@@ -280,10 +294,11 @@
       "confirmArrival": "Confirmar llegada",
       "markExpired": "Marcar vencido",
       "cancel": "Cancelar",
+      "goBack": "Retroceder estado",
       "advanceTo": {
         "InProgress": "Iniciar lavado",
         "Drying": "Pasar a secado",
-        "Waxing": "Pasar a encerado",
+        "Waxing": "Pasar a agregados",
         "Ready": "Marcar listo",
         "Delivered": "Marcar entregado"
       }
@@ -401,6 +416,9 @@
         "fullNamePlaceholder": "Ej: Juan Pérez",
         "phone": "Teléfono",
         "phonePlaceholder": "Opcional",
+        "email": "Correo electrónico",
+        "emailPlaceholder": "juan@ejemplo.com (opcional)",
+        "emailHint": "Si se carga, el lavador recibe un correo cada vez que le asignan una propina.",
         "active": "Activo",
         "activeHint": "Un lavador inactivo no se puede asignar, pero sigue apareciendo en los turnos que ya lavó."
       }
@@ -408,7 +426,8 @@
     "validation": {
       "nameRequired": "El nombre es obligatorio.",
       "nameMax": "El nombre no puede superar los 150 caracteres.",
-      "phoneMax": "El teléfono no puede superar los 30 caracteres."
+      "phoneMax": "El teléfono no puede superar los 30 caracteres.",
+      "emailInvalid": "Ingresa un correo electrónico válido."
     },
     "toast": {
       "created": "Lavador creado correctamente.",
@@ -421,6 +440,63 @@
     "delete": {
       "title": "Eliminar lavador",
       "description": "¿Seguro que quieres eliminar a \"{{name}}\"? Esta acción no se puede deshacer."
+    }
+  },
+  "kiosk": {
+    "stepCounter": "Paso {{current}} de {{total}}",
+    "next": "Continuar",
+    "back": "Atrás",
+    "steps": {
+      "customer": {
+        "title": "¿Cómo te llamas?",
+        "subtitle": "Con esto te avisamos cuando tu vehículo esté listo."
+      },
+      "vehicle": {
+        "title": "¿Cuál es tu vehículo?",
+        "subtitle": "La placa es lo único obligatorio; el resto nos ayuda a identificarlo."
+      },
+      "service": {
+        "title": "Elige tu lavado",
+        "subtitle": "Toca el servicio que quieres."
+      },
+      "extras": {
+        "title": "¿Quieres agregar algo?",
+        "subtitle": "Opcional. Puedes tocar varios o ninguno."
+      },
+      "tip": {
+        "title": "¿Deseas dejar propina?",
+        "subtitle": "Va completa para quien lave tu vehículo."
+      },
+      "payment": {
+        "title": "Pago",
+        "subtitle": "Paga con tarjeta para confirmar tu turno."
+      },
+      "confirm": {
+        "title": "Revisa tu turno",
+        "subtitle": "Si todo está bien, tómalo y te damos tu número."
+      }
+    },
+    "tip": {
+      "none": "Sin propina",
+      "customLabel": "Otro monto",
+      "hintCharged": "Se cobra junto con el servicio y se entrega completa al lavador.",
+      "hintCounter": "Se registra al entregar tu vehículo; la dejas en efectivo en el mostrador."
+    },
+    "summary": {
+      "toPay": "Total a pagar",
+      "paid": "Pagado",
+      "payAtCounter": "A pagar en el mostrador",
+      "tip": "Propina",
+      "tipPaid": "Incluida en el pago"
+    },
+    "payment": {
+      "sandboxBanner": "Pago de prueba: no se procesa ningún cobro real.",
+      "testCardHint": "Puedes usar la tarjeta de prueba {{cardNumber}} con cualquier fecha futura y CVC.",
+      "confirmButton": "Pagar y continuar",
+      "confirming": "Procesando...",
+      "confirmed": "Pago confirmado.",
+      "genericError": "No se pudo procesar el pago. Intenta nuevamente.",
+      "unavailable": "El pago en línea no está disponible. Puedes tomar tu turno y pagar en el mostrador."
     }
   },
   "join": {
@@ -474,7 +550,7 @@
       "ArrivalPending": "Te hemos llamado. Acércate antes de que termine el tiempo.",
       "InProgress": "Tu vehículo está siendo lavado.",
       "Drying": "Tu vehículo está en la etapa de secado.",
-      "Waxing": "Tu vehículo está siendo encerado.",
+      "Waxing": "Tu vehículo está en la etapa de agregados.",
       "Ready": "Tu vehículo está listo para retirar.",
       "Delivered": "Tu vehículo ya fue entregado.",
       "Cancelled": "Este turno fue cancelado.",
@@ -486,10 +562,40 @@
     "ArrivalPending": "Llamado",
     "InProgress": "En proceso",
     "Drying": "Secado",
-    "Waxing": "Encerado",
+    "Waxing": "Agregados",
     "Ready": "Listo",
     "Delivered": "Entregado",
     "Cancelled": "Cancelado",
     "Expired": "Vencido"
+  },
+  "caja": {
+    "title": "Caja",
+    "subtitle": "Vehículos listos para entregar. Registra la propina y confirma la entrega.",
+    "empty": "No hay vehículos listos en este momento.",
+    "deliver": "Entregar",
+    "delivering": "Entregando...",
+    "skipTip": "Entregar sin propina",
+    "noTip": "Sin propina",
+    "customTip": "Otro monto",
+    "portal": "Pagado en línea",
+    "toast": {
+      "success": "Vehículo entregado. Se envió la factura por correo si el cliente tiene email.",
+      "error": "No se pudo entregar el vehículo."
+    },
+    "modal": {
+      "title": "Entregar vehículo",
+      "queue": "Turno",
+      "plate": "Placa",
+      "customer": "Cliente",
+      "vehicle": "Vehículo",
+      "service": "Servicio",
+      "servicePrice": "Precio base",
+      "subtotal": "Subtotal",
+      "tip": "Propina",
+      "total": "Total a cobrar",
+      "totalPaid": "Total pagado en línea",
+      "prepaid": "Pagado en línea al reservar · No se cobra en caja",
+      "confirm": "Confirmar entrega"
+    }
   }
 }

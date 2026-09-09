@@ -29,23 +29,41 @@ import { useCurrentLandlord } from "@/application/landlords/useCurrentLandlord"
 import { useUpdateAppearance } from "@/application/landlords/useUpdateAppearance"
 import { ACCENT_COLORS, type AccentColor, type ThemeMode } from "@/domain/types/landlord"
 
+/**
+ * La bolita que se ve en la paleta. Es el mismo hex que index.css le da a
+ * --primary en modo claro, escrito de nuevo acá porque Tailwind necesita la
+ * clase literal para generarla: un `bg-[var(--primary)]` pintaría las doce
+ * bolitas del color actualmente elegido, que es justo lo que no queremos.
+ */
 const accentSwatchClasses: Record<AccentColor, string> = {
   blue: "bg-[#4f46e5]",
+  sky: "bg-[#0284c7]",
+  cyan: "bg-[#0891b2]",
+  teal: "bg-[#0d9488]",
   green: "bg-[#16a34a]",
-  violet: "bg-[#7c3aed]",
   orange: "bg-[#ea580c]",
-  pink: "bg-[#db2777]",
   red: "bg-[#dc2626]",
+  rose: "bg-[#e11d48]",
+  pink: "bg-[#db2777]",
+  fuchsia: "bg-[#c026d3]",
+  violet: "bg-[#7c3aed]",
+  slate: "bg-[#475569]",
 }
 
 function buildAccentLabels(t: TFunction): Record<AccentColor, string> {
   return {
     blue: t("appearance.accentLabels.blue"),
+    sky: t("appearance.accentLabels.sky"),
+    cyan: t("appearance.accentLabels.cyan"),
+    teal: t("appearance.accentLabels.teal"),
     green: t("appearance.accentLabels.green"),
-    violet: t("appearance.accentLabels.violet"),
     orange: t("appearance.accentLabels.orange"),
-    pink: t("appearance.accentLabels.pink"),
     red: t("appearance.accentLabels.red"),
+    rose: t("appearance.accentLabels.rose"),
+    pink: t("appearance.accentLabels.pink"),
+    fuchsia: t("appearance.accentLabels.fuchsia"),
+    violet: t("appearance.accentLabels.violet"),
+    slate: t("appearance.accentLabels.slate"),
   }
 }
 

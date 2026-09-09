@@ -45,7 +45,8 @@
       "password": "••••••••",
       "role": "Select a role"
     },
-    "generatedPasswordNote": "We'll email them a temporary password that only they will see, and ask them to change it on their first sign-in."
+    "generatedPasswordNote": "We'll email them a temporary password that only they will see, and ask them to change it on their first sign-in.",
+    "ownerNote": "The business owner cannot change their role or be deactivated."
   },
   "validation": {
     "fullNameRequired": "Name is required",

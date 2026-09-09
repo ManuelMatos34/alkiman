@@ -11,9 +11,13 @@ import { apiClient } from "@/infrastructure/http/apiClient"
 import type {
   AuthResponse,
   ForgotPasswordRequest,
+  LoginOutcome,
   LoginRequest,
+  LoginResponse,
   RegisterRequest,
+  ResendTwoFactorRequest,
   ResetPasswordRequest,
+  VerifyTwoFactorRequest,
 } from "@/domain/types/auth"
 
 const SESSION_STORAGE_KEY = "alkiman.session"
@@ -47,7 +51,16 @@ interface AuthContextValue {
   isAuthenticated: boolean
   isLoading: boolean
   hasPermission: (code: string) => boolean
-  login: (email: string, password: string) => Promise<void>
+  /**
+   * Verifica las credenciales. Si el usuario tiene doble factor, NO deja sesión
+   * iniciada: devuelve el token de desafío para que la pantalla pida el código y
+   * cierre con `verifyTwoFactor`.
+   */
+  login: (email: string, password: string) => Promise<LoginOutcome>
+  /** Segundo paso del login con doble factor: canjea el código del correo por la sesión. */
+  verifyTwoFactor: (challengeToken: string, code: string) => Promise<void>
+  /** Pide otro código para el desafío en curso (invalida el anterior). */
+  resendTwoFactorCode: (challengeToken: string) => Promise<void>
   register: (
     businessName: string,
     fullName: string,
@@ -133,13 +146,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string): Promise<LoginOutcome> => {
       const request: LoginRequest = { email, password }
-      const { data } = await apiClient.post<AuthResponse>("/api/auth/login", request)
+      const { data } = await apiClient.post<LoginResponse>("/api/auth/login", request)
+
+      if (data.requiresTwoFactor && data.challengeToken) {
+        return { requiresTwoFactor: true, challengeToken: data.challengeToken }
+      }
+
+      if (!data.session) {
+        // No debería pasar: o hay desafío o hay sesión. Si el backend manda las dos
+        // en null, fallar acá es mejor que dejar la pantalla colgada sin explicación.
+        throw new Error("El servidor no devolvió una sesión válida.")
+      }
+
+      persistSession(toSession(data.session))
+      return { requiresTwoFactor: false }
+    },
+    [persistSession]
+  )
+
+  const verifyTwoFactor = useCallback(
+    async (challengeToken: string, code: string) => {
+      const request: VerifyTwoFactorRequest = { challengeToken, code }
+      const { data } = await apiClient.post<AuthResponse>("/api/auth/two-factor/verify", request)
       persistSession(toSession(data))
     },
     [persistSession]
   )
+
+  const resendTwoFactorCode = useCallback(async (challengeToken: string) => {
+    const request: ResendTwoFactorRequest = { challengeToken }
+    await apiClient.post("/api/auth/two-factor/resend", request)
+  }, [])
 
   const register = useCallback(
     async (businessName: string, fullName: string, email: string, password: string) => {
@@ -210,6 +249,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       hasPermission,
       login,
+      verifyTwoFactor,
+      resendTwoFactorCode,
       register,
       logout,
       refreshSession,
@@ -222,6 +263,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       hasPermission,
       login,
+      verifyTwoFactor,
+      resendTwoFactorCode,
       register,
       logout,
       refreshSession,

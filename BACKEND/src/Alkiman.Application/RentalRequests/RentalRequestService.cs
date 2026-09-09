@@ -169,15 +169,29 @@ public class RentalRequestService : IRentalRequestService
         string body;
         if (approved)
         {
-            body = $"Hola {customer.FullName}, tu pedido de {actionLabel} fue aprobado.";
-            if (request.Type == RentalRequestType.Extension)
-                body += $" Tu renta ahora vence el {request.ProposedEndDate:dd/MM/yyyy}.";
+            var extraLine = request.Type == RentalRequestType.Extension && request.ProposedEndDate.HasValue
+                ? $"Tu renta ahora vence el <strong>{request.ProposedEndDate:dd/MM/yyyy}</strong>."
+                : string.Empty;
+
+            body = EmailTemplate.Build(
+                title: $"Pedido de {actionLabel} aprobado",
+                greeting: $"Hola {customer.FullName},",
+                paragraphs: string.IsNullOrEmpty(extraLine)
+                    ? [$"Tu pedido de <strong>{actionLabel}</strong> fue <strong>aprobado</strong>. ✅"]
+                    : [$"Tu pedido de <strong>{actionLabel}</strong> fue <strong>aprobado</strong>. ✅", extraLine]);
         }
         else
         {
-            body = $"Hola {customer.FullName}, tu pedido de {actionLabel} fue rechazado.";
-            if (!string.IsNullOrWhiteSpace(request.StaffNote))
-                body += $" Motivo: {request.StaffNote}";
+            var reasonLine = !string.IsNullOrWhiteSpace(request.StaffNote)
+                ? $"Motivo: {request.StaffNote}"
+                : string.Empty;
+
+            body = EmailTemplate.Build(
+                title: $"Pedido de {actionLabel} rechazado",
+                greeting: $"Hola {customer.FullName},",
+                paragraphs: string.IsNullOrEmpty(reasonLine)
+                    ? [$"Tu pedido de <strong>{actionLabel}</strong> fue <strong>rechazado</strong>."]
+                    : [$"Tu pedido de <strong>{actionLabel}</strong> fue <strong>rechazado</strong>.", reasonLine]);
         }
 
         EmailSendResult result;

@@ -29,11 +29,30 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
         => Ok(await _service.RegisterAsync(request, cancellationToken));
 
-    /// <summary>Autentica con email/contraseña y devuelve el JWT de sesión.</summary>
+    /// <summary>
+    /// Autentica con email/contraseña. Devuelve el JWT de sesión, salvo que el usuario
+    /// tenga el segundo factor activo: en ese caso devuelve un token de desafío y el
+    /// código va por correo (ver <see cref="VerifyTwoFactor"/>).
+    /// </summary>
     [HttpPost("login")]
     [AllowAnonymous]
-    public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<LoginResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
         => Ok(await _service.LoginAsync(request, cancellationToken));
+
+    /// <summary>Segundo paso del login con doble factor: canjea el código del correo por el JWT.</summary>
+    [HttpPost("two-factor/verify")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponse>> VerifyTwoFactor(VerifyTwoFactorRequest request, CancellationToken cancellationToken)
+        => Ok(await _service.VerifyTwoFactorAsync(request, cancellationToken));
+
+    /// <summary>Reenvía el código de doble factor para un desafío en curso.</summary>
+    [HttpPost("two-factor/resend")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResendTwoFactor(ResendTwoFactorRequest request, CancellationToken cancellationToken)
+    {
+        await _service.ResendTwoFactorAsync(request, cancellationToken);
+        return NoContent();
+    }
 
     /// <summary>
     /// Reemite el JWT del usuario autenticado con su rol y permisos al día, sin pedir

@@ -12,6 +12,7 @@ public static class ModuleCodes
 {
     public const string Alquileres = "alquileres";
     public const string Carwash = "carwash";
+    public const string Barbershop = "barbershop";
     public const string Citas = "citas";
     public const string Inventario = "inventario";
     public const string Facturacion = "facturacion";

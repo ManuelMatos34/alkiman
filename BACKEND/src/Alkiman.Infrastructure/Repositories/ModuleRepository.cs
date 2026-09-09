@@ -29,7 +29,26 @@ public class ModuleRepository : IModuleRepository
     public async Task<IReadOnlyList<string>> GetEnabledModuleCodesAsync(Guid landlordId, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
-        const string sql = "SELECT ModuleCode FROM dbo.CFG_LandlordModules WHERE LandlordId = @LandlordId";
+
+        // El JOIN contra el catálogo filtrando IsAvailable = 1 es lo que convierte esa
+        // bandera en un interruptor de verdad: un módulo retirado del catálogo deja de
+        // estar habilitado para todos, aunque conserven la fila en CFG_LandlordModules.
+        //
+        // Sin esto, bajar IsAvailable sólo pintaba el cartel de "Próximamente" en el
+        // selector: los negocios que ya lo tenían habilitado seguían entrando por URL
+        // directa y la API les seguía respondiendo. Con el filtro acá, la misma consulta
+        // cubre las tres puertas (selector, ModuleRoute del front y RequireModule del
+        // back), así que sacar o devolver un módulo es cambiar un bit y nada más.
+        //
+        // La fila de habilitación NO se borra a propósito: cuando el módulo vuelva a
+        // estar disponible, cada negocio lo recupera tal como lo tenía.
+        const string sql = """
+            SELECT lm.ModuleCode
+            FROM dbo.CFG_LandlordModules lm
+            INNER JOIN dbo.CFG_Modules m ON m.Code = lm.ModuleCode
+            WHERE lm.LandlordId = @LandlordId
+              AND m.IsAvailable = 1
+            """;
         var result = await connection.QueryAsync<string>(sql, new { LandlordId = landlordId });
         return result.ToList();
     }

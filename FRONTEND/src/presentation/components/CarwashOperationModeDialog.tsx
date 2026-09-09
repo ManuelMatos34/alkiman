@@ -30,7 +30,7 @@ const MODES: { value: CarwashOperationMode; icon: typeof Building2 }[] = [
 export function CarwashOperationModeDialog() {
   const { t } = useTranslation("carwash")
   const { hasPermission } = useAuth()
-  const canManage = hasPermission(PermissionCodes.CarwashManage)
+  const canManage = hasPermission(PermissionCodes.CarwashBoardManage)
   const { data: settings } = useCarwashSettings()
   const saveSettings = useSaveCarwashSettings()
   const [selected, setSelected] = useState<CarwashOperationMode>("Empresa")

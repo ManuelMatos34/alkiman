@@ -20,6 +20,7 @@ public class UserRepository : IUserRepository
         const string sql = """
             SELECT Id, LandlordId, RoleId, FullName, Email, PasswordHash, IsOwner, IsActive, TwoFactorEnabled,
                    MustChangePassword, ResetToken, ResetTokenExpiresAt,
+                   TwoFactorChallengeToken, TwoFactorCodeHash, TwoFactorCodeExpiresAt, TwoFactorAttempts,
                    CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
             FROM dbo.CFG_Users
             WHERE LandlordId = @LandlordId
@@ -35,6 +36,7 @@ public class UserRepository : IUserRepository
         const string sql = """
             SELECT Id, LandlordId, RoleId, FullName, Email, PasswordHash, IsOwner, IsActive, TwoFactorEnabled,
                    MustChangePassword, ResetToken, ResetTokenExpiresAt,
+                   TwoFactorChallengeToken, TwoFactorCodeHash, TwoFactorCodeExpiresAt, TwoFactorAttempts,
                    CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
             FROM dbo.CFG_Users
             WHERE Id = @Id
@@ -48,6 +50,7 @@ public class UserRepository : IUserRepository
         const string sql = """
             SELECT Id, LandlordId, RoleId, FullName, Email, PasswordHash, IsOwner, IsActive, TwoFactorEnabled,
                    MustChangePassword, ResetToken, ResetTokenExpiresAt,
+                   TwoFactorChallengeToken, TwoFactorCodeHash, TwoFactorCodeExpiresAt, TwoFactorAttempts,
                    CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
             FROM dbo.CFG_Users
             WHERE Email = @Email
@@ -130,12 +133,49 @@ public class UserRepository : IUserRepository
         await connection.ExecuteAsync(sql, new { Id = id, Token = token, ExpiresAtUtc = expiresAtUtc });
     }
 
+    public async Task SetTwoFactorChallengeAsync(
+        Guid id,
+        string? challengeToken,
+        string? codeHash,
+        DateTime? expiresAtUtc,
+        int attempts,
+        CancellationToken cancellationToken = default)
+    {
+        using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        // No toca UpdatedAt: el desafío es estado efímero de la sesión, no una edición
+        // del usuario, y ensuciaría la auditoría con un cambio por cada login.
+        const string sql = """
+            UPDATE dbo.CFG_Users
+            SET TwoFactorChallengeToken = @ChallengeToken,
+                TwoFactorCodeHash = @CodeHash,
+                TwoFactorCodeExpiresAt = @ExpiresAtUtc,
+                TwoFactorAttempts = @Attempts
+            WHERE Id = @Id
+            """;
+        await connection.ExecuteAsync(sql, new { Id = id, ChallengeToken = challengeToken, CodeHash = codeHash, ExpiresAtUtc = expiresAtUtc, Attempts = attempts });
+    }
+
+    public async Task<User?> GetByTwoFactorChallengeTokenAsync(string challengeToken, CancellationToken cancellationToken = default)
+    {
+        using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
+        const string sql = """
+            SELECT Id, LandlordId, RoleId, FullName, Email, PasswordHash, IsOwner, IsActive, TwoFactorEnabled,
+                   MustChangePassword, ResetToken, ResetTokenExpiresAt,
+                   TwoFactorChallengeToken, TwoFactorCodeHash, TwoFactorCodeExpiresAt, TwoFactorAttempts,
+                   CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
+            FROM dbo.CFG_Users
+            WHERE TwoFactorChallengeToken = @ChallengeToken
+            """;
+        return await connection.QuerySingleOrDefaultAsync<User>(sql, new { ChallengeToken = challengeToken });
+    }
+
     public async Task<User?> GetByResetTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         using var connection = await _connectionFactory.CreateOpenConnectionAsync(cancellationToken);
         const string sql = """
             SELECT Id, LandlordId, RoleId, FullName, Email, PasswordHash, IsOwner, IsActive, TwoFactorEnabled,
                    MustChangePassword, ResetToken, ResetTokenExpiresAt,
+                   TwoFactorChallengeToken, TwoFactorCodeHash, TwoFactorCodeExpiresAt, TwoFactorAttempts,
                    CreatedAt, CreatedBy, UpdatedAt, UpdatedBy
             FROM dbo.CFG_Users
             WHERE ResetToken = @Token

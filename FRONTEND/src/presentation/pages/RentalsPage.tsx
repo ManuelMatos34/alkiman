@@ -115,14 +115,15 @@ export function RentalsPage() {
       </div>
 
       <div className="rounded-lg border border-border/60">
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>{t("table.headers.asset")}</TableHead>
-              <TableHead>{t("table.headers.customer")}</TableHead>
-              <TableHead>{t("table.headers.startDate")}</TableHead>
-              <TableHead>{t("table.headers.endDate")}</TableHead>
-              <TableHead>{t("table.headers.totalPrice")}</TableHead>
+              <TableHead className="hidden sm:table-cell">{t("table.headers.customer")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("table.headers.startDate")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("table.headers.endDate")}</TableHead>
+              <TableHead className="hidden sm:table-cell">{t("table.headers.totalPrice")}</TableHead>
               <TableHead>{t("table.headers.status")}</TableHead>
             </TableRow>
           </TableHeader>
@@ -150,18 +151,26 @@ export function RentalsPage() {
             {paginatedRentals.map((rental) => (
               <TableRow key={rental.id}>
                 <TableCell className="font-medium">
-                  {assetNameById.get(rental.assetId) ?? t("table.emptyValue")}
+                  <div>{assetNameById.get(rental.assetId) ?? t("table.emptyValue")}</div>
+                  <div className="mt-0.5 text-xs text-muted-foreground sm:hidden">
+                    {customerNameById.get(rental.customerId) ?? t("table.emptyValue")}
+                    {" · "}
+                    {currencyFormatter.format(rental.totalPrice)}
+                  </div>
+                  <div className="mt-0.5 text-xs text-muted-foreground md:hidden sm:block hidden">
+                    {dateFormatter.format(new Date(rental.startDate))} – {dateFormatter.format(new Date(rental.endDate))}
+                  </div>
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden sm:table-cell text-muted-foreground">
                   {customerNameById.get(rental.customerId) ?? t("table.emptyValue")}
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden md:table-cell text-muted-foreground">
                   {dateFormatter.format(new Date(rental.startDate))}
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden md:table-cell text-muted-foreground">
                   {dateFormatter.format(new Date(rental.endDate))}
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   {currencyFormatter.format(rental.totalPrice)}
                 </TableCell>
                 <TableCell>
@@ -171,7 +180,7 @@ export function RentalsPage() {
                       handleStatusChange(rental.id, rental.status, value as RentalStatus)
                     }
                   >
-                    <SelectTrigger size="sm" className="w-[150px]">
+                    <SelectTrigger size="sm" className="w-[130px]">
                       <SelectValue asChild>
                         <Badge variant={statusVariants[rental.status]}>
                           {statusLabels[rental.status]}
@@ -193,6 +202,7 @@ export function RentalsPage() {
             ))}
           </TableBody>
         </Table>
+        </div>
         <TablePagination
           page={page}
           pageCount={pageCount}

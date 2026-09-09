@@ -1,3 +1,4 @@
+using Alkiman.Application.Barbershop;
 using Alkiman.Application.AssetBlocks;
 using Alkiman.Application.AssetGroups;
 using Alkiman.Application.Assets;
@@ -22,6 +23,7 @@ using Alkiman.Application.Reminders;
 using Alkiman.Application.Reports;
 using Alkiman.Application.Roles;
 using Alkiman.Application.Users;
+using Alkiman.Application.Vehicles;
 using Alkiman.Application.Payments.Gateways;
 using Alkiman.Infrastructure.BackgroundJobs;
 using Alkiman.Infrastructure.Email;
@@ -81,6 +83,8 @@ public static class DependencyInjection
         services.AddScoped<ICarwashTicketRepository, CarwashTicketRepository>();
         services.AddScoped<ICarwashWasherRepository, CarwashWasherRepository>();
         services.AddScoped<ICarwashMetricsRepository, CarwashMetricsRepository>();
+        services.AddScoped<IVehicleCatalogRepository, VehicleCatalogRepository>();
+        services.AddScoped<IBarbershopRepository, BarbershopRepository>();
         services.AddSingleton<IContractPdfRenderer, QuestPdfContractRenderer>();
 
         // Job en background: genera recordatorios automáticos 2 días antes del vencimiento

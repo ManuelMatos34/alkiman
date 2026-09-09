@@ -20,4 +20,23 @@ public interface IUserRepository
 
     /// <summary>Busca el usuario dueño de un token de recuperación vigente o vencido (la validación de vencimiento la hace el servicio).</summary>
     Task<User?> GetByResetTokenAsync(string token, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Guarda el desafío de segundo factor en curso, o lo borra pasando todo en null
+    /// (que es lo que se hace al verificarlo bien, al agotar los intentos y al vencer).
+    /// Pisa cualquier desafío anterior: sólo puede haber uno vivo por usuario.
+    /// </summary>
+    Task SetTwoFactorChallengeAsync(
+        Guid id,
+        string? challengeToken,
+        string? codeHash,
+        DateTime? expiresAtUtc,
+        int attempts,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Busca al usuario dueño de un token de desafío. Devuelve null si el token no
+    /// existe; el vencimiento y el conteo de intentos los evalúa el servicio.
+    /// </summary>
+    Task<User?> GetByTwoFactorChallengeTokenAsync(string challengeToken, CancellationToken cancellationToken = default);
 }

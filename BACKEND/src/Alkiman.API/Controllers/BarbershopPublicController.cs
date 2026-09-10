@@ -1,6 +1,8 @@
+using Alkiman.API.RateLimiting;
 using Alkiman.Application.Barbershop;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Alkiman.API.Controllers;
 
@@ -14,6 +16,7 @@ namespace Alkiman.API.Controllers;
 [ApiController]
 [Route("api/barbershop/public")]
 [AllowAnonymous]
+[EnableRateLimiting(RateLimitPolicies.Public)]
 public class BarbershopPublicController : ControllerBase
 {
     private readonly IBarbershopService _service;

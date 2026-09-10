@@ -1,5 +1,7 @@
+using Alkiman.API.RateLimiting;
 using Alkiman.Application.Portal;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Alkiman.API.Controllers;
 
@@ -10,6 +12,7 @@ namespace Alkiman.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/portal/{slug}/payment")]
+[EnableRateLimiting(RateLimitPolicies.Public)]
 public class PortalPaymentController : ControllerBase
 {
     private readonly IPortalPaymentService _service;

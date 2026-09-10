@@ -1,7 +1,9 @@
+using Alkiman.API.RateLimiting;
 using Alkiman.Application.Auth;
 using Alkiman.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Alkiman.API.Controllers;
 
@@ -26,6 +28,7 @@ public class AuthController : ControllerBase
     /// <summary>Crea una cuenta (negocio + credenciales) y devuelve el JWT de sesión.</summary>
     [HttpPost("register")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
         => Ok(await _service.RegisterAsync(request, cancellationToken));
 
@@ -36,18 +39,21 @@ public class AuthController : ControllerBase
     /// </summary>
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<ActionResult<LoginResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
         => Ok(await _service.LoginAsync(request, cancellationToken));
 
     /// <summary>Segundo paso del login con doble factor: canjea el código del correo por el JWT.</summary>
     [HttpPost("two-factor/verify")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<ActionResult<AuthResponse>> VerifyTwoFactor(VerifyTwoFactorRequest request, CancellationToken cancellationToken)
         => Ok(await _service.VerifyTwoFactorAsync(request, cancellationToken));
 
     /// <summary>Reenvía el código de doble factor para un desafío en curso.</summary>
     [HttpPost("two-factor/resend")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<IActionResult> ResendTwoFactor(ResendTwoFactorRequest request, CancellationToken cancellationToken)
     {
         await _service.ResendTwoFactorAsync(request, cancellationToken);
@@ -75,6 +81,7 @@ public class AuthController : ControllerBase
     /// </summary>
     [HttpPost("forgot-password")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request, CancellationToken cancellationToken)
     {
         await _service.ForgotPasswordAsync(request, cancellationToken);
@@ -84,6 +91,7 @@ public class AuthController : ControllerBase
     /// <summary>Confirma la recuperación de contraseña con el token recibido por email.</summary>
     [HttpPost("reset-password")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.Auth)]
     public async Task<IActionResult> ResetPassword(ResetPasswordRequest request, CancellationToken cancellationToken)
     {
         await _service.ResetPasswordAsync(request, cancellationToken);

@@ -1,20 +1,33 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Alkiman.API.Authorization;
+using Alkiman.API.Configuration;
 using Alkiman.API.Middleware;
 using Alkiman.API.Authentication;
+using Alkiman.API.RateLimiting;
 using Alkiman.API.Services;
 using Alkiman.Application;
 using Alkiman.Application.Common.Interfaces;
 using Alkiman.Application.Common.Permissions;
 using Alkiman.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---- Servicios de aplicación ----
+// ── Descifrado de configuración ───────────────────────────────────────────────
+// Los valores ENC(...) en appsettings se descifran en memoria usando la clave
+// CONFIG_ENCRYPTION_KEY del entorno. Si no está definida (p. ej. en desarrollo)
+// los valores quedan tal cual. Debe correr antes de leer cualquier secreto.
+builder.Configuration.DecryptEncryptedValues();
+
+// Quitar la cabecera "Server: Kestrel" de todas las respuestas
+builder.WebHost.ConfigureKestrel(kestrel => kestrel.AddServerHeader = false);
+
+// ── Servicios de aplicación ────────────────────────────────────────────────────
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -22,7 +35,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentLandlordService, CurrentLandlordService>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-// ---- Autenticación: JWT propio (emitido por AuthController) ----
+// ── Autenticación: JWT propio (emitido por AuthController) ────────────────────
 var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("Falta configurar 'Jwt:Secret' (User Secrets o variable de entorno).");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
@@ -56,7 +69,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // ponerle [RequireModule]: quedaría abierto a negocios que no compraron el módulo.
 ModuleGuardValidator.Validate(typeof(Program).Assembly);
 
-// ---- Autorización: una policy por permiso del catálogo (claim 'permission') ----
+// ── Autorización: una policy por permiso del catálogo (claim 'permission') ────
 builder.Services.AddAuthorization(options =>
 {
     foreach (var permission in PermissionCatalog.All)
@@ -65,10 +78,10 @@ builder.Services.AddAuthorization(options =>
     }
 });
 
-// ---- CORS (Frontend React) ----
+// ── CORS (Frontend React) ──────────────────────────────────────────────────────
 const string FrontendCorsPolicy = "FrontendCorsPolicy";
 var frontendOrigins = builder.Configuration.GetSection("Cors:FrontendOrigins").Get<string[]>()
-    ?? new[] { "http://localhost:5173", "http://localhost:3000" };
+    ?? ["http://localhost:5173", "http://localhost:3000"];
 
 builder.Services.AddCors(options =>
 {
@@ -78,7 +91,61 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod());
 });
 
-// ---- Controllers + Swagger (con soporte de Bearer JWT) ----
+// ── Rate limiting por IP ───────────────────────────────────────────────────────
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Red de seguridad global: 300 req/min por IP para todos los endpoints.
+    // Los endpoints específicos añaden políticas más estrictas encima de este límite.
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: GetClientIp(context),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 300,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+            }));
+
+    // Auth: ventana deslizante para mitigar brute-force en login/registro
+    // 10 req/min por IP (además del límite global de 300)
+    options.AddPolicy(RateLimitPolicies.Auth, context =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: GetClientIp(context),
+            factory: _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                SegmentsPerWindow = 6,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+            }));
+
+    // Portales y kioscos públicos: moderado para carga legítima sin excesos
+    // 60 req/min por IP
+    options.AddPolicy(RateLimitPolicies.Public, context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: GetClientIp(context),
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 60,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+            }));
+
+    static string GetClientIp(HttpContext ctx)
+    {
+        var forwarded = ctx.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(forwarded))
+            return forwarded.Split(',')[0].Trim();
+        return ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    }
+});
+
+// ── Controllers + Swagger (con soporte de Bearer JWT) ─────────────────────────
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -113,6 +180,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+// ════════════════════════════════════════════════════════════════════════════════
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -125,13 +194,27 @@ if (app.Environment.IsDevelopment())
     await PermissionSeedValidator.ValidateAsync(app.Services);
 }
 
+// ── Pipeline de middleware (orden importa) ────────────────────────────────────
+// 1. Captura todas las excepciones (debe ser primero)
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+// 2. Cabeceras de seguridad en todas las respuestas (incluyendo errores)
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
+// 3. Bloqueo de IPs en lista negra y detección de abuso de volumen
+app.UseMiddleware<IpBlocklistMiddleware>();
+
+// 4. HTTPS redirect fuera de desarrollo
 if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 
+// 5. CORS antes del rate limiter (preflight OPTIONS no debe consumir cuota)
 app.UseCors(FrontendCorsPolicy);
 
+// 6. Rate limiting por IP (se evalúa después de identificar el origen CORS)
+app.UseRateLimiter();
+
+// 7. Autenticación y autorización
 app.UseAuthentication();
 app.UseAuthorization();
 

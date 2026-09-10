@@ -1,3 +1,7 @@
+# Env files con valores reales de producción (nunca commitear)
+.env.production
+.env.*.local
+
 # Logs
 logs
 *.log

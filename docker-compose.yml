@@ -1,0 +1,89 @@
+services:
+
+  # ── SQL Server 2022 Express (gratis, suficiente para arrancar) ────────────────
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${SA_PASSWORD}"
+      MSSQL_PID: Express
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    restart: unless-stopped
+    networks:
+      - backend
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$SA_PASSWORD" -C -Q "SELECT 1" || exit 1
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ── API ASP.NET Core 8 ────────────────────────────────────────────────────────
+  api:
+    image: "${DOCKER_USERNAME}/alkiman-api:${IMAGE_TAG:-latest}"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: "${CONNECTION_STRING}"
+      Jwt__Secret: "${JWT_SECRET}"
+      Jwt__Issuer: AlkimanApi
+      Jwt__Audience: AlkimanClient
+      Jwt__ExpiryHours: "8"
+      Stripe__SecretKey: "${STRIPE_SECRET_KEY}"
+      Stripe__PublishableKey: "${STRIPE_PUBLISHABLE_KEY}"
+      Email__ResendApiKey: "${RESEND_API_KEY}"
+      Email__FromAddress: "${EMAIL_FROM_ADDRESS}"
+      Email__FromName: Alkiman
+      WhatsApp__PhoneNumberId: "${WHATSAPP_PHONE_NUMBER_ID}"
+      WhatsApp__AccessToken: "${WHATSAPP_ACCESS_TOKEN}"
+      WhatsApp__ApiVersion: v20.0
+      Cors__FrontendOrigins__0: "https://${DOMAIN}"
+      Frontend__BaseUrl: "https://${DOMAIN}"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - backend
+      - frontend
+
+  # ── Frontend React (Nginx sirviendo el build de Vite) ─────────────────────────
+  frontend:
+    image: "${DOCKER_USERNAME}/alkiman-frontend:${IMAGE_TAG:-latest}"
+    restart: unless-stopped
+    networks:
+      - frontend
+
+  # ── Nginx reverse proxy + SSL termination ─────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certbot/conf:/etc/letsencrypt:ro
+      - ./nginx/certbot/www:/var/www/certbot:ro
+    depends_on:
+      - api
+      - frontend
+    restart: unless-stopped
+    networks:
+      - frontend
+
+  # ── Certbot: renueva el certificado SSL automáticamente cada 12 horas ─────────
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./nginx/certbot/conf:/etc/letsencrypt
+      - ./nginx/certbot/www:/var/www/certbot
+    # Se queda corriendo en loop para renovar el certificado antes de que venza
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  sqlserver_data:
+
+networks:
+  backend:
+    internal: true   # SQL Server no es accesible desde internet, solo desde la API
+  frontend:

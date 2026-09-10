@@ -1,0 +1,62 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    name: Build images and deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── Autenticación en Docker Hub ─────────────────────────────────────────
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      # ── Build y push de la imagen del backend ──────────────────────────────
+      - name: Build & push API image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./BACKEND
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/alkiman-api:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/alkiman-api:latest
+
+      # ── Build y push de la imagen del frontend ─────────────────────────────
+      # Las variables VITE_* se hornean en el bundle en esta etapa.
+      - name: Build & push Frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./FRONTEND
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/alkiman-frontend:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/alkiman-frontend:latest
+          build-args: |
+            VITE_API_BASE_URL=https://${{ secrets.DOMAIN }}
+            VITE_APP_ENV=production
+
+      # ── Deploy al VPS vía SSH ───────────────────────────────────────────────
+      # El servidor hace pull de las nuevas imágenes y reinicia los contenedores.
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/alkiman
+            export DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+            export IMAGE_TAG="${{ github.sha }}"
+            docker compose pull api frontend
+            docker compose up -d --remove-orphans
+            # Limpiar imágenes viejas para no llenar el disco del VPS
+            docker image prune -f

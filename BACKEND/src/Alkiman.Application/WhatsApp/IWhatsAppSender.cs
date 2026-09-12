@@ -41,21 +41,19 @@ public static class WhatsAppTemplates
     /// Parámetros: {{1}} nombre, {{2}} placa, {{3}} estado
     /// Ejemplo body: "Hola {{1}}, el estado de tu vehículo {{2}} cambió a: *{{3}}*."
     /// </summary>
-    public const string CarwashStatus = "hello_world"; // TEMPORAL: usar mientras alkiman_cws_status está en revisión
+    public const string CarwashStatus = "alkiman_cws_status_v2"; // Categoría: MARKETING — {{1}} nombre, {{2}} placa, {{3}} estado
 
     /// <summary>
     /// Plantilla: cambio de estado con límite de tiempo (ArrivalPending).
     /// Parámetros: {{1}} nombre, {{2}} placa, {{3}} estado, {{4}} hora límite
-    /// Ejemplo body: "Hola {{1}}, tu vehículo {{2}} cambió a: *{{3}}*. Tienes hasta las {{4}} para llegar."
     /// </summary>
-    public const string CarwashStatusWithDeadline = "alkiman_carwash_status_deadline";
+    public const string CarwashStatusWithDeadline = "alkiman_cws_deadline_v2";
 
     /// <summary>
     /// Plantilla: notificación de propina al lavador.
     /// Parámetros: {{1}} nombre lavador, {{2}} monto propina, {{3}} número de turno, {{4}} total del día
-    /// Ejemplo body: "💸 ¡Hola {{1}}! Recibiste una propina de {{2}} en el turno #{{3}}. Tu total hoy: {{4}}."
     /// </summary>
-    public const string WasherTip = "alkiman_washer_tip";
+    public const string WasherTip = "alkiman_washer_tip_v2";
 
     /// <summary>
     /// Plantilla: confirmación de cita en barbería.
